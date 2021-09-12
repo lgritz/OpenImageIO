@@ -385,7 +385,7 @@ clamp (const simd::vint16& a, const simd::vint16& low, const simd::vint16& high)
 
 
 
-// For the multply+add (or sub) operations below, note that the results may
+// For the multiply+add (or sub) operations below, note that the results may
 // differ slightly on different hardware, depending on whether true fused
 // multiply and add is available or if the code generated just does an old
 // fashioned multiply followed by a separate add. So please interpret these
@@ -718,6 +718,27 @@ inline OIIO_HOSTDEVICE float sign (float x)
 }
 
 
+/// High-precision difference of two products `(a*b - c*d)` using fma
+/// to avoid catastrophic cancellation.
+/// See https://stackoverflow.com/questions/48979861/numerically-stable-method-for-solving-quadratic-equations/50065711#50065711
+/// https://pharr.org/matt/blog/2019/11/03/difference-of-floats
+inline OIIO_HOSTDEVICE float
+diff_of_products(float a, float b, float c, float d)
+{
+    float cd = c * d;
+    float err = std::fma(-c, d, cd);
+    float dop = std::fma(a, b, -cd);
+    return dop + err;
+}
+
+// // N.B. Using diff_of_products, we can implement a high precision quadratic
+// // solver:
+// void solve_quadratic (float a, float b, float c, float *x0, float *x1)
+// {
+//     float q = -0.5 * (b + std::copysign(std::sqrt(diff_of_products(b, b, 4.0f * a, c)), b));
+//     *x0 = q / a;
+//     *x1 = c / q;
+// }
 
 
 // (end of float helper functions)

@@ -181,9 +181,7 @@ test_math_functions()
 
     {
         float a = 2.5f, b = 1.5f, c = 8.5f;
-        clobber(a);
-        clobber(b);
-        clobber(c);
+        clobber(a, b, c);
         bench("madd fake a*b+c", [&]() { return DoNotOptimize(a * b + c); });
         bench("madd(a,b,c)",
               [&]() { return DoNotOptimize(OIIO::madd(a, b, c)); });
@@ -195,9 +193,7 @@ test_math_functions()
         OIIO_CHECK_EQUAL(clamp(2.5f, 1.5f, 8.5f), 2.5f);
         OIIO_CHECK_EQUAL(clamp(1.5f, 2.5f, 8.5f), 2.5f);
         OIIO_CHECK_EQUAL(clamp(8.5f, 1.5f, 2.5f), 2.5f);
-        clobber(a);
-        clobber(b);
-        clobber(c);
+        clobber(a, b, c);
         bench("clamp(f,f,f) middle",
               [&]() { return DoNotOptimize(clamp(a, b, c)); });
         bench("clamp(f,f,f) low",
