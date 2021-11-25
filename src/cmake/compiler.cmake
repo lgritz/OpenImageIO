@@ -267,23 +267,39 @@ endif ()
 # the proper compiler directives added to generate code for those ISA
 # capabilities.
 #
+# Add the appropriate compiler-specific flags via add_compile_options, and we
+# also stash the gcc/clang kind in SIMD_COMPILE_FLAGS.
 set (USE_SIMD "" CACHE STRING "Use SIMD directives (0, sse2, sse3, ssse3, sse4.1, sse4.2, avx, avx2, avx512f, f16c, aes)")
 set (SIMD_COMPILE_FLAGS "")
 if (NOT USE_SIMD STREQUAL "")
     message (STATUS "Compiling with SIMD level ${USE_SIMD}")
     if (USE_SIMD STREQUAL "0")
         set (SIMD_COMPILE_FLAGS ${SIMD_COMPILE_FLAGS} "-DOIIO_NO_SSE=1")
+        add_compile_options (-DOIIO_NO_SSE=1)
     else ()
         string (REPLACE "," ";" SIMD_FEATURE_LIST ${USE_SIMD})
         foreach (feature ${SIMD_FEATURE_LIST})
             if (VERBOSE)
                 message (STATUS "SIMD feature: ${feature}")
             endif ()
-            if (MSVC OR CMAKE_COMPILER_IS_INTEL)
-                set (SIMD_COMPILE_FLAGS ${SIMD_COMPILE_FLAGS} "/arch:${feature}")
+            if (MSVC)
+                # MSVC only understands a few particular switches. See
+                # https://docs.microsoft.com/en-us/cpp/build/reference/arch-x64?view=msvc-170
+                if ("${feature}" STREQUAL "avx512f")
+                    add_compile_options ("/arch:AVX512")
+                elseif ("${feature}" STREQUAL "avx2")
+                    add_compile_options ("/arch:AVX2")
+                elseif ("${feature}" STREQUAL "avx")
+                    add_compile_options ("/arch:AVX")
+                endif()
+            elseif (CMAKE_COMPILER_IS_INTEL AND WINDOWS)
+                # On Windows, Inte'ls compiler wants /arch syntax
+                add_compile_options ("/arch:${feature}")
             else ()
-                set (SIMD_COMPILE_FLAGS ${SIMD_COMPILE_FLAGS} "-m${feature}")
+                # gcc, clang, Intel when not on Windows: use -m
+                add_compile_options ("-m${feature}")
             endif ()
+            set (SIMD_COMPILE_FLAGS ${SIMD_COMPILE_FLAGS} "-m${feature}")
             if (feature STREQUAL "fma" AND (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG))
                 # If fma is requested, for numerical accuracy sake, turn it
                 # off by default except when we explicitly use madd. At some
@@ -293,7 +309,6 @@ if (NOT USE_SIMD STREQUAL "")
             endif ()
         endforeach()
     endif ()
-    add_compile_options (${SIMD_COMPILE_FLAGS})
 endif ()
 
 
