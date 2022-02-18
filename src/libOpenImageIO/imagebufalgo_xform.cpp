@@ -436,7 +436,7 @@ resize_(ImageBuf& dst, const ImageBuf& src, Filter2D* filter, ROI roi,
               << " support radius of " << radi << " x " << radj << " pixels\n";
     std::cout << "  " << xtaps << "x" << ytaps << " filter taps\n";
     std::cerr << "dst range " << roi << "\n";
-    std::cerr << "separable filter\n";
+    std::cerr << "separable filter? " << separable << "\n";
 #endif
 
         // Accumulate the weighted results in pel[]. We select a type big
@@ -735,13 +735,15 @@ ImageBufAlgo::fit(ImageBuf& dst, const ImageBuf& src, Filter2D* filter,
     int resize_full_height = fit_full_height;
     int xoffset = 0, yoffset = 0;
     float xoff = 0.0f, yoff = 0.0f;
-    float scale = 1.0f;
+    float xscale = 1.0f;
+    float yscale = 1.0f;
 
-    if (fillmode != "height" && fillmode != "width") {
+    if (fillmode != "height" && fillmode != "width" && fillmode != "fit"
+        && fillmode != "fill" && fillmode != "distort") {
         // Unknown fill mode: default to "letterbox"
         fillmode = "letterbox";
     }
-    if (fillmode == "letterbox") {
+    if (fillmode == "letterbox" || fillmode == "fit") {
         if (newaspect >= oldaspect) {
             // same or wider than original, fill to height
             fillmode = "height";
@@ -750,23 +752,52 @@ ImageBufAlgo::fit(ImageBuf& dst, const ImageBuf& src, Filter2D* filter,
             fillmode = "width";
         }
     }
-    if (fillmode == "height") {
+    if (fillmode == "fill") {
+        if (newaspect <= oldaspect) {
+            // same or thinner than original, fill to height
+            fillmode = "height";
+        } else {
+            // wider than original, so fill to width
+            fillmode = "width";
+        }
+    }
+    if (fillmode == "distort") {
+        xoffset = (fit_full_width - resize_full_width) / 2;
+        xscale  = float(fit_full_width) / float(srcspec.full_width);
+        yoffset = (fit_full_height - resize_full_height) / 2;
+        yscale  = float(fit_full_height) / float(srcspec.full_height);
+        xoff = float(fit_full_width - xscale * srcspec.full_width) / 2.0f;
+        yoff = float(fit_full_height - yscale * srcspec.full_height) / 2.0f;
+    } else if (fillmode == "height") {
         resize_full_width = int(resize_full_height * oldaspect + 0.5f);
+        resize_full_width = std::min(resize_full_width, fit_full_width);
         xoffset           = (fit_full_width - resize_full_width) / 2;
-        scale             = float(fit_full_height) / float(srcspec.full_height);
-        xoff = float(fit_full_width - scale * srcspec.full_width) / 2.0f;
+        yscale            = float(fit_full_height) / float(srcspec.full_height);
+        xscale            = yscale;
+        xoff = float(fit_full_width - xscale * srcspec.full_width) / 2.0f;
     } else if (fillmode == "width") {
+        Strutil::print("fillmode 'width', original request w={} h={}\n", roi.width(), roi.height());
+        Strutil::print("  resize_full_width = {}, oldaspect = {}, rsw/oldaspect = {}\n",
+                       resize_full_width, oldaspect, resize_full_width / oldaspect);
+        Strutil::print("  rsw/oldaspect+0.5 = {}\n",
+                       resize_full_width / oldaspect + 0.5f);
+        Strutil::print("  int(rsw/oldaspect+0.5 = {})\n",
+                       int(resize_full_width / oldaspect + 0.5f));
         resize_full_height = int(resize_full_width / oldaspect + 0.5f);
+        resize_full_height = std::min(resize_full_height, fit_full_height);
         yoffset            = (fit_full_height - resize_full_height) / 2;
-        scale              = float(fit_full_width) / float(srcspec.full_width);
-        yoff = float(fit_full_height - scale * srcspec.full_height) / 2.0f;
+        xscale             = float(fit_full_width) / float(srcspec.full_width);
+        yscale             = xscale;
+        yoff = float(fit_full_height - yscale * srcspec.full_height) / 2.0f;
+        Strutil::print("width mode, resize_full_height = {}, yoffset = {}, scale = {}, yoff = {}\n",
+                       resize_full_height, yoffset, yscale, yoff);
     }
 
     ROI newroi(fit_full_x, fit_full_x + fit_full_width, fit_full_y,
                fit_full_y + fit_full_height, 0, 1, 0, srcspec.nchannels);
-    // std::cout << "  Fitting " << srcspec.roi()
-    //           << " into " << newroi << "\n";
-    // std::cout << "  Fit scale factor " << scale << "\n";
+    std::cout << "  Fitting " << srcspec.roi()
+              << " into " << newroi << "\n";
+    std::cout << "  Fit scale factor " << xscale << "x" << yscale << "\n";
 
     // Set up a shared pointer with custom deleter to make sure any
     // filter we allocate here is properly destroyed.
@@ -787,8 +818,8 @@ ImageBufAlgo::fit(ImageBuf& dst, const ImageBuf& src, Filter2D* filter,
         // ratio and exactly centers the padded image, but might make the
         // edges of the resized area blurry because it's not a whole number
         // of pixels.
-        Imath::M33f M(scale, 0.0f, 0.0f, 0.0f, scale, 0.0f, xoff, yoff, 1.0f);
-        // std::cout << "   Fit performing warp with " << M << "\n";
+        Imath::M33f M(xscale, 0.0f, 0.0f, 0.0f, yscale, 0.0f, xoff, yoff, 1.0f);
+        std::cout << "   Fit exact performing warp with " << M << "\n";
         ImageSpec newspec = srcspec;
         newspec.set_roi(newroi);
         newspec.set_roi_full(newroi);
