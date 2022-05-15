@@ -86,6 +86,8 @@ static bool runstats               = false;
 static Imath::M33f xform;
 static std::string texoptions;
 static std::string gtiname;
+static std::string tmpdir("./tmp");
+static std::vector<std::string> filenames_to_delete;
 void* dummyptr;
 
 typedef void (*Mapping2D)(const int&, const int&, float&, float&, float&,
@@ -222,6 +224,8 @@ getargs(int argc, const char* argv[])
       .help("Test queries of statistics");
     ap.arg("--runstats", &runstats)
       .help("Print runtime statistics");
+    ap.arg("--tmpdir %s:DIR", &tmpdir)
+      .help("Set temporary directory");
 
     // clang-format on
     ap.parse(argc, argv);
@@ -1689,5 +1693,12 @@ main(int argc, const char* argv[])
 
     if (verbose)
         std::cout << "\nustrings: " << ustring::getstats(false) << "\n\n";
+
+    // Delete any temporary files we created
+    for (auto&& f : filenames_to_delete) {
+        std::string err;
+        Filesystem::remove(f, err);
+    }
+
     return 0;
 }
