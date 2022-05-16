@@ -87,6 +87,8 @@ static Imath::M33f xform;
 static std::string texoptions;
 static std::string gtiname;
 static std::string tmpdir("./tmp");
+static std::string maketest_template;
+static int num_test_files = 0;
 static std::vector<std::string> filenames_to_delete;
 void* dummyptr;
 
@@ -226,12 +228,14 @@ getargs(int argc, const char* argv[])
       .help("Print runtime statistics");
     ap.arg("--tmpdir %s:DIR", &tmpdir)
       .help("Set temporary directory");
+    ap.arg("--maketests %d:NUMFILES %s:TEMPLATE", &num_test_files,  &maketest_template)
+      .help("Make tests from a template (e.g., \"tmp/test{:04}.exr\")");
 
     // clang-format on
     ap.parse(argc, argv);
 
-    if (filenames.size() < 1 && !test_construction && !test_getimagespec
-        && !testhash) {
+    if (filenames.size() < 1 && !num_test_files && !test_construction
+        && !test_getimagespec && !testhash) {
         std::cerr << "testtex: Must have at least one input file\n";
         ap.usage();
         exit(EXIT_FAILURE);
@@ -1459,6 +1463,70 @@ test_icwrite(int testicwrite)
 
 
 
+// Return a repeatable hash-based pseudo-random value uniform on [0,1).
+// It's a hash, so it's completely deterministic, based on x,y,z,c,seed.
+// But it can be used in similar ways to a PRNG.
+OIIO_FORCEINLINE float
+hashrand(int x, int y, int z, int c, int seed)
+{
+    const uint32_t magic = 0xfffff;
+    uint32_t xu(x), yu(y), zu(z), cu(c), seedu(seed);
+    using bjhash::bjfinal;
+    uint32_t h = bjfinal(bjfinal(xu, yu, zu), cu, seedu) & magic;
+    return h * (1.0f / (magic + 1));
+}
+
+
+
+static void
+make_temp_noise_file(string_view filename, int seed)
+{
+    ImageSpec spec(2048, 2048, 4,
+                   Filesystem::extension(filename) == ".exr" ? TypeHalf
+                                                             : TypeUInt16);
+    ImageBuf buf(spec);
+    float c0[4] = { hashrand(1, 0, 0, 0, seed + 23 * 0),
+                    hashrand(0, 1, 0, 0, seed + 23 * 0),
+                    hashrand(0, 0, 1, 0, seed + 23 * 0), 1.0f };
+    float c1[4] = { hashrand(1, 0, 0, 0, seed + 23 * 1),
+                    hashrand(0, 1, 0, 0, seed + 23 * 1),
+                    hashrand(0, 0, 1, 0, seed + 23 * 1), 1.0f };
+    float c2[4] = { hashrand(1, 0, 0, 0, seed + 23 * 2),
+                    hashrand(0, 1, 0, 0, seed + 23 * 2),
+                    hashrand(0, 0, 1, 0, seed + 23 * 2), 1.0f };
+    float c3[4] = { hashrand(1, 0, 0, 0, seed + 23 * 3),
+                    hashrand(0, 1, 0, 0, seed + 23 * 3),
+                    hashrand(0, 0, 1, 0, seed + 23 * 3), 1.0f };
+    ImageBufAlgo::fill(buf, c0, c1, c2, c3);
+    ImageSpec config;
+    ImageBufAlgo::make_texture(ImageBufAlgo::MakeTxTexture, buf, filename,
+                               config);
+    filenames.emplace_back(filename);
+    filenames_to_delete.push_back(filename);
+}
+
+
+
+// If asked to make our own test files, do it now
+static void
+make_test_files()
+{
+    Timer timer;
+    int n = 0;
+    for (int i = 0; n < num_test_files; ++i) {
+        std::string filename = Strutil::fmt::format(maketest_template, i);
+        Strutil::print("Temp file {}: {}\n", i, filename);
+        if (!Filesystem::exists(filename)) {
+            make_temp_noise_file(filename, i);
+            ++n;
+        }
+    }
+    Strutil::print("Created {} test files in {}\n\n", filenames_to_delete.size(),
+                   Strutil::timeintervalformat(timer()));
+}
+
+
+
 int
 main(int argc, const char* argv[])
 {
@@ -1509,6 +1577,10 @@ main(int argc, const char* argv[])
             dummyptr = &copy;  // This forces the optimizer to keep the loop
         }
         Strutil::print("TextureOpt copy: {} ns\n", t());
+    }
+
+    if (num_test_files > 0) {
+        make_test_files();
     }
 
     if (testicwrite && filenames.size()) {
