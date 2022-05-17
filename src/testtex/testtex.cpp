@@ -83,6 +83,7 @@ static bool test_statquery         = false;
 static bool invalidate_before_iter = true;
 static bool close_before_iter      = false;
 static bool runstats               = false;
+static bool udim_tests             = false;
 static Imath::M33f xform;
 static std::string texoptions;
 static std::string gtiname;
@@ -90,6 +91,8 @@ static std::string tmpdir("./tmp");
 static std::string maketest_template;
 static int num_test_files = 0;
 static std::vector<std::string> filenames_to_delete;
+const int pieces_per_udim = 20;
+static std::vector<TextureSystem::TextureHandle*> texture_handles;
 void* dummyptr;
 
 typedef void (*Mapping2D)(const int&, const int&, float&, float&, float&,
@@ -230,6 +233,8 @@ getargs(int argc, const char* argv[])
       .help("Set temporary directory");
     ap.arg("--maketests %d:NUMFILES %s:TEMPLATE", &num_test_files,  &maketest_template)
       .help("Make tests from a template (e.g., \"tmp/test{:04}.exr\")");
+    ap.arg("--udim", &udim_tests)
+      .help("Do udim-oriented tests");
 
     // clang-format on
     ap.parse(argc, argv);
@@ -1192,16 +1197,20 @@ do_tex_thread_workout(int iterations, int mythread)
     TextureSystem::Perthread* perthread_info = texsys->get_perthread_info();
     int pixel, whichfile = 0;
 
-    std::vector<TextureSystem::TextureHandle*> texture_handles;
-    for (auto f : filenames)
-        texture_handles.emplace_back(texsys->get_texture_handle(f));
-
     ImageSpec spec0;
-    bool ok = texsys->get_imagespec(filenames[0], 0, spec0);
-    if (!ok) {
-        Strutil::fprintf(std::cerr, "Unexpected error: %s\n",
-                         texsys->geterror());
-        return;
+    if (texsys->is_udim(filenames[0])) {
+        auto th = texsys->resolve_udim(filenames[0], 0.5f, 0.5f);
+        if (!th || !texsys->get_imagespec(th, nullptr, 0, spec0)) {
+            Strutil::print(std::cerr, "Unexpected error with {}: {}\n",
+                           filenames[0], texsys->geterror());
+        }
+    } else {
+        bool ok = texsys->get_imagespec(filenames[0], 0, spec0);
+        if (!ok) {
+            Strutil::print(std::cerr, "Unexpected error: {}\n",
+                           texsys->geterror());
+            return;
+        }
     }
     // Compute a filter size that's between the second and third MIP levels.
     float fw   = (1.0f / spec0.width) * 1.5f * 2.0;
@@ -1280,6 +1289,10 @@ do_tex_thread_workout(int iterations, int mythread)
             s = (((2 * pixel) % spec0.width) + 0.5f) / spec0.width;
             t = (((2 * ((2 * pixel) / spec0.width)) % spec0.height) + 0.5f)
                 / spec0.height;
+            if (udim_tests) {
+                s *= 10.0f;
+                t *= float ((pieces_per_udim + 9) / 10);
+            }
             if (use_handle)
                 ok = texsys->texture(texture_handles[whichfile], perthread_info,
                                      opt, s, t, dsdx, dtdx, dsdy, dtdy,
@@ -1501,7 +1514,6 @@ make_temp_noise_file(string_view filename, int seed)
     ImageSpec config;
     ImageBufAlgo::make_texture(ImageBufAlgo::MakeTxTexture, buf, filename,
                                config);
-    filenames.emplace_back(filename);
     filenames_to_delete.push_back(filename);
 }
 
@@ -1515,14 +1527,36 @@ make_test_files()
     int n = 0;
     for (int i = 0; n < num_test_files; ++i) {
         std::string filename = Strutil::fmt::format(maketest_template, i);
-        Strutil::print("Temp file {}: {}\n", i, filename);
-        if (!Filesystem::exists(filename)) {
-            make_temp_noise_file(filename, i);
+        bool do_print
+            = (num_test_files <= 10 || i <= 4 || i >= num_test_files - 5
+               || (num_test_files < 200 && (i % 10) == 0) || (i % 100) == 0);
+        if (do_print) {
+            Strutil::print("Temp file {}: {}\n", i, filename);
+            fflush(stdout);
+        }
+        if (udim_tests) {
+            // Strutil::print("UDIM {}\n", filename);
+            for (int u = 0; u < pieces_per_udim && n < num_test_files; ++u) {
+                std::string udim_filename
+                    = Strutil::replace(filename, "<UDIM>",
+                                       Strutil::fmt::format("{:04d}", u+1001));
+                if (do_print)
+                    Strutil::print("    {}\n", udim_filename);
+                if (!Filesystem::exists(udim_filename))
+                    make_temp_noise_file(udim_filename, i + u * 19);
+                ++n;
+            }
+            filenames.emplace_back(filename);
+        } else {
+            if (!Filesystem::exists(filename))
+                make_temp_noise_file(filename, i);
             ++n;
+            filenames.emplace_back(filename);
         }
     }
     Strutil::print("Created {} test files in {}\n\n", filenames_to_delete.size(),
                    Strutil::timeintervalformat(timer()));
+    fflush(stdout);
 }
 
 
@@ -1579,6 +1613,10 @@ main(int argc, const char* argv[])
         Strutil::print("TextureOpt copy: {} ns\n", t());
     }
 
+    if (maketest_template.size()
+        && Strutil::contains(maketest_template, "<UDIM>"))
+        udim_tests = true;
+
     if (num_test_files > 0) {
         make_test_files();
     }
@@ -1626,6 +1664,11 @@ main(int argc, const char* argv[])
     Imath::M33f persp(2, 0, 0, 0, 0.8, -0.55, 0, 0, 1);
     xform = persp * rot * trans * scale;
     xform.invert();
+
+    for (auto f : filenames) {
+        texture_handles.emplace_back(texsys->get_texture_handle(f));
+        // Strutil::print("tex {} -> {:p}\n", f, (void*)texture_handles.back());
+    }
 
     if (threadtimes) {
         // If the --iters flag was used, do that number of iterations total
@@ -1712,19 +1755,19 @@ main(int argc, const char* argv[])
         if (!strcmp(texturetype, "Environment")) {
             test_environment(filename);
         }
-        test_getimagespec_gettexels(filename);
+        if (!udim_tests)
+            test_getimagespec_gettexels(filename);
         if (runstats || verbose)
-            std::cout << "Time: " << Strutil::timeintervalformat(timer())
-                      << "\n";
+            Strutil::print("Time: {}\n", Strutil::timeintervalformat(timer()));
     }
 
     if (test_statquery) {
-        std::cout << "Testing statistics queries:\n";
+        Strutil::print("Testing statistics queries:\n");
         int total_files = 0;
         texsys->getattribute("total_files", total_files);
-        std::cout << "  Total files: " << total_files << "\n";
+        Strutil::print("  Total files: {}\n", total_files);
         std::vector<ustring> all_filenames(total_files);
-        std::cout << TypeDesc(TypeDesc::STRING, total_files) << "\n";
+        Strutil::print("{}\n", TypeDesc(TypeDesc::STRING, total_files));
         texsys->getattribute("all_filenames",
                              TypeDesc(TypeDesc::STRING, total_files),
                              &all_filenames[0]);
@@ -1757,14 +1800,14 @@ main(int argc, const char* argv[])
     }
 
     if (runstats || verbose) {
-        std::cout << "Memory use: "
-                  << Strutil::memformat(Sysutil::memory_used(true)) << "\n";
-        std::cout << texsys->getstats(verbose ? 2 : 0) << "\n";
+        Strutil::print("Memory use: {}\n",
+                       Strutil::memformat(Sysutil::memory_used(true)));
+        Strutil::print("{}\n", texsys->getstats(verbose ? 2 : 0));
     }
     TextureSystem::destroy(texsys);
 
     if (verbose)
-        std::cout << "\nustrings: " << ustring::getstats(false) << "\n\n";
+        Strutil::print("\nustrings: {}\n\n", ustring::getstats(false));
 
     // Delete any temporary files we created
     for (auto&& f : filenames_to_delete) {
