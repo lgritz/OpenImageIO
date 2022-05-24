@@ -450,8 +450,10 @@ ImageCacheFile::open(ImageCachePerThreadInfo* thread_info)
     // to the ImageInput. If it exists, return it. Unless the file is
     // marked as broken, in which case return an empty pointer.
     std::shared_ptr<ImageInput> inp = get_imageinput(thread_info);
-    if (m_broken)
-        return {};
+    if (m_broken) {
+        inp.reset();
+        return inp;
+    }
     if (inp)
         return inp;
 
@@ -473,8 +475,10 @@ ImageCacheFile::open(ImageCachePerThreadInfo* thread_info)
     // redundantly open the file and one will get quickly closed and
     // discarded?
     inp = get_imageinput(thread_info);
-    if (m_broken)
-        return {};
+    if (m_broken) {
+        inp.reset();
+        return inp;
+    }
     if (inp)
         return inp;
 
@@ -502,7 +506,8 @@ ImageCacheFile::open(ImageCachePerThreadInfo* thread_info)
     if (!inp) {
         mark_broken(OIIO::geterror());
         invalidate_spec();
-        return {};
+        inp.reset();
+        return inp;
     }
 
     ImageSpec nativespec, tempspec;
@@ -525,7 +530,7 @@ ImageCacheFile::open(ImageCachePerThreadInfo* thread_info)
     if (!ok) {
         mark_broken(inp->geterror());
         inp.reset();
-        return {};
+        return inp;
     }
     m_fileformat = ustring(inp->format_name());
     ++m_timesopened;
@@ -607,7 +612,7 @@ ImageCacheFile::open(ImageCachePerThreadInfo* thread_info)
                 mark_broken(
                     "Subimages don't all have the same number of channels");
                 invalidate_spec();
-                return {};
+                return inp;
             }
             // ImageCache can't store differing formats per channel
             tempspec.channelformats.clear();
@@ -662,7 +667,7 @@ ImageCacheFile::open(ImageCachePerThreadInfo* thread_info)
             mark_broken("image was untiled");
             invalidate_spec();
             inp.reset();
-            return {};
+            return inp;
         }
         if (si.unmipped && !imagecache().accept_unmipped() &&
             // Allow unmip-mapped for null inputs (user buffers)
@@ -670,7 +675,7 @@ ImageCacheFile::open(ImageCachePerThreadInfo* thread_info)
             mark_broken("image was not MIP-mapped");
             invalidate_spec();
             inp.reset();
-            return {};
+            return inp;
         }
         // Make sure we didn't set the subimage's mip_mip_level past the end
         si.min_mip_level = std::min(si.min_mip_level, nmip - 1);
