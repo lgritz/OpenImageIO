@@ -743,6 +743,10 @@ public:
         = tsl::robin_map<ustring, ImageCacheFile*, ustringHash>;
     ThreadFilenameMap m_thread_files;
 
+    using ThreadTileMap
+        = tsl::robin_map<TileID, ImageCacheTileRef, TileID::Hasher>;
+    ThreadTileMap m_thread_tiles;
+
     // We have a two-tile "microcache", storing the last two tiles needed.
     ImageCacheTileRef tile, lasttile;
     atomic_int purge;  // If set, tile ptrs need purging!
@@ -771,6 +775,13 @@ public:
     {
         auto f = m_thread_files.find(n);
         return f == m_thread_files.end() ? nullptr : f->second;
+    }
+
+    // See if a tile is in our per-thread map
+    ImageCacheTileRef find_tile(const TileID& id) const
+    {
+        auto f = m_thread_tiles.find(id);
+        return f == m_thread_tiles.end() ? nullptr : f->second;
     }
 };
 
@@ -1017,8 +1028,22 @@ public:
                 return true;
             }
         }
-        return find_tile_main_cache(id, tile, thread_info);
+        ImageCacheTileRef tthread = thread_info->find_tile(id);
+        if (tthread) {
+            // Found it in the per-thread map
+            // thread_info->lasttile.swap(tile);
+            tile.swap(tthread);
+            tile->use();
+            return true;
+        }
+        bool ok = find_tile_main_cache(id, tile, thread_info);
         // N.B. find_tile_main_cache marks the tile as used
+
+        // Add to the local thread cache, too
+        if (ok)
+            thread_info->m_thread_tiles[id] = tile;
+
+        return ok;
     }
 
     virtual Tile* get_tile(ustring filename, int subimage, int miplevel, int x,

@@ -3736,6 +3736,7 @@ ImageCacheImpl::get_perthread_info(ImageCachePerThreadInfo* p)
         p->lasttile = NULL;
         p->purge    = 0;
         p->m_thread_files.clear();
+        p->m_thread_tiles.clear();
     }
     return p;
 }
