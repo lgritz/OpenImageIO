@@ -2520,6 +2520,68 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
 
 
 
+void
+ImageCachePerThreadInfo::check_max_thread_mem()
+{
+    if (m_thread_tiles.empty())
+        return;
+    // Allow up to 1/4 of cache size be held by the thread.
+    size_t max_mem_bytes = m_imagecache.max_memory_bytes() / 4;
+    if (m_thread_tile_mem_used < max_mem_bytes)
+        return;  // early out, we're not at the limit yet
+    ThreadTileMap::iterator sweep = m_thread_tiles.end();
+    if (!m_thread_tile_sweep_id.empty()) {
+        // We saved the sweep_id. Find the iterator corresponding to it.
+        sweep = m_thread_tiles.find(m_thread_tile_sweep_id);
+        // Note: if the sweep_id is no longer in the table, sweep will be an
+        // empty iterator. That's ok, it will be fixed early in the main
+        // loop below.
+    }
+
+    // Loop while we still use too much tile memory.  Also, be careful
+    // of looping for too long, exit the loop if we just keep spinning
+    // uncontrollably.
+    int full_loops = 0;
+    while (m_thread_tile_mem_used >= max_mem_bytes && full_loops < 2) {
+        // If we have fallen off the end of the cache, loop back to the
+        // beginning and increment our full_loops count.
+        if (sweep == m_thread_tiles.end()) {
+            sweep = m_thread_tiles.begin();
+            ++full_loops;
+        }
+        // If we're STILL at the end, it must be that somehow the entire
+        // cache is empty.  So just declare ourselves done.
+        if (sweep == m_thread_tiles.end())
+            break;
+        OIIO_ASSERT(sweep != m_thread_tiles.end() && sweep->second);
+        if (!sweep->second->used()) {
+            // This is a tile that no thread has used for a while, so let's
+            // delete it from our thread's cache. Deleting from the map will
+            // invalidate iterators. So to keep iterating safely, we have a
+            // good trick:
+            // 1. remember the TileID of the tile to delete.
+            TileID todelete = sweep->first;
+            size_t size     = sweep->second->memsize();
+            // 2. Find the TileID of the NEXT item. We do this by
+            // incrementing the sweep iterator and grabbing its id.
+            ++sweep;
+            m_thread_tile_sweep_id
+                = (sweep != m_thread_tiles.end() ? sweep->first : TileID());
+            // 3. Erase the tile we wish to delete.
+            m_thread_tiles.erase(todelete);
+            OIIO_ASSERT(m_thread_tile_mem_used > size);
+            m_thread_tile_mem_used -= size;
+            // 4. Re-establish an iterator for the next item, since
+            // the old iterator may have been invalidated by the erasure.
+            if (!m_thread_tile_sweep_id.empty())
+                sweep = m_thread_tiles.find(m_thread_tile_sweep_id);
+        } else {
+            ++sweep;
+        }
+    }
+}
+
+
 std::string
 ImageCacheImpl::resolve_filename(const std::string& filename) const
 {
@@ -3689,7 +3751,7 @@ ImageCacheImpl::inventory_udim(ImageCacheFile* udimfile, Perthread* thread_info,
 ImageCachePerThreadInfo*
 ImageCacheImpl::create_thread_info()
 {
-    ImageCachePerThreadInfo* p = new ImageCachePerThreadInfo;
+    ImageCachePerThreadInfo* p = new ImageCachePerThreadInfo(*this);
     // printf ("New perthread %p\n", (void *)p);
     spin_lock lock(m_perthread_info_mutex);
     m_all_perthread_info.push_back(p);
@@ -3719,15 +3781,10 @@ ImageCacheImpl::destroy_thread_info(ImageCachePerThreadInfo* thread_info)
 ImageCachePerThreadInfo*
 ImageCacheImpl::get_perthread_info(ImageCachePerThreadInfo* p)
 {
-    if (!p)
-        p = m_perthread_info.get();
     if (!p) {
-        p = new ImageCachePerThreadInfo;
-        m_perthread_info.reset(p);
-        // printf ("New perthread %p\n", (void *)p);
-        spin_lock lock(m_perthread_info_mutex);
-        m_all_perthread_info.push_back(p);
-        p->shared = true;  // both the IC and the thread point to it
+        p = m_perthread_info.get();
+        if (!p)
+            p = create_thread_info();
     }
     if (p->purge) {  // has somebody requested a tile purge?
         // This is safe, because it's our thread.

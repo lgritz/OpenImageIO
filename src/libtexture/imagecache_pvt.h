@@ -746,7 +746,9 @@ public:
     using ThreadTileMap
         = tsl::robin_map<TileID, ImageCacheTileRef, TileID::Hasher>;
     ThreadTileMap m_thread_tiles;
-
+    size_t m_thread_tile_mem_used = 0; // Tile mem in m_thread_tiles;
+    TileID m_thread_tile_sweep_id;    // Sweeper for "clock" paging algorithm
+    
     // We have a two-tile "microcache", storing the last two tiles needed.
     ImageCacheTileRef tile, lasttile;
     atomic_int purge;  // If set, tile ptrs need purging!
@@ -756,9 +758,10 @@ public:
     int64_t find_tile_found_nextlast = 0;
     int64_t find_tile_found_threadmap = 0;
     int64_t find_tile_added_threadmap = 0;
+    ImageCacheImpl& m_imagecache;
 
 
-    ImageCachePerThreadInfo()
+    ImageCachePerThreadInfo(ImageCacheImpl& imagecache) : m_imagecache(imagecache)
     {
         // Strutil::print("Creating PerThreadInfo {:p}\n", (void*)this);
         purge = 0;
@@ -793,6 +796,7 @@ public:
     {
         m_thread_tiles.emplace(id, tile);
         ++find_tile_added_threadmap;
+        m_thread_tile_mem_used += tile->memsize();
     }
 
     // See if a tile is in our per-thread map
@@ -801,6 +805,8 @@ public:
         auto f = m_thread_tiles.find(id);
         return f == m_thread_tiles.end() ? nullptr : f->second.get();
     }
+
+    void check_max_thread_mem();
 };
 
 
@@ -869,6 +875,7 @@ public:
 
     // Retrieve options
     int max_open_files() const { return m_max_open_files; }
+    long long max_memory_bytes() const { return m_max_memory_bytes; }
     const std::string& searchpath() const { return m_searchpath; }
     const std::string& plugin_searchpath() const { return m_plugin_searchpath; }
     int autotile() const { return m_autotile; }
