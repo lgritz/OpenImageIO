@@ -752,16 +752,28 @@ public:
     atomic_int purge;  // If set, tile ptrs need purging!
     ImageCacheStatistics m_stats;
     bool shared = false;  // Pointed to by the IC and thread_specific_ptr
+    int64_t find_tile_found_last = 0;
+    int64_t find_tile_found_nextlast = 0;
+    int64_t find_tile_found_threadmap = 0;
+    int64_t find_tile_added_threadmap = 0;
+
 
     ImageCachePerThreadInfo()
     {
-        // std::cout << "Creating PerThreadInfo " << (void*)this << "\n";
+        // Strutil::print("Creating PerThreadInfo {:p}\n", (void*)this);
         purge = 0;
     }
 
     ~ImageCachePerThreadInfo()
     {
-        // std::cout << "Destroying PerThreadInfo " << (void*)this << "\n";
+        Strutil::print("Destroying PerThreadInfo {:p}\n", (void*)this);
+        Strutil::print(" {:p} find_tile calls: {}\n"
+              "     last tile {}, next to last tile {}\n"
+              "     found in thread map {}, found in main cache then threadmap {}\n"
+              "     per-thread map size {}\n",
+              (void*)this, m_stats.find_tile_calls, find_tile_found_last,
+              find_tile_found_nextlast, find_tile_found_threadmap,
+              find_tile_added_threadmap, m_thread_tiles.size());
     }
 
     // Add a new filename/fileptr pair to our microcache
@@ -771,17 +783,23 @@ public:
     }
 
     // See if a filename has a fileptr in the microcache
-    ImageCacheFile* find_file(ustring n) const
+    OIIO_NODISCARD ImageCacheFile* find_file(ustring n) const
     {
         auto f = m_thread_files.find(n);
         return f == m_thread_files.end() ? nullptr : f->second;
     }
 
+    void remember_tile(const TileID& id, ImageCacheTile* tile)
+    {
+        m_thread_tiles.emplace(id, tile);
+        ++find_tile_added_threadmap;
+    }
+
     // See if a tile is in our per-thread map
-    ImageCacheTileRef find_tile(const TileID& id) const
+    OIIO_NODISCARD ImageCacheTile* find_tile(const TileID& id) const
     {
         auto f = m_thread_tiles.find(id);
-        return f == m_thread_tiles.end() ? nullptr : f->second;
+        return f == m_thread_tiles.end() ? nullptr : f->second.get();
     }
 };
 
@@ -1017,6 +1035,7 @@ public:
             if (tile->id() == id) {
                 if (mark_same_tile_used)
                     tile->use();
+                ++thread_info->find_tile_found_last;
                 return true;  // already have the tile we want
             }
             // Tile didn't match, maybe lasttile will?  Swap tile
@@ -1024,24 +1043,28 @@ public:
             // or we'll fall through and replace tile.
             tile.swap(thread_info->lasttile);
             if (tile && tile->id() == id) {
+                ++thread_info->find_tile_found_nextlast;
                 tile->use();
                 return true;
             }
         }
-        ImageCacheTileRef tthread = thread_info->find_tile(id);
-        if (tthread) {
+        ImageCacheTile* tilethread = thread_info->find_tile(id);
+        if (tilethread) {
             // Found it in the per-thread map
             // thread_info->lasttile.swap(tile);
-            tile.swap(tthread);
+            tile.reset(tilethread);
             tile->use();
+            ++thread_info->find_tile_found_threadmap;
             return true;
         }
         bool ok = find_tile_main_cache(id, tile, thread_info);
         // N.B. find_tile_main_cache marks the tile as used
 
         // Add to the local thread cache, too
-        if (ok)
-            thread_info->m_thread_tiles[id] = tile;
+        if (ok) {
+            // thread_info->m_thread_tiles[id] = tile;
+            thread_info->remember_tile(id, tile.get());
+        }
 
         return ok;
     }
