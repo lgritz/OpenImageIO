@@ -1654,6 +1654,7 @@ ImageCacheImpl::init()
     m_latlong_y_up_default = true;
     m_Mw2c.makeIdentity();
     m_mem_used                = 0;
+    m_main_cache_mem_used     = 0;
     m_statslevel              = 0;
     m_max_errors_per_file     = 100;
     m_stat_tiles_created      = 0;
@@ -1925,6 +1926,8 @@ ImageCacheImpl::getstats(int level) const
         }
         print(out, "    Peak cache memory : {}\n",
               Strutil::memformat(m_mem_used));
+        print(out, "    Peak main cache tile memory : {}\n",
+              Strutil::memformat(m_main_cache_mem_used));
         if (stats.tile_locking_time > 0.001)
             print(out, "    Tile mutex locking time : {}\n",
                   Strutil::timeintervalformat(stats.tile_locking_time));
@@ -2296,6 +2299,7 @@ ImageCacheImpl::getattribute(string_view name, TypeDesc type, void* val) const
     if (Strutil::starts_with(name, "stat:")) {
         // Stats we can just grab
         ATTR_DECODE("stat:cache_memory_used", long long, m_mem_used);
+        ATTR_DECODE("stat:main_cache_memory_used", long long, m_main_cache_mem_used);
         ATTR_DECODE("stat:tiles_created", int, m_stat_tiles_created);
         ATTR_DECODE("stat:tiles_current", int, m_stat_tiles_current);
         ATTR_DECODE("stat:tiles_peak", int, m_stat_tiles_peak);
@@ -2411,6 +2415,7 @@ ImageCacheImpl::add_tile_to_cache(ImageCacheTileRef& tile,
             thread_info->m_stats.fileio_time += readtime;
             tile->id().file().iotime() += readtime;
         }
+        m_main_cache_mem_used += tile->memsize();
         check_max_mem(thread_info);
     } else {
         // Somebody else already added the tile to the cache before we
@@ -2436,7 +2441,8 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     if (m_tilecache.empty())
         return;
     // Early out if we aren't exceeding the tile memory limit
-    if (m_mem_used < (long long)m_max_memory_bytes)
+    long long max_memory_bytes = m_max_memory_bytes;
+    if (m_mem_used < max_memory_bytes || m_main_cache_mem_used < max_memory_bytes)
         return;
 
     // Try to grab the tile_sweep_mutex lock. If somebody else holds it,
@@ -2469,7 +2475,9 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     // of looping for too long, exit the loop if we just keep spinning
     // uncontrollably.
     int full_loops = 0;
-    while (m_mem_used >= (long long)m_max_memory_bytes && full_loops < 100) {
+    while (m_mem_used >= max_memory_bytes && full_loops < 10) {
+        if (m_main_cache_mem_used < max_memory_bytes / 2)
+            break;
         // If we have fallen off the end of the cache, loop back to the
         // beginning and increment our full_loops count.
         if (!sweep) {
@@ -2496,6 +2504,8 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
             // 3. Release the bin lock and erase the tile we wish to delete.
             sweep.unlock();
             m_tilecache.erase(todelete);
+            OIIO_DASSERT(m_main_cache_mem_used >= (long long)size);
+            m_main_cache_mem_used -= (long long)size;
             // 4. Re-establish a locked iterator for the next item, since
             // the old iterator may have been invalidated by the erasure.
             if (!m_tile_sweep_id.empty())

@@ -773,10 +773,11 @@ public:
         Strutil::print(" {:p} find_tile calls: {}\n"
               "     last tile {}, next to last tile {}\n"
               "     found in thread map {}, found in main cache then threadmap {}\n"
-              "     per-thread map size {}\n",
+              "     per-thread map size {} = {} MB\n",
               (void*)this, m_stats.find_tile_calls, find_tile_found_last,
               find_tile_found_nextlast, find_tile_found_threadmap,
-              find_tile_added_threadmap, m_thread_tiles.size());
+              find_tile_added_threadmap, m_thread_tiles.size(),
+              m_thread_tile_mem_used >> 20);
     }
 
     // Add a new filename/fileptr pair to our microcache
@@ -1069,7 +1070,7 @@ public:
 
         // Add to the local thread cache, too
         if (ok) {
-            // thread_info->m_thread_tiles[id] = tile;
+            // check_max_thread_mem();
             thread_info->remember_tile(id, tile.get());
         }
 
@@ -1254,7 +1255,8 @@ private:
     TileID m_tile_sweep_id;         ///< Sweeper for "clock" paging algorithm
     spin_mutex m_tile_sweep_mutex;  ///< Ensure only one in check_max_mem
 
-    atomic_ll m_mem_used;       ///< Memory being used for tiles
+    atomic_ll m_mem_used;       ///< Memory being used for all tiles
+    atomic_ll m_main_cache_mem_used;  ///< Memory used for tiles in main cache
     int m_statslevel;           ///< Statistics level
     int m_max_errors_per_file;  ///< Max errors to print for each file.
 
