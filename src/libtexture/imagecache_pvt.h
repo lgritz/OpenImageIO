@@ -4,7 +4,7 @@
 
 
 /// \file
-/// Non-public classes used internally by ImgeCacheImpl.
+/// Non-public classes used internally by ImageCacheImpl.
 
 
 #ifndef OPENIMAGEIO_IMAGECACHE_PVT_H
@@ -589,6 +589,96 @@ private:
     int m_miplevel;            ///< MIP-map level
     short m_chbegin, m_chend;  ///< Channel range
     ImageCacheFile* m_file;    ///< Which ImageCacheFile we refer to
+};
+
+
+
+/// Record for the pixel data of an image tile.
+///
+class TilePixels final : public RefCnt {
+public:
+    /// Construct a new TilePixels, including reading the pixels.
+    TilePixels(const TileID& id, ImageCachePerThreadInfo* thread_info);
+
+    /// Construct a new tile out of the pixels supplied.
+    TilePixels(const TileID& id, const void* pels, TypeDesc format,
+               stride_t xstride, stride_t ystride, stride_t zstride,
+               bool copy = true);
+
+    ~TilePixels();
+
+    /// Return pointer to the raw pixel data
+    OIIO_FORCEINLINE const void* data(void) const noexcept
+    {
+        return m_pixels.get();
+    }
+
+    /// Return pointer to the pixel data for a particular pixel.  Be
+    /// extremely sure the pixel is within this tile!
+    const void* data(int x, int y, int z, int c) const;
+
+    /// Return pointer to the floating-point pixel data
+    const float* floatdata(void) const noexcept { return (const float*)data(); }
+
+    /// Return a pointer to the character data
+    const unsigned char* bytedata(void) const noexcept
+    {
+        return (unsigned char*)data();
+    }
+
+    /// Return a pointer to unsigned short data
+    const unsigned short* ushortdata(void) const noexcept
+    {
+        return (unsigned short*)data();
+    }
+
+    /// Return a pointer to half data
+    const half* halfdata(void) const noexcept { return (half*)data(); }
+
+    /// Return the id for this tile.
+    const TileID& id(void) const noexcept { return m_id; }
+
+    const ImageCacheFile& file() const noexcept { return m_id.file(); }
+
+    /// Return the actual allocated memory size for this tile's pixels.
+    size_t memsize() const noexcept { return m_pixels_size; }
+
+    /// Return the space that will be needed for this tile's pixels.
+    size_t memsize_needed() const {
+        const ImageSpec& spec(file().spec(m_id.subimage(), m_id.miplevel()));
+        size_t s = spec.tile_pixels() * pixelsize();
+        // N.B. Round up so we can use a SIMD fetch for the last pixel and
+        // channel without running off the end.
+        s += OIIO_SIMD_MAX_SIZE_BYTES;
+        return s;
+    }
+
+    bool valid(void) const noexcept { return m_valid; }
+    int channelsize() const noexcept { return m_channelsize; }
+    int pixelsize() const noexcept { return m_pixelsize; }
+
+    // 1D index of the 2D tile coordinate. 64 bit safe.
+    imagesize_t pixel_index(int tile_s, int tile_t) const noexcept
+    {
+        return imagesize_t(tile_t) * m_tile_width + tile_s;
+    }
+
+    // Offset in bytes into the tile memory of the given 2D tile pixel
+    // coordinates.  64 bit safe.
+    imagesize_t pixel_offset(int tile_s, int tile_t) const noexcept
+    {
+        return m_pixelsize * pixel_index(tile_s, tile_t);
+    }
+
+private:
+    std::unique_ptr<char[]> m_pixels;  ///< The pixel data
+    TileID m_id;                       ///< ID of this tile
+    size_t m_pixels_size { 0 };        ///< How much m_pixels has allocated
+    int m_channelsize { 0 };           ///< How big is each channel (bytes)
+    int m_pixelsize { 0 };             ///< How big is each pixel (bytes)
+    int m_tile_width { 0 };            ///< Tile width
+    bool m_valid { false };            ///< Valid pixels
+    bool m_nofree { false };  ///< We do NOT own the pixels, do not free!
 };
 
 

@@ -1457,6 +1457,128 @@ ImageCacheImpl::set_min_cache_size(long long newsize)
 
 
 
+TilePixels::TilePixels(const TileID& id, ImageCachePerThreadInfo* thread_info)
+    : m_id(id)
+{
+    id.file().imagecache().incr_tiles(0);  // mem counted separately in read
+
+    ImageCacheFile& file(m_id.file());
+    m_channelsize = file.datatype(id.subimage()).size();
+    m_pixelsize   = m_id.nchannels() * m_channelsize;
+    size_t size   = memsize_needed();
+    OIIO_ASSERT(memsize() == 0 && size > OIIO_SIMD_MAX_SIZE_BYTES);
+    m_pixels.reset(new char[m_pixels_size = size]);
+    file.imagecache().incr_mem(size);
+    // Clear the end pad values so there aren't NaNs sucked up by simd loads
+    memset(m_pixels.get() + size - OIIO_SIMD_MAX_SIZE_BYTES, 0,
+           OIIO_SIMD_MAX_SIZE_BYTES);
+    m_valid = file.read_tile(thread_info, m_id.subimage(), m_id.miplevel(),
+                             m_id.x(), m_id.y(), m_id.z(), m_id.chbegin(),
+                             m_id.chend(), file.datatype(m_id.subimage()),
+                             m_pixels.get());
+    if (m_valid) {
+        ImageCacheFile::LevelInfo& lev(
+            file.levelinfo(m_id.subimage(), m_id.miplevel()));
+        m_tile_width = lev.spec.tile_width;
+        OIIO_DASSERT(m_tile_width > 0);
+        int whichtile = ((m_id.x() - lev.spec.x) / lev.spec.tile_width)
+                        + ((m_id.y() - lev.spec.y) / lev.spec.tile_height)
+                              * lev.nxtiles
+                        + ((m_id.z() - lev.spec.z) / lev.spec.tile_depth)
+                              * (lev.nxtiles * lev.nytiles);
+        int index       = whichtile / 64;
+        int64_t bitmask = int64_t(1ULL << (whichtile & 63));
+        int64_t oldval  = lev.tiles_read[index].fetch_or(bitmask);
+        if (oldval & bitmask)  // Was it previously read?
+            file.register_redundant_tile(lev.spec.tile_bytes());
+    } else {
+        // (! m_valid)
+        if (file.mod_time() != Filesystem::last_write_time(file.filename()))
+            file.imagecache().error(
+                "File \"{}\" was modified after being opened by OIIO",
+                file.filename());
+        file.imagecache().error(
+            "Error reading from \"{}\" (subimg={}, mip={}, tile@{},{},{})",
+            file.filename(), m_id.subimage(), m_id.miplevel(), m_id.x(),
+            m_id.y(), m_id.z());
+#if 0
+        std::cerr << "(1) error reading tile " << m_id.x() << ' ' << m_id.y()
+                  << ' ' << m_id.z()
+                  << " subimg=" << m_id.subimage()
+                  << " mip=" << m_id.miplevel()
+                  << " from " << file.filename() << "\n";
+#endif
+    }
+}
+
+
+
+TilePixels::TilePixels(const TileID& id, const void* pels, TypeDesc format,
+                       stride_t xstride, stride_t ystride, stride_t zstride,
+                       bool copy)
+    : m_id(id)
+{
+    ImageCacheFile& file(m_id.file());
+    const ImageSpec& spec(file.spec(id.subimage(), id.miplevel()));
+    m_channelsize = file.datatype(id.subimage()).size();
+    m_pixelsize   = id.nchannels() * m_channelsize;
+    m_tile_width  = spec.tile_width;
+    if (copy) {
+        size_t size = memsize_needed();
+        OIIO_ASSERT_MSG(size > 0 && memsize() == 0,
+                        "size was %llu, memsize = %llu",
+                        (unsigned long long)size,
+                        (unsigned long long)memsize());
+        m_pixels_size = size;
+        m_pixels.reset(new char[m_pixels_size]);
+        m_valid = convert_image(id.nchannels(), spec.tile_width,
+                                spec.tile_height, spec.tile_depth, pels, format,
+                                xstride, ystride, zstride, m_pixels.get(),
+                                file.datatype(id.subimage()), m_pixelsize,
+                                m_pixelsize * spec.tile_width,
+                                m_pixelsize * spec.tile_width
+                                    * spec.tile_height);
+    } else {
+        m_nofree      = true;  // Don't free the pointer!
+        m_pixels_size = 0;
+        m_pixels.reset((char*)pels);
+        m_valid = true;
+    }
+    id.file().imagecache().incr_tiles(m_pixels_size);
+}
+
+
+
+TilePixels::~TilePixels()
+{
+    m_id.file().imagecache().decr_tiles(memsize());
+    if (m_nofree)
+        m_pixels.release();  // release without freeing
+}
+
+
+
+const void*
+TilePixels::data(int x, int y, int z, int c) const
+{
+    const ImageSpec& spec = m_id.file().spec(m_id.subimage(), m_id.miplevel());
+    size_t w              = spec.tile_width;
+    size_t h              = spec.tile_height;
+    size_t d              = spec.tile_depth;
+    OIIO_DASSERT(d >= 1);
+    x -= m_id.x();
+    y -= m_id.y();
+    z -= m_id.z();
+    if (x < 0 || x >= (int)w || y < 0 || y >= (int)h || z < 0 || z >= (int)d
+        || c < m_id.chbegin() || c > m_id.chend())
+        return nullptr;
+    size_t offset = ((z * h + y) * w + x) * pixelsize()
+                    + (c - m_id.chbegin()) * channelsize();
+    return m_pixels.get() + offset;
+}
+
+
+
 ImageCacheTile::ImageCacheTile(const TileID& id)
     : m_id(id)
     , m_valid(true)
