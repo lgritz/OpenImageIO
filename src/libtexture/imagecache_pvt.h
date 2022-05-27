@@ -63,7 +63,8 @@ struct ImageCacheStatistics {
     // First, the ImageCache-specific fields:
     long long find_tile_calls;
     long long find_tile_microcache_misses;
-    int find_tile_cache_misses;
+    long long find_tile_thread_cache_misses;
+    long long find_tile_main_cache_misses;
     long long files_totalsize;
     long long files_totalsize_ondisk;
     long long bytes_read;
@@ -711,14 +712,12 @@ public:
     const ImageCacheFile& file() const { return m_id.file(); }
 
     /// Return the actual allocated memory size for this tile's pixels.
-    ///
     size_t memsize_() const { return m_pixels_size; }
 
     /// Return the space that will be needed for this tile's pixels.
     size_t memsize_needed() const;
 
     /// Mark the tile as recently used.
-    ///
     void use() { m_used = 1; }
 
     /// Mark the tile as not recently used, return its previous value.
@@ -739,6 +738,7 @@ public:
     bool valid(void) const { return m_valid; }
     int channelsize() const { return m_channelsize; }
     int pixelsize() const { return m_pixelsize; }
+    bool ok_to_free_pixels() const { return !m_nofree && !m_noreclaim; }
 
     // Retrieve a ref-counted pointer to the TilePixels for this tile. If the
     // pixels aren't resident, load them now. This is thread-safe.
@@ -763,6 +763,14 @@ public:
     {
         m_tilepixels_mutex.write_lock();
         m_tilepixels = tp;
+        m_tilepixels_mutex.write_unlock();
+    }
+
+    // Thread-safe reassign the tile pixels.
+    void release_tilepixels()
+    {
+        m_tilepixels_mutex.write_lock();
+        m_tilepixels.reset();
         m_tilepixels_mutex.write_unlock();
     }
 
@@ -1100,7 +1108,10 @@ public:
     bool find_tile(const TileID& id, ImageCachePerThreadInfo* thread_info,
                    bool mark_same_tile_used)
     {
-        ++thread_info->m_stats.find_tile_calls;
+        ImageCacheStatistics& stats(thread_info->m_stats);
+        ++stats.find_tile_calls;
+
+        // First, check the per-thread 2-tile microcache
         ImageCacheTileRef& tile(thread_info->tile);
         if (tile) {
             if (tile->id() == id) {
@@ -1119,15 +1130,20 @@ public:
                 return true;
             }
         }
+        ++stats.find_tile_microcache_misses;
+
+        // Next, try the per-thread full cache
         ImageCacheTile* tilethread = thread_info->find_tile(id);
         if (tilethread) {
             // Found it in the per-thread map
             // thread_info->lasttile.swap(tile);
             tile.reset(tilethread);
             tile->use();
-            ++thread_info->find_tile_found_threadmap;
             return true;
         }
+        ++stats.find_tile_thread_cache_misses;
+
+        // Finally, try the main shared cache
         bool ok = find_tile_main_cache(id, tile, thread_info);
         // N.B. find_tile_main_cache marks the tile as used
 
@@ -1189,26 +1205,37 @@ public:
     /// the number of simultaneously-opened files.
     void decr_open_files(void) { --m_stat_open_files_current; }
 
-    /// Called when a new tile is created, to update all the stats.
-    ///
-    void incr_tiles(size_t size)
+    /// Called when a new TilePixels is created, to update all the stats.
+    void incr_tilepixels(size_t size)
     {
-        ++m_stat_tiles_created;
-        atomic_max(m_stat_tiles_peak, ++m_stat_tiles_current);
-        m_mem_used += size;
+        ++m_stat_tilepixels_created;
+        atomic_max(m_stat_tilepixels_peak, ++m_stat_tilepixels_current);
+        m_pixel_mem_used += size;
     }
 
-    /// Called when a tile's pixel memory is allocated, but a new tile
-    /// is not created.
-    void incr_mem(size_t size) { m_mem_used += size; }
-
-    /// Called when a tile is destroyed, to update all the stats.
-    ///
-    void decr_tiles(size_t size)
+    /// Called when a TilePixels is destroyed, to update all the stats.
+    void decr_tilepixels(size_t size)
     {
-        --m_stat_tiles_current;
-        m_mem_used -= size;
-        OIIO_DASSERT(m_mem_used >= 0);
+        --m_stat_tilepixels_current;
+        m_pixel_mem_used -= size;
+        OIIO_DASSERT(m_pixel_mem_used >= 0);
+    }
+
+    /// Called when a TilePixels pixel memory is allocated, but a new tile
+    /// is not created.
+    void incr_pixelmem_(size_t size) { m_pixel_mem_used += size; }
+
+    /// Called when a new ImageCacheTile is created, to update all the stats.
+    void incr_cachetiles()
+    {
+        ++m_stat_cachetiles_created;
+        atomic_max(m_stat_cachetiles_peak, ++m_stat_cachetiles_current);
+    }
+
+    /// Called when a ImageCacheTile is destroyed, to update all the stats.
+    void decr_cachetiles()
+    {
+        --m_stat_cachetiles_current;
     }
 
     /// Internal error reporting routine, with std::format-like arguments.
@@ -1318,9 +1345,9 @@ private:
     TileID m_tile_sweep_id;         ///< Sweeper for "clock" paging algorithm
     spin_mutex m_tile_sweep_mutex;  ///< Ensure only one in check_max_mem
 
-    atomic_ll m_mem_used;       ///< Memory being used for all tiles
-    int m_statslevel;           ///< Statistics level
-    int m_max_errors_per_file;  ///< Max errors to print for each file.
+    atomic_ll m_pixel_mem_used;       ///< Memory being used for all tile pixels
+    int m_statslevel;                 ///< Statistics level
+    int m_max_errors_per_file;        ///< Max errors to print for each file.
 
     /// Saved error string, per-thread
     ///
@@ -1330,9 +1357,12 @@ private:
 
 private:
     // Statistics that are really hard to track per-thread
-    atomic_int m_stat_tiles_created;
-    atomic_int m_stat_tiles_current;
-    atomic_int m_stat_tiles_peak;
+    atomic_int m_stat_cachetiles_created;
+    atomic_int m_stat_cachetiles_current;
+    atomic_int m_stat_cachetiles_peak;
+    atomic_int m_stat_tilepixels_created;
+    atomic_int m_stat_tilepixels_current;
+    atomic_int m_stat_tilepixels_peak;
     atomic_int m_stat_open_files_created;
     atomic_int m_stat_open_files_current;
     atomic_int m_stat_open_files_peak;
