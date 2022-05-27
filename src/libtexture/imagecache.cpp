@@ -2427,27 +2427,9 @@ ImageCacheImpl::add_tile_to_cache(ImageCacheTileRef& tile,
                                   ImageCachePerThreadInfo* thread_info)
 {
     bool ourtile = m_tilecache.insert_retrieve(tile->id(), tile, tile);
-
-    // If we added a new tile to the cache, we may still need to read the
-    // pixels; and if we found the tile in cache, we may need to wait for
-    // somebody else to read the pixels.
-    bool ok = true;
-    if (ourtile) {
-        // if (!tile->pixels_ready()) {
-        //     Timer timer;
-        //     ok              = tile->read(thread_info);
-        //     double readtime = timer();
-        //     thread_info->m_stats.fileio_time += readtime;
-        //     tile->id().file().iotime() += readtime;
-        // }
+    if (ourtile)
         check_max_mem(thread_info);
-    } else {
-        // Somebody else already added the tile to the cache before we
-        // could, so we'll use their reference, but we need to wait until it
-        // has read in the pixels.
-        // tile->wait_pixels_ready();
-    }
-    return ok;
+    return true;
 }
 
 
@@ -2548,70 +2530,6 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     // retain no locks on the cache.
 }
 
-
-
-void
-ImageCachePerThreadInfo::check_max_thread_mem()
-{
-#if 0
-    if (m_thread_tiles.empty())
-        return;
-    // Allow up to 1/4 of cache size be held by the thread.
-    size_t max_mem_bytes = m_imagecache.max_memory_bytes() / 4;
-    if (m_thread_tile_mem_used < max_mem_bytes)
-        return;  // early out, we're not at the limit yet
-    ThreadTileMap::iterator sweep = m_thread_tiles.end();
-    if (!m_thread_tile_sweep_id.empty()) {
-        // We saved the sweep_id. Find the iterator corresponding to it.
-        sweep = m_thread_tiles.find(m_thread_tile_sweep_id);
-        // Note: if the sweep_id is no longer in the table, sweep will be an
-        // empty iterator. That's ok, it will be fixed early in the main
-        // loop below.
-    }
-
-    // Loop while we still use too much tile memory.  Also, be careful
-    // of looping for too long, exit the loop if we just keep spinning
-    // uncontrollably.
-    int full_loops = 0;
-    while (m_thread_tile_mem_used >= max_mem_bytes && full_loops < 2) {
-        // If we have fallen off the end of the cache, loop back to the
-        // beginning and increment our full_loops count.
-        if (sweep == m_thread_tiles.end()) {
-            sweep = m_thread_tiles.begin();
-            ++full_loops;
-        }
-        // If we're STILL at the end, it must be that somehow the entire
-        // cache is empty.  So just declare ourselves done.
-        if (sweep == m_thread_tiles.end())
-            break;
-        OIIO_ASSERT(sweep != m_thread_tiles.end() && sweep->second);
-        if (!sweep->second->used()) {
-            // This is a tile that no thread has used for a while, so let's
-            // delete it from our thread's cache. Deleting from the map will
-            // invalidate iterators. So to keep iterating safely, we have a
-            // good trick:
-            // 1. remember the TileID of the tile to delete.
-            TileID todelete = sweep->first;
-            size_t size     = sweep->second->memsize();
-            // 2. Find the TileID of the NEXT item. We do this by
-            // incrementing the sweep iterator and grabbing its id.
-            ++sweep;
-            m_thread_tile_sweep_id
-                = (sweep != m_thread_tiles.end() ? sweep->first : TileID());
-            // 3. Erase the tile we wish to delete.
-            m_thread_tiles.erase(todelete);
-            OIIO_ASSERT(m_thread_tile_mem_used > size);
-            // m_thread_tile_mem_used -= size;
-            // 4. Re-establish an iterator for the next item, since
-            // the old iterator may have been invalidated by the erasure.
-            if (!m_thread_tile_sweep_id.empty())
-                sweep = m_thread_tiles.find(m_thread_tile_sweep_id);
-        } else {
-            ++sweep;
-        }
-    }
-#endif
-}
 
 
 std::string

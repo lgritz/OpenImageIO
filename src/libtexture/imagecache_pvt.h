@@ -871,8 +871,6 @@ public:
         auto f = m_thread_tiles.find(id);
         return f == m_thread_tiles.end() ? nullptr : f->second.get();
     }
-
-    void check_max_thread_mem();
 };
 
 
