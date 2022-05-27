@@ -716,10 +716,9 @@ public:
 
     /// Return the actual allocated memory size for this tile's pixels.
     ///
-    size_t memsize() const { return m_pixels_size; }
+    size_t memsize_() const { return m_pixels_size; }
 
     /// Return the space that will be needed for this tile's pixels.
-    ///
     size_t memsize_needed() const;
 
     /// Mark the tile as recently used.
@@ -754,19 +753,6 @@ public:
 
     int channelsize() const { return m_channelsize; }
     int pixelsize() const { return m_pixelsize; }
-
-    // 1D index of the 2D tile coordinate. 64 bit safe.
-    imagesize_t pixel_index(int tile_s, int tile_t) const
-    {
-        return imagesize_t(tile_t) * m_tile_width + tile_s;
-    }
-
-    // Offset in bytes into the tile memory of the given 2D tile pixel
-    // coordinates.  64 bit safe.
-    imagesize_t pixel_offset(int tile_s, int tile_t) const
-    {
-        return m_pixelsize * pixel_index(tile_s, tile_t);
-    }
 
     // Retrieve a ref-counted pointer to the TilePixels for this tile. If the
     // pixels aren't resident, load them now. This is thread-safe.
@@ -846,7 +832,6 @@ public:
     using ThreadTileMap
         = tsl::robin_map<TileID, ImageCacheTileRef, TileID::Hasher>;
     ThreadTileMap m_thread_tiles;
-    size_t m_thread_tile_mem_used = 0; // Tile mem in m_thread_tiles;
     TileID m_thread_tile_sweep_id;    // Sweeper for "clock" paging algorithm
     
     // We have a two-tile "microcache", storing the last two tiles needed.
@@ -873,11 +858,10 @@ public:
         Strutil::print(" {:p} find_tile calls: {}\n"
               "     last tile {}, next to last tile {}\n"
               "     found in thread map {}, found in main cache then threadmap {}\n"
-              "     per-thread map size {} = {} MB\n",
+              "     per-thread map size {}\n",
               (void*)this, m_stats.find_tile_calls, find_tile_found_last,
               find_tile_found_nextlast, find_tile_found_threadmap,
-              find_tile_added_threadmap, m_thread_tiles.size(),
-              m_thread_tile_mem_used >> 20);
+              find_tile_added_threadmap, m_thread_tiles.size());
     }
 
     // Add a new filename/fileptr pair to our microcache
@@ -897,7 +881,6 @@ public:
     {
         m_thread_tiles.emplace(id, tile);
         ++find_tile_added_threadmap;
-        m_thread_tile_mem_used += tile->memsize();
     }
 
     // See if a tile is in our per-thread map
@@ -1356,7 +1339,6 @@ private:
     spin_mutex m_tile_sweep_mutex;  ///< Ensure only one in check_max_mem
 
     atomic_ll m_mem_used;       ///< Memory being used for all tiles
-    atomic_ll m_main_cache_mem_used;  ///< Memory used for tiles in main cache
     int m_statslevel;           ///< Statistics level
     int m_max_errors_per_file;  ///< Max errors to print for each file.
 

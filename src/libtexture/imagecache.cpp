@@ -1586,6 +1586,9 @@ ImageCacheTile::ImageCacheTile(const TileID& id)
     , m_tilepixels(new TilePixels(id, nullptr))
     , m_valid(true)
 {
+    m_channelsize = m_tilepixels->channelsize();
+    m_pixelsize   = m_tilepixels->pixelsize();
+    m_tile_width  = m_tilepixels->tile_width();
     id.file().imagecache().incr_tiles(0);  // mem counted separately in read
 }
 
@@ -1599,25 +1602,13 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
           new TilePixels(id, pels, format, xstride, ystride, zstride, copy))
     , m_noreclaim(true)
 {
-    ImageCacheFile& file(m_id.file());
-    const ImageSpec& spec(file.spec(id.subimage(), id.miplevel()));
-    m_channelsize = file.datatype(id.subimage()).size();
-    m_pixelsize   = id.nchannels() * m_channelsize;
-    m_tile_width  = spec.tile_width;
+    // ImageCacheFile& file(m_id.file());
+    // const ImageSpec& spec(file.spec(id.subimage(), id.miplevel()));
+    m_channelsize = m_tilepixels->channelsize();
+    m_pixelsize   = m_tilepixels->pixelsize();
+    m_tile_width  = m_tilepixels->tile_width();
     if (copy) {
-        size_t size = memsize_needed();
-        OIIO_ASSERT_MSG(size > 0 && memsize() == 0,
-                        "size was %llu, memsize = %llu",
-                        (unsigned long long)size,
-                        (unsigned long long)memsize());
-        m_pixels_size = size;
-        // m_pixels.reset(new char[m_pixels_size]);
-        // m_valid
-        //     = convert_image(id.nchannels(), spec.tile_width, spec.tile_height,
-        //                     spec.tile_depth, pels, format, xstride, ystride,
-        //                     zstride, &m_pixels[0], file.datatype(id.subimage()),
-        //                     m_pixelsize, m_pixelsize * spec.tile_width,
-        //                     m_pixelsize * spec.tile_width * spec.tile_height);
+        m_pixels_size = m_tilepixels->memsize_needed();
     } else {
         m_nofree      = true;  // Don't free the pointer!
         m_pixels_size = 0;
@@ -1632,9 +1623,6 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
 
 ImageCacheTile::~ImageCacheTile()
 {
-    m_id.file().imagecache().decr_tiles(memsize());
-    if (m_nofree)
-        m_pixels_.release();  // release without freeing
 }
 
 
@@ -1764,7 +1752,6 @@ ImageCacheImpl::init()
     m_latlong_y_up_default = true;
     m_Mw2c.makeIdentity();
     m_mem_used                = 0;
-    m_main_cache_mem_used     = 0;
     m_statslevel              = 0;
     m_max_errors_per_file     = 100;
     m_stat_tiles_created      = 0;
@@ -2036,8 +2023,6 @@ ImageCacheImpl::getstats(int level) const
         }
         print(out, "    Peak cache memory : {}\n",
               Strutil::memformat(m_mem_used));
-        print(out, "    Peak main cache tile memory : {}\n",
-              Strutil::memformat(m_main_cache_mem_used));
         if (stats.tile_locking_time > 0.001)
             print(out, "    Tile mutex locking time : {}\n",
                   Strutil::timeintervalformat(stats.tile_locking_time));
@@ -2409,7 +2394,6 @@ ImageCacheImpl::getattribute(string_view name, TypeDesc type, void* val) const
     if (Strutil::starts_with(name, "stat:")) {
         // Stats we can just grab
         ATTR_DECODE("stat:cache_memory_used", long long, m_mem_used);
-        ATTR_DECODE("stat:main_cache_memory_used", long long, m_main_cache_mem_used);
         ATTR_DECODE("stat:tiles_created", int, m_stat_tiles_created);
         ATTR_DECODE("stat:tiles_current", int, m_stat_tiles_current);
         ATTR_DECODE("stat:tiles_peak", int, m_stat_tiles_peak);
@@ -2525,7 +2509,6 @@ ImageCacheImpl::add_tile_to_cache(ImageCacheTileRef& tile,
             thread_info->m_stats.fileio_time += readtime;
             tile->id().file().iotime() += readtime;
         }
-        m_main_cache_mem_used += tile->memsize();
         check_max_mem(thread_info);
     } else {
         // Somebody else already added the tile to the cache before we
@@ -2552,7 +2535,7 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
         return;
     // Early out if we aren't exceeding the tile memory limit
     long long max_memory_bytes = m_max_memory_bytes;
-    if (m_mem_used < max_memory_bytes || m_main_cache_mem_used < max_memory_bytes)
+    if (m_mem_used < max_memory_bytes)
         return;
 
     // Try to grab the tile_sweep_mutex lock. If somebody else holds it,
@@ -2586,8 +2569,6 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     // uncontrollably.
     int full_loops = 0;
     while (m_mem_used >= max_memory_bytes && full_loops < 10) {
-        if (m_main_cache_mem_used < max_memory_bytes / 2)
-            break;
         // If we have fallen off the end of the cache, loop back to the
         // beginning and increment our full_loops count.
         if (!sweep) {
@@ -2605,8 +2586,8 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
             // safely, we have a good trick:
             // 1. remember the TileID of the tile to delete
             TileID todelete = sweep->first;
-            size_t size     = sweep->second->memsize();
-            OIIO_DASSERT(m_mem_used >= (long long)size);
+            // size_t size     = sweep->second->memsize();
+            // OIIO_DASSERT(m_mem_used >= (long long)size);
             // 2. Find the TileID of the NEXT item. We do this by
             // incrementing the sweep iterator and grabbing its id.
             ++sweep;
@@ -2614,8 +2595,6 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
             // 3. Release the bin lock and erase the tile we wish to delete.
             sweep.unlock();
             m_tilecache.erase(todelete);
-            OIIO_DASSERT(m_main_cache_mem_used >= (long long)size);
-            m_main_cache_mem_used -= (long long)size;
             // 4. Re-establish a locked iterator for the next item, since
             // the old iterator may have been invalidated by the erasure.
             if (!m_tile_sweep_id.empty())
@@ -2643,6 +2622,7 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
 void
 ImageCachePerThreadInfo::check_max_thread_mem()
 {
+#if 0
     if (m_thread_tiles.empty())
         return;
     // Allow up to 1/4 of cache size be held by the thread.
@@ -2690,7 +2670,7 @@ ImageCachePerThreadInfo::check_max_thread_mem()
             // 3. Erase the tile we wish to delete.
             m_thread_tiles.erase(todelete);
             OIIO_ASSERT(m_thread_tile_mem_used > size);
-            m_thread_tile_mem_used -= size;
+            // m_thread_tile_mem_used -= size;
             // 4. Re-establish an iterator for the next item, since
             // the old iterator may have been invalidated by the erasure.
             if (!m_thread_tile_sweep_id.empty())
@@ -2699,6 +2679,7 @@ ImageCachePerThreadInfo::check_max_thread_mem()
             ++sweep;
         }
     }
+#endif
 }
 
 
