@@ -1926,10 +1926,10 @@ TextureSystemImpl::texture_lookup(TextureFile& texturefile,
 
 const float*
 TextureSystemImpl::pole_color(TextureFile& texturefile,
-                              PerThreadInfo* /*thread_info*/,
+                              PerThreadInfo* thread_info,
                               const ImageCacheFile::LevelInfo& levelinfo,
-                              TileRef& tile, int subimage, int /*miplevel*/,
-                              int pole)
+                              ImageCacheTileRef& tile, int subimage,
+                              int /*miplevel*/, int pole)
 {
     if (!levelinfo.onetile)
         return NULL;  // Only compute color for one-tile MIP levels
@@ -1940,10 +1940,11 @@ TextureSystemImpl::pole_color(TextureFile& texturefile,
         if (!levelinfo.polecolorcomputed) {
             OIIO_DASSERT(levelinfo.polecolor.size() == 0);
             levelinfo.polecolor.resize(2 * spec.nchannels);
-            OIIO_DASSERT(tile->id().nchannels() == spec.nchannels
+            TilePixelsRef tilepixels = thread_info->tile->get_tilepixels(thread_info);
+            OIIO_DASSERT(tilepixels->id().nchannels() == spec.nchannels
                          && "pole_color doesn't work for channel subsets");
-            int pixelsize                = tile->pixelsize();
-            TypeDesc::BASETYPE pixeltype = texturefile.pixeltype(subimage);
+            int pixelsize  = tilepixels->pixelsize();
+            auto pixeltype = tilepixels->datatype().basetype;
             // We store north and south poles adjacently in polecolor
             float* p    = &(levelinfo.polecolor[0]);
             int width   = spec.width;
@@ -1952,7 +1953,7 @@ TextureSystemImpl::pole_color(TextureFile& texturefile,
                 int y = pole * (spec.height - 1);  // 0 or height-1
                 for (int c = 0; c < spec.nchannels; ++c)
                     p[c] = 0.0f;
-                const unsigned char* texel = tile->bytedata()
+                const unsigned char* texel = tilepixels->bytedata()
                                              + y * spec.tile_width * pixelsize;
                 for (int i = 0; i < width; ++i, texel += pixelsize)
                     for (int c = 0; c < spec.nchannels; ++c) {

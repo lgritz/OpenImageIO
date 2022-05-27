@@ -656,6 +656,7 @@ public:
     bool valid(void) const noexcept { return m_valid; }
     int channelsize() const noexcept { return m_channelsize; }
     int pixelsize() const noexcept { return m_pixelsize; }
+    int tile_width() const noexcept { return m_tile_width; }
     TypeDesc datatype() const { return m_datatype; }
 
     // 1D index of the 2D tile coordinate. 64 bit safe.
@@ -708,33 +709,7 @@ public:
     /// constructed the tile.  Return true for success, false for failure.
     OIIO_NODISCARD bool read(ImageCachePerThreadInfo* thread_info);
 
-    /// Return pointer to the raw pixel data
-    const void* data(void) const { return &m_pixels[0]; }
-
-    /// Return pointer to the pixel data for a particular pixel.  Be
-    /// extremely sure the pixel is within this tile!
-    const void* data(int x, int y, int z, int c) const;
-
-    /// Return pointer to the floating-point pixel data
-    const float* floatdata(void) const { return (const float*)&m_pixels[0]; }
-
-    /// Return a pointer to the character data
-    const unsigned char* bytedata(void) const
-    {
-        return (unsigned char*)&m_pixels[0];
-    }
-
-    /// Return a pointer to unsigned short data
-    const unsigned short* ushortdata(void) const
-    {
-        return (unsigned short*)&m_pixels[0];
-    }
-
-    /// Return a pointer to half data
-    const half* halfdata(void) const { return (half*)&m_pixels[0]; }
-
     /// Return the id for this tile.
-    ///
     const TileID& id(void) const { return m_id; }
 
     const ImageCacheFile& file() const { return m_id.file(); }
@@ -795,7 +770,7 @@ public:
 
     // Retrieve a ref-counted pointer to the TilePixels for this tile. If the
     // pixels aren't resident, load them now. This is thread-safe.
-    TilePixelsRef
+    OIIO_NODISCARD TilePixelsRef
     get_tilepixels(ImageCachePerThreadInfo* thread_info = nullptr)
     {
         m_tilepixels_mutex.read_lock();
@@ -822,7 +797,7 @@ public:
 private:
     TileID m_id;                       ///< ID of this tile
     TilePixelsRef m_tilepixels;        ///< Pixels for this tile
-    std::unique_ptr<char[]> m_pixels;  ///< The pixel data
+    std::unique_ptr<char[]> m_pixels_;  ///< The pixel data
     size_t m_pixels_size { 0 };        ///< How much m_pixels has allocated
     int m_channelsize { 0 };           ///< How big is each channel (bytes)
     int m_pixelsize { 0 };             ///< How big is each pixel (bytes)

@@ -363,7 +363,6 @@ public:
     virtual ImageCache* imagecache() const { return m_imagecache; }
 
 private:
-    typedef ImageCacheTileRef TileRef;
     typedef ImageCachePerThreadInfo PerThreadInfo;
 
     void init();
@@ -538,7 +537,7 @@ private:
     const float* pole_color(TextureFile& texturefile,
                             PerThreadInfo* thread_info,
                             const ImageCacheFile::LevelInfo& levelinfo,
-                            TileRef& tile, int subimage, int miplevel,
+                            ImageCacheTileRef& tile, int subimage, int miplevel,
                             int pole);
     /// Helper function for lat-long environment maps: called near pole
     /// regions, this figures out the average pole color and fades to it
