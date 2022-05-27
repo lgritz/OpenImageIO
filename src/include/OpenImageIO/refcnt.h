@@ -25,13 +25,19 @@ using std::shared_ptr;  // DEPRECATED(1.8)
 
 
 /// A simple intrusive pointer, modeled after std::shared_ptr.
+///
+/// Note that it is thread-safe for multiple threads to have their own
+/// intrusive_ptr referring to the same pointed-to reference-counted object,
+/// but it the intrusive_ptr itself is not atomic, and not safe to have
+/// multiple threads modify the same intrusive_ptr at the same time. For that
+/// use case, you should duse atomic_intrusive_ptr.
 template<class T> class intrusive_ptr {
 public:
     typedef T element_type;
 
     /// Default ctr
     intrusive_ptr() noexcept
-        : m_ptr(NULL)
+        : m_ptr(nullptr)
     {
     }
 
@@ -40,8 +46,8 @@ public:
     intrusive_ptr(T* ptr)
         : m_ptr(ptr)
     {
-        if (m_ptr)
-            intrusive_ptr_add_ref(m_ptr);
+        if (ptr)
+            intrusive_ptr_add_ref(ptr);
     }
 
     /// Construct from another intrusive_ptr.

@@ -1460,15 +1460,15 @@ ImageCacheImpl::set_min_cache_size(long long newsize)
 TilePixels::TilePixels(const TileID& id, ImageCachePerThreadInfo* thread_info)
     : m_id(id)
 {
-    id.file().imagecache().incr_tiles(0);  // mem counted separately in read
-
     ImageCacheFile& file(m_id.file());
-    m_channelsize = file.datatype(id.subimage()).size();
+    if (!thread_info)
+        thread_info = file.imagecache().get_perthread_info();
+    m_datatype = file.datatype(id.subimage());
+    m_channelsize = m_datatype.size();
     m_pixelsize   = m_id.nchannels() * m_channelsize;
     size_t size   = memsize_needed();
     OIIO_ASSERT(memsize() == 0 && size > OIIO_SIMD_MAX_SIZE_BYTES);
     m_pixels.reset(new char[m_pixels_size = size]);
-    file.imagecache().incr_mem(size);
     // Clear the end pad values so there aren't NaNs sucked up by simd loads
     memset(m_pixels.get() + size - OIIO_SIMD_MAX_SIZE_BYTES, 0,
            OIIO_SIMD_MAX_SIZE_BYTES);
@@ -1509,6 +1509,7 @@ TilePixels::TilePixels(const TileID& id, ImageCachePerThreadInfo* thread_info)
                   << " from " << file.filename() << "\n";
 #endif
     }
+    id.file().imagecache().incr_tiles(size);  // mem counted separately in read
 }
 
 
@@ -1520,7 +1521,8 @@ TilePixels::TilePixels(const TileID& id, const void* pels, TypeDesc format,
 {
     ImageCacheFile& file(m_id.file());
     const ImageSpec& spec(file.spec(id.subimage(), id.miplevel()));
-    m_channelsize = file.datatype(id.subimage()).size();
+    m_datatype = file.datatype(id.subimage());
+    m_channelsize = m_datatype.size();
     m_pixelsize   = id.nchannels() * m_channelsize;
     m_tile_width  = spec.tile_width;
     if (copy) {
@@ -1581,6 +1583,7 @@ TilePixels::data(int x, int y, int z, int c) const
 
 ImageCacheTile::ImageCacheTile(const TileID& id)
     : m_id(id)
+    , m_tilepixels(new TilePixels(id, nullptr))
     , m_valid(true)
 {
     id.file().imagecache().incr_tiles(0);  // mem counted separately in read
@@ -1592,6 +1595,9 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
                                TypeDesc format, stride_t xstride,
                                stride_t ystride, stride_t zstride, bool copy)
     : m_id(id)
+    , m_tilepixels(
+          new TilePixels(id, pels, format, xstride, ystride, zstride, copy))
+    , m_noreclaim(true)
 {
     ImageCacheFile& file(m_id.file());
     const ImageSpec& spec(file.spec(id.subimage(), id.miplevel()));
@@ -1620,7 +1626,6 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
     }
     id.file().imagecache().incr_tiles(m_pixels_size);
     m_pixels_ready = true;  // Caller sent us the pixels, no read necessary
-    // FIXME -- for shadow, fill in mindepth, maxdepth
 }
 
 
@@ -3363,7 +3368,7 @@ ImageCacheImpl::get_pixels(ImageCacheFile* file,
 
 
 
-ImageCache::Tile*
+TilePixels*
 ImageCacheImpl::get_tile(ustring filename, int subimage, int miplevel, int x,
                          int y, int z, int chbegin, int chend)
 {
@@ -3375,7 +3380,7 @@ ImageCacheImpl::get_tile(ustring filename, int subimage, int miplevel, int x,
 
 
 
-ImageCache::Tile*
+TilePixels*
 ImageCacheImpl::get_tile(ImageHandle* file, Perthread* thread_info,
                          int subimage, int miplevel, int x, int y, int z,
                          int chbegin, int chend)
@@ -3399,23 +3404,23 @@ ImageCacheImpl::get_tile(ImageHandle* file, Perthread* thread_info,
     }
     TileID id(*file, subimage, miplevel, x, y, z, chbegin, chend);
     if (find_tile(id, thread_info, true)) {
-        ImageCacheTileRef tile(thread_info->tile);
+        TilePixelsRef tile(thread_info->tile->get_tilepixels(thread_info));
         tile->_incref();  // Fake an extra reference count
-        return (ImageCache::Tile*)tile.get();
+        return tile.get();
     } else {
-        return NULL;
+        return nullptr;
     }
 }
 
 
 
 void
-ImageCacheImpl::release_tile(ImageCache::Tile* tile) const
+ImageCacheImpl::release_tile(TilePixels* tile) const
 {
     if (!tile)
         return;
-    ImageCacheTileRef tileref((ImageCacheTile*)tile);
-    tileref->use();
+    TilePixelsRef tileref(tile);
+    // tileref->use();
     tileref->_decref();  // Reduce ref count that we bumped in get_tile
     // when we exit scope, tileref will do the final dereference
 }
@@ -3423,9 +3428,9 @@ ImageCacheImpl::release_tile(ImageCache::Tile* tile) const
 
 
 TypeDesc
-ImageCacheImpl::tile_format(const Tile* tile) const
+ImageCacheImpl::tile_format(const TilePixels* tile) const
 {
-    const TileID& id(((const ImageCacheTile*)tile)->id());
+    const TileID& id(tile->id());
     const ImageSpec& spec(id.file().spec(id.subimage(), id.miplevel()));
     return spec.format;
 }
@@ -3433,9 +3438,9 @@ ImageCacheImpl::tile_format(const Tile* tile) const
 
 
 ROI
-ImageCacheImpl::tile_roi(const Tile* tile) const
+ImageCacheImpl::tile_roi(const TilePixels* tile) const
 {
-    const TileID& id(((const ImageCacheTile*)tile)->id());
+    const TileID& id(tile->id());
     const ImageSpec& spec(id.file().spec(id.subimage(), id.miplevel()));
     return ROI(id.x(), id.x() + spec.tile_width, id.y(),
                id.y() + spec.tile_height, id.z(), id.z() + spec.tile_depth,
@@ -3445,13 +3450,12 @@ ImageCacheImpl::tile_roi(const Tile* tile) const
 
 
 const void*
-ImageCacheImpl::tile_pixels(ImageCache::Tile* tile, TypeDesc& format) const
+ImageCacheImpl::tile_pixels(TilePixels* tile, TypeDesc& format) const
 {
     if (!tile)
         return NULL;
-    ImageCacheTile* t = (ImageCacheTile*)tile;
-    format            = t->file().datatype(t->id().subimage());
-    return t->data();
+    format = tile->datatype();
+    return tile->data();
 }
 
 

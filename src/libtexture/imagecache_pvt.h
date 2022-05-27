@@ -375,7 +375,7 @@ private:
         // Note that m_input, the shared pointer itself, is NOT safe to
         // access directly. ALWAYS retrieve its value with get_imageinput
         // (it's thread-safe to use that result) and set its value with
-        // get_imageinput -- those are guaranteed thread-safe.
+        // set_imageinput -- those are guaranteed thread-safe.
     std::vector<SubimageInfo> m_subimages;  ///< Info on each subimage
     TexFormat m_texformat;                  ///< Which texture format
     TextureOpt::Wrap m_swrap;               ///< Default wrap modes
@@ -656,6 +656,7 @@ public:
     bool valid(void) const noexcept { return m_valid; }
     int channelsize() const noexcept { return m_channelsize; }
     int pixelsize() const noexcept { return m_pixelsize; }
+    TypeDesc datatype() const { return m_datatype; }
 
     // 1D index of the 2D tile coordinate. 64 bit safe.
     imagesize_t pixel_index(int tile_s, int tile_t) const noexcept
@@ -673,6 +674,7 @@ public:
 private:
     std::unique_ptr<char[]> m_pixels;  ///< The pixel data
     TileID m_id;                       ///< ID of this tile
+    TypeDesc m_datatype;               ///< Pixel format
     size_t m_pixels_size { 0 };        ///< How much m_pixels has allocated
     int m_channelsize { 0 };           ///< How big is each channel (bytes)
     int m_pixelsize { 0 };             ///< How big is each pixel (bytes)
@@ -680,6 +682,10 @@ private:
     bool m_valid { false };            ///< Valid pixels
     bool m_nofree { false };  ///< We do NOT own the pixels, do not free!
 };
+
+
+/// Reference-counted pointer to a TilePixels
+typedef intrusive_ptr<TilePixels> TilePixelsRef;
 
 
 
@@ -787,8 +793,35 @@ public:
         return m_pixelsize * pixel_index(tile_s, tile_t);
     }
 
+    // Retrieve a ref-counted pointer to the TilePixels for this tile. If the
+    // pixels aren't resident, load them now. This is thread-safe.
+    TilePixelsRef
+    get_tilepixels(ImageCachePerThreadInfo* thread_info = nullptr)
+    {
+        m_tilepixels_mutex.read_lock();
+        TilePixelsRef r = m_tilepixels;
+        m_tilepixels_mutex.read_unlock();
+        if (!r) {
+            r = new TilePixels(m_id, thread_info);
+            m_tilepixels_mutex.write_lock();
+            m_tilepixels = r;
+            use();
+            m_tilepixels_mutex.write_unlock();
+        }
+        return r;
+    }
+
+    // Thread-safe reassign the tile pixels.
+    void set_tilepixels(TilePixelsRef& tp)
+    {
+        m_tilepixels_mutex.write_lock();
+        m_tilepixels = tp;
+        m_tilepixels_mutex.write_unlock();
+    }
+
 private:
     TileID m_id;                       ///< ID of this tile
+    TilePixelsRef m_tilepixels;        ///< Pixels for this tile
     std::unique_ptr<char[]> m_pixels;  ///< The pixel data
     size_t m_pixels_size { 0 };        ///< How much m_pixels has allocated
     int m_channelsize { 0 };           ///< How big is each channel (bytes)
@@ -796,10 +829,12 @@ private:
     int m_tile_width { 0 };            ///< Tile width
     bool m_valid { false };            ///< Valid pixels
     bool m_nofree { false };  ///< We do NOT own the pixels, do not free!
+    bool m_noreclaim { false };  ///< We do NOT reclaim the cache space
     volatile bool m_pixels_ready {
         false
     };                        ///< The pixels have been read from disk
     atomic_int m_used { 1 };  ///< Used recently
+    spin_rw_mutex m_tilepixels_mutex;
 };
 
 
@@ -1167,15 +1202,15 @@ public:
         return ok;
     }
 
-    virtual Tile* get_tile(ustring filename, int subimage, int miplevel, int x,
+    virtual TilePixels* get_tile(ustring filename, int subimage, int miplevel, int x,
                            int y, int z, int chbegin, int chend);
-    virtual Tile* get_tile(ImageHandle* file, Perthread* thread_info,
+    virtual TilePixels* get_tile(ImageHandle* file, Perthread* thread_info,
                            int subimage, int miplevel, int x, int y, int z,
                            int chbegin, int chend);
-    virtual void release_tile(Tile* tile) const;
-    virtual TypeDesc tile_format(const Tile* tile) const;
-    virtual ROI tile_roi(const Tile* tile) const;
-    virtual const void* tile_pixels(Tile* tile, TypeDesc& format) const;
+    virtual void release_tile(TilePixels* tile) const;
+    virtual TypeDesc tile_format(const TilePixels* tile) const;
+    virtual ROI tile_roi(const TilePixels* tile) const;
+    virtual const void* tile_pixels(TilePixels* tile, TypeDesc& format) const;
     virtual bool add_file(ustring filename, ImageInput::Creator creator,
                           const ImageSpec* config, bool replace);
     virtual bool add_tile(ustring filename, int subimage, int miplevel, int x,

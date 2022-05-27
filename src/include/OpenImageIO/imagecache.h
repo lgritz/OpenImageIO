@@ -30,6 +30,7 @@ namespace pvt {
 class ImageCacheImpl;
 class ImageCacheFile;
 class ImageCacheTile;
+class TilePixels;
 class ImageCachePerThreadInfo;
 };  // namespace pvt
 
@@ -885,9 +886,9 @@ public:
     /// `close()` all files known to the cache.
     virtual void close_all () = 0;
 
-    /// An opaque data type that allows us to have a pointer to a tile but
-    /// without exposing any internals.
-    typedef pvt::ImageCacheTile Tile;
+    /// An opaque data type that allows us to have a pointer to a tile's
+    /// pixels but without exposing any internals.
+    typedef pvt::TilePixels Tile;
 
     /// Find the tile specified by an image filename (UTF-8 encoded), subimage
     /// & miplevel, the coordinates of a pixel, and optionally a channel
@@ -897,18 +898,17 @@ public:
     /// called on the tile pointer the same number of times that `get_tile()`
     /// was called (reference counting). This is thread-safe! If `chend <
     /// chbegin`, it will retrieve a tile containing all channels in the file.
-    virtual Tile * get_tile (ustring filename, int subimage, int miplevel,
-                             int x, int y, int z,
-                             int chbegin = 0, int chend = -1) = 0;
+    virtual Tile* get_tile(ustring filename, int subimage, int miplevel,
+                           int x, int y, int z,
+                           int chbegin = 0, int chend = -1) = 0;
     /// A slightly more efficient variety of `get_tile()` for cases where
     /// you can use an `ImageHandle*` to specify the image and optionally
     /// have a `Perthread*` for the calling thread.
     ///
     /// @see `get_pixels()`
-    virtual Tile * get_tile (ImageHandle *file, Perthread *thread_info,
-                             int subimage, int miplevel,
-                             int x, int y, int z,
-                             int chbegin = 0, int chend = -1) = 0;
+    virtual Tile* get_tile(ImageHandle *file, Perthread *thread_info,
+                           int subimage, int miplevel, int x, int y, int z,
+                           int chbegin = 0, int chend = -1) = 0;
 
     /// After finishing with a tile, release_tile will allow it to
     /// once again be purged from the tile cache if required.
