@@ -120,9 +120,10 @@ void
 ImageCacheStatistics::init()
 {
     // ImageCache stats:
-    find_tile_calls             = 0;
-    find_tile_microcache_misses = 0;
-    find_tile_cache_misses      = 0;
+    find_tile_calls               = 0;
+    find_tile_microcache_misses   = 0;
+    find_tile_thread_cache_misses = 0;
+    find_tile_main_cache_misses   = 0;
     //    tiles_created = 0;
     //    tiles_current = 0;
     //    tiles_peak = 0;
@@ -168,7 +169,8 @@ ImageCacheStatistics::merge(const ImageCacheStatistics& s)
     // ImageCache stats:
     find_tile_calls += s.find_tile_calls;
     find_tile_microcache_misses += s.find_tile_microcache_misses;
-    find_tile_cache_misses += s.find_tile_cache_misses;
+    find_tile_thread_cache_misses += s.find_tile_thread_cache_misses;
+    find_tile_main_cache_misses += s.find_tile_main_cache_misses;
     //    tiles_created += s.tiles_created;
     //    tiles_current += s.tiles_current;
     //    tiles_peak += s.tiles_peak;
@@ -1513,7 +1515,7 @@ TilePixels::TilePixels(const TileID& id, ImageCachePerThreadInfo* thread_info)
                   << " from " << file.filename() << "\n";
 #endif
     }
-    id.file().imagecache().incr_tiles(size);  // mem counted separately in read
+    id.file().imagecache().incr_tilepixels(size);
 }
 
 
@@ -1550,14 +1552,14 @@ TilePixels::TilePixels(const TileID& id, const void* pels, TypeDesc format,
         m_pixels.reset((char*)pels);
         m_valid = true;
     }
-    id.file().imagecache().incr_tiles(m_pixels_size);
+    id.file().imagecache().incr_tilepixels(m_pixels_size);
 }
 
 
 
 TilePixels::~TilePixels()
 {
-    m_id.file().imagecache().decr_tiles(memsize());
+    m_id.file().imagecache().decr_tilepixels(memsize());
     if (m_nofree)
         m_pixels.release();  // release without freeing
 }
@@ -1593,7 +1595,7 @@ ImageCacheTile::ImageCacheTile(const TileID& id)
     m_channelsize = m_tilepixels->channelsize();
     m_pixelsize   = m_tilepixels->pixelsize();
     m_tile_width  = m_tilepixels->tile_width();
-    id.file().imagecache().incr_tiles(0);  // mem counted separately in read
+    id.file().imagecache().incr_cachetiles();
 }
 
 
@@ -1619,14 +1621,14 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
         // m_pixels.reset((char*)pels);
         m_valid = true;
     }
-    id.file().imagecache().incr_tiles(m_pixels_size);
-    // m_pixels_ready = true;  // Caller sent us the pixels, no read necessary
+    id.file().imagecache().incr_cachetiles();
 }
 
 
 
 ImageCacheTile::~ImageCacheTile()
 {
+    file().imagecache().decr_cachetiles();
 }
 
 
@@ -1682,12 +1684,15 @@ ImageCacheImpl::init()
     m_failure_retries      = 0;
     m_latlong_y_up_default = true;
     m_Mw2c.makeIdentity();
-    m_mem_used                = 0;
+    m_pixel_mem_used          = 0;
     m_statslevel              = 0;
     m_max_errors_per_file     = 100;
-    m_stat_tiles_created      = 0;
-    m_stat_tiles_current      = 0;
-    m_stat_tiles_peak         = 0;
+    m_stat_tilepixels_created = 0;
+    m_stat_tilepixels_current = 0;
+    m_stat_tilepixels_peak    = 0;
+    m_stat_cachetiles_created = 0;
+    m_stat_cachetiles_current = 0;
+    m_stat_cachetiles_peak    = 0;
     m_stat_open_files_created = 0;
     m_stat_open_files_current = 0;
     m_stat_open_files_peak    = 0;
@@ -1935,25 +1940,32 @@ ImageCacheImpl::getstats(int level) const
         if (total_input_mutex_wait_time > 0.001)
             print(out, "    ImageInput mutex locking time : {}\n",
                   Strutil::timeintervalformat(total_input_mutex_wait_time));
-        if (m_stat_tiles_created > 0) {
+        if (m_stat_cachetiles_created > 0) {
+            print(out, "  Tile cache nodes: {} created, {} current, {} peak\n",
+                  m_stat_cachetiles_created, m_stat_cachetiles_current,
+                  m_stat_cachetiles_peak);
             print(out, "  Tiles: {} created, {} current, {} peak\n",
-                  m_stat_tiles_created, m_stat_tiles_current,
-                  m_stat_tiles_peak);
+                  m_stat_tilepixels_created, m_stat_tilepixels_current,
+                  m_stat_tilepixels_peak);
             print(out, "    total tile requests : {}\n", stats.find_tile_calls);
             print(out, "    micro-cache misses : {} ({:.1f}%)\n",
                   stats.find_tile_microcache_misses,
                   100.0 * stats.find_tile_microcache_misses
                       / (double)stats.find_tile_calls);
+            print(out, "    per-thread cache misses : {} ({:.1f}%)\n",
+                  stats.find_tile_thread_cache_misses,
+                  100.0 * stats.find_tile_thread_cache_misses
+                      / (double)stats.find_tile_calls);
             print(out, "    main cache misses : {} ({:.1f}%)\n",
-                  stats.find_tile_cache_misses,
-                  100.0 * stats.find_tile_cache_misses
+                  stats.find_tile_main_cache_misses,
+                  100.0 * stats.find_tile_main_cache_misses
                       / (double)stats.find_tile_calls);
             print(out, "    redundant reads: {} tiles, {}\n",
                   total_redundant_tiles,
                   Strutil::memformat(total_redundant_bytes));
         }
-        print(out, "    Peak cache memory : {}\n",
-              Strutil::memformat(m_mem_used));
+        print(out, "    Peak cache pixel memory : {}\n",
+              Strutil::memformat(m_pixel_mem_used));
         if (stats.tile_locking_time > 0.001)
             print(out, "    Tile mutex locking time : {}\n",
                   Strutil::timeintervalformat(stats.tile_locking_time));
@@ -2324,10 +2336,13 @@ ImageCacheImpl::getattribute(string_view name, TypeDesc type, void* val) const
 
     if (Strutil::starts_with(name, "stat:")) {
         // Stats we can just grab
-        ATTR_DECODE("stat:cache_memory_used", long long, m_mem_used);
-        ATTR_DECODE("stat:tiles_created", int, m_stat_tiles_created);
-        ATTR_DECODE("stat:tiles_current", int, m_stat_tiles_current);
-        ATTR_DECODE("stat:tiles_peak", int, m_stat_tiles_peak);
+        ATTR_DECODE("stat:cache_memory_used", long long, m_pixel_mem_used);
+        ATTR_DECODE("stat:tiles_created", int, m_stat_tilepixels_created);
+        ATTR_DECODE("stat:tiles_current", int, m_stat_tilepixels_current);
+        ATTR_DECODE("stat:tiles_peak", int, m_stat_tilepixels_peak);
+        ATTR_DECODE("stat:cache_entries_created", int, m_stat_cachetiles_created);
+        ATTR_DECODE("stat:cache_entries_current", int, m_stat_cachetiles_current);
+        ATTR_DECODE("stat:cache_entries_peak", int, m_stat_cachetiles_peak);
         ATTR_DECODE("stat:open_files_created", int, m_stat_open_files_created);
         ATTR_DECODE("stat:open_files_current", int, m_stat_open_files_current);
         ATTR_DECODE("stat:open_files_peak", int, m_stat_open_files_peak);
@@ -2339,8 +2354,10 @@ ImageCacheImpl::getattribute(string_view name, TypeDesc type, void* val) const
         ATTR_DECODE("stat:find_tile_calls", long long, stats.find_tile_calls);
         ATTR_DECODE("stat:find_tile_microcache_misses", long long,
                     stats.find_tile_microcache_misses);
-        ATTR_DECODE("stat:find_tile_cache_misses", int,
-                    stats.find_tile_cache_misses);
+        ATTR_DECODE("stat:find_tile_thread_cache_misses", long long,
+                    stats.find_tile_thread_cache_misses);
+        ATTR_DECODE("stat:find_tile_main_cache_misses", long long,
+                    stats.find_tile_main_cache_misses);
         ATTR_DECODE("stat:files_totalsize", long long,
                     stats.files_totalsize);  // Old name
         ATTR_DECODE("stat:image_size", long long, stats.files_totalsize);
@@ -2377,8 +2394,6 @@ ImageCacheImpl::find_tile_main_cache(const TileID& id, ImageCacheTileRef& tile,
     OIIO_DASSERT(!id.file().broken());
     ImageCacheStatistics& stats(thread_info->m_stats);
 
-    ++stats.find_tile_microcache_misses;
-
     {
 #if IMAGECACHE_TIME_STATS
         Timer timer1;
@@ -2403,7 +2418,7 @@ ImageCacheImpl::find_tile_main_cache(const TileID& id, ImageCacheTileRef& tile,
 
     // The tile was not found in cache.
 
-    ++stats.find_tile_cache_misses;
+    ++stats.find_tile_main_cache_misses;
 
     // Yes, we're creating and reading a tile with no lock -- this is to
     // prevent all the other threads from blocking because of our
@@ -2437,10 +2452,10 @@ ImageCacheImpl::add_tile_to_cache(ImageCacheTileRef& tile,
 void
 ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
 {
-    OIIO_DASSERT(m_mem_used < (long long)m_max_memory_bytes * 10);  // sanity
+    OIIO_DASSERT(m_pixel_mem_used < (long long)m_max_memory_bytes * 10);  // sanity
 #if 0
     static atomic_int n;
-    if (! (n++ % 64) || m_mem_used >= (long long)m_max_memory_bytes)
+    if (! (n++ % 64) || m_pixel_mem_used >= (long long)m_max_memory_bytes)
         std::cerr << "mem used: " << m_mem_used << ", max = " << m_max_memory_bytes << "\n";
 #endif
     // Early out if the cache is empty
@@ -2448,7 +2463,7 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
         return;
     // Early out if we aren't exceeding the tile memory limit
     long long max_memory_bytes = m_max_memory_bytes;
-    if (m_mem_used < max_memory_bytes)
+    if (m_pixel_mem_used < max_memory_bytes)
         return;
 
     // Try to grab the tile_sweep_mutex lock. If somebody else holds it,
@@ -2481,7 +2496,7 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     // of looping for too long, exit the loop if we just keep spinning
     // uncontrollably.
     int full_loops = 0;
-    while (m_mem_used >= max_memory_bytes && full_loops < 10) {
+    while (m_pixel_mem_used >= max_memory_bytes && full_loops < 10) {
         // If we have fallen off the end of the cache, loop back to the
         // beginning and increment our full_loops count.
         if (!sweep) {
@@ -2495,6 +2510,9 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
         OIIO_DASSERT(sweep->second);
 
         if (!sweep->second->release()) {
+            if (!sweep->second->ok_to_free_pixels())
+                sweep->second->release_tilepixels();
+#if 0
             // This is a tile we should delete.  To keep iterating
             // safely, we have a good trick:
             // 1. remember the TileID of the tile to delete
@@ -2507,12 +2525,14 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
             m_tile_sweep_id = (sweep ? sweep->first : TileID());
             // 3. Release the bin lock and erase the tile we wish to delete.
             sweep.unlock();
-            m_tilecache.erase(todelete);
+            // m_tilecache.erase(todelete);
+            todelete
             // 4. Re-establish a locked iterator for the next item, since
             // the old iterator may have been invalidated by the erasure.
             if (!m_tile_sweep_id.empty())
                 sweep = m_tilecache.find(m_tile_sweep_id);
-        } else {
+#endif
+        // } else {
             ++sweep;
         }
     }
