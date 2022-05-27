@@ -796,7 +796,8 @@ TextureSystemImpl::get_texels(TextureHandle* texture_handle_,
                 }
                 tileid.x(x - ((x - spec.x) % spec.tile_width));
                 ok &= find_tile(tileid, thread_info, npixelsread == 0);
-                TileRef& tile(thread_info->tile);
+                TilePixelsRef tile = thread_info->tile->get_tilepixels(
+                    thread_info);
                 const char* data;
                 if (tile
                     && (data = (const char*)tile->data(x, y, z, chbegin))) {
@@ -2073,7 +2074,7 @@ TextureSystemImpl::sample_closest(
         bool ok = find_tile(id, thread_info, sample == 0);
         if (!ok)
             error("{}", m_imagecache->geterror());
-        TileRef& tile(thread_info->tile);
+        TilePixelsRef tile = thread_info->tile->get_tilepixels(thread_info);
         if (!tile || !ok) {
             allok = false;
             continue;
@@ -2263,7 +2264,7 @@ TextureSystemImpl::sample_bilinear(
             bool ok = find_tile(id, thread_info, sample == 0);
             if (!ok)
                 error("{}", m_imagecache->geterror());
-            TileRef& tile(thread_info->tile);
+            TilePixelsRef tile = thread_info->tile->get_tilepixels(thread_info);
             if (!tile->valid())
                 return false;
             int pixelsize      = tile->pixelsize();
@@ -2328,7 +2329,7 @@ TextureSystemImpl::sample_bilinear(
                         }
                         OIIO_DASSERT(thread_info->tile->id() == id);
                     }
-                    TileRef& tile(thread_info->tile);
+                    TilePixelsRef tile = thread_info->tile->get_tilepixels(thread_info);
                     imagesize_t offset = tile->pixel_offset(tile_s, tile_t);
                     offset += (firstchannel - id.chbegin()) * channelsize;
                     OIIO_DASSERT(offset < spec.tile_bytes());
@@ -2627,7 +2628,7 @@ TextureSystemImpl::sample_bicubic(
                     error("{}", m_imagecache->geterror());
                 return false;
             }
-            TileRef& tile(thread_info->tile);
+            TilePixelsRef tile = thread_info->tile->get_tilepixels(thread_info);
             if (!tile) {
                 return false;
             }
@@ -2701,7 +2702,7 @@ TextureSystemImpl::sample_bicubic(
                         if (!thread_info->tile->valid())
                             return false;
                     }
-                    TileRef& tile(thread_info->tile);
+                    TilePixelsRef tile = thread_info->tile->get_tilepixels(thread_info);
                     OIIO_DASSERT(tile->data());
                     imagesize_t offset = row_offset_bytes
                                          + column_offset_bytes[i];

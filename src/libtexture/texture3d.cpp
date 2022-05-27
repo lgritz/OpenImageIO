@@ -344,7 +344,7 @@ TextureSystemImpl::accum3d_sample_closest(
     bool ok = find_tile(id, thread_info, true);
     if (!ok)
         error("{}", m_imagecache->geterror());
-    TileRef& tile(thread_info->tile);
+    TilePixelsRef tile = thread_info->tile->get_tilepixels(thread_info);
     if (!tile || !ok)
         return false;
     imagesize_t tilepel = (tile_r * spec.tile_height + imagesize_t(tile_t))
@@ -468,7 +468,7 @@ TextureSystemImpl::accum3d_sample_bilinear(
     int tileheightmask = spec.tile_height - 1;
     int tiledepthmask  = spec.tile_depth - 1;
     const unsigned char* texel[2][2][2];
-    TileRef savetile[2][2][2];
+    TilePixelsRef savetile[2][2][2];
     static float black[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
     int tile_s            = (stex[0] - spec.x) % spec.tile_width;
     int tile_t            = (ttex[0] - spec.y) % spec.tile_height;
@@ -494,7 +494,7 @@ TextureSystemImpl::accum3d_sample_bilinear(
         bool ok = find_tile(id, thread_info, true);
         if (!ok)
             error("{}", m_imagecache->geterror());
-        TileRef& tile(thread_info->tile);
+        TilePixelsRef tile = thread_info->tile->get_tilepixels(thread_info);
         if (!tile->valid())
             return false;
         imagesize_t tilepel = (tile_r * spec.tile_height + imagesize_t(tile_t))
@@ -532,7 +532,8 @@ TextureSystemImpl::accum3d_sample_bilinear(
                     if (!ok)
                         error("{}", m_imagecache->geterror());
                     firstsample = false;
-                    TileRef& tile(thread_info->tile);
+                    TilePixelsRef tile = thread_info->tile->get_tilepixels(
+                        thread_info);
                     if (!tile->valid())
                         return false;
                     savetile[k][j][i]   = tile;
