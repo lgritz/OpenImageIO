@@ -705,10 +705,6 @@ public:
 
     ~ImageCacheTile();
 
-    /// Actually read the pixels.  The caller had better be the thread that
-    /// constructed the tile.  Return true for success, false for failure.
-    OIIO_NODISCARD bool read(ImageCachePerThreadInfo* thread_info);
-
     /// Return the id for this tile.
     const TileID& id(void) const { return m_id; }
 
@@ -729,7 +725,7 @@ public:
     ///
     bool release()
     {
-        if (!pixels_ready() || !valid())
+        if (!valid())
             return true;  // Don't really release invalid or unready tiles
         // If m_used is 1, set it to zero and return true.  If it was already
         // zero, it's fine and return false.
@@ -738,19 +734,9 @@ public:
     }
 
     /// Has this tile been recently used?
-    ///
     int used(void) const { return m_used; }
 
     bool valid(void) const { return m_valid; }
-
-    /// Are the pixels ready for use?  If false, they're still being
-    /// read from disk.
-    bool pixels_ready() const { return m_pixels_ready; }
-
-    /// Spin until the pixels have been read and are ready for use.
-    ///
-    void wait_pixels_ready() const;
-
     int channelsize() const { return m_channelsize; }
     int pixelsize() const { return m_pixelsize; }
 
@@ -783,7 +769,6 @@ public:
 private:
     TileID m_id;                       ///< ID of this tile
     TilePixelsRef m_tilepixels;        ///< Pixels for this tile
-    std::unique_ptr<char[]> m_pixels_;  ///< The pixel data
     size_t m_pixels_size { 0 };        ///< How much m_pixels has allocated
     int m_channelsize { 0 };           ///< How big is each channel (bytes)
     int m_pixelsize { 0 };             ///< How big is each pixel (bytes)
@@ -791,9 +776,6 @@ private:
     bool m_valid { false };            ///< Valid pixels
     bool m_nofree { false };  ///< We do NOT own the pixels, do not free!
     bool m_noreclaim { false };  ///< We do NOT reclaim the cache space
-    volatile bool m_pixels_ready {
-        false
-    };                        ///< The pixels have been read from disk
     atomic_int m_used { 1 };  ///< Used recently
     spin_rw_mutex m_tilepixels_mutex;
 };

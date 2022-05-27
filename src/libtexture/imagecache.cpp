@@ -1472,10 +1472,14 @@ TilePixels::TilePixels(const TileID& id, ImageCachePerThreadInfo* thread_info)
     // Clear the end pad values so there aren't NaNs sucked up by simd loads
     memset(m_pixels.get() + size - OIIO_SIMD_MAX_SIZE_BYTES, 0,
            OIIO_SIMD_MAX_SIZE_BYTES);
+    Timer timer;
     m_valid = file.read_tile(thread_info, m_id.subimage(), m_id.miplevel(),
                              m_id.x(), m_id.y(), m_id.z(), m_id.chbegin(),
                              m_id.chend(), file.datatype(m_id.subimage()),
                              m_pixels.get());
+    double readtime = timer();
+    thread_info->m_stats.fileio_time += readtime;
+    file.iotime() += readtime;
     if (m_valid) {
         ImageCacheFile::LevelInfo& lev(
             file.levelinfo(m_id.subimage(), m_id.miplevel()));
@@ -1616,7 +1620,7 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
         m_valid = true;
     }
     id.file().imagecache().incr_tiles(m_pixels_size);
-    m_pixels_ready = true;  // Caller sent us the pixels, no read necessary
+    // m_pixels_ready = true;  // Caller sent us the pixels, no read necessary
 }
 
 
@@ -1636,79 +1640,6 @@ ImageCacheTile::memsize_needed() const
     // channel without running off the end.
     s += OIIO_SIMD_MAX_SIZE_BYTES;
     return s;
-}
-
-
-
-bool
-ImageCacheTile::read(ImageCachePerThreadInfo* thread_info)
-{
-    TilePixelsRef tile = get_tilepixels(thread_info);
-    m_channelsize = tile->channelsize();
-    m_pixelsize = tile->pixelsize();
-    m_tile_width = tile->tile_width();
-    // ImageCacheFile& file(m_id.file());
-    // m_channelsize = file.datatype(id().subimage()).size();
-    // m_pixelsize   = m_id.nchannels() * m_channelsize;
-    // size_t size   = memsize_needed();
-    // OIIO_ASSERT(memsize() == 0 && size > OIIO_SIMD_MAX_SIZE_BYTES);
-    // m_pixels.reset(new char[m_pixels_size = size]);
-    // Clear the end pad values so there aren't NaNs sucked up by simd loads
-    // memset(m_pixels.get() + size - OIIO_SIMD_MAX_SIZE_BYTES, 0,
-        //    OIIO_SIMD_MAX_SIZE_BYTES);
-    // m_valid = file.read_tile(thread_info, m_id.subimage(), m_id.miplevel(),
-    //                          m_id.x(), m_id.y(), m_id.z(), m_id.chbegin(),
-    //                          m_id.chend(), file.datatype(m_id.subimage()),
-    //                          &m_pixels[0]);
-    // file.imagecache().incr_mem(size);
-    if (tile->valid()) {
-        // ImageCacheFile::LevelInfo& lev(
-        //     file.levelinfo(m_id.subimage(), m_id.miplevel()));
-        // m_tile_width = lev.spec.tile_width;
-        // OIIO_DASSERT(m_tile_width > 0);
-        // int whichtile = ((m_id.x() - lev.spec.x) / lev.spec.tile_width)
-        //                 + ((m_id.y() - lev.spec.y) / lev.spec.tile_height)
-        //                       * lev.nxtiles
-        //                 + ((m_id.z() - lev.spec.z) / lev.spec.tile_depth)
-        //                       * (lev.nxtiles * lev.nytiles);
-        // int index       = whichtile / 64;
-        // int64_t bitmask = int64_t(1ULL << (whichtile & 63));
-        // int64_t oldval  = lev.tiles_read[index].fetch_or(bitmask);
-        // if (oldval & bitmask)  // Was it previously read?
-        //     file.register_redundant_tile(lev.spec.tile_bytes());
-    } else {
-        // ! tile->valid()
-        m_used = false;  // Don't let it hold mem if invalid
-        // if (file.mod_time() != Filesystem::last_write_time(file.filename()))
-        //     file.imagecache().error(
-        //         "File \"{}\" was modified after being opened by OIIO",
-        //         file.filename());
-        // file.imagecache().error(
-        //     "Error reading from \"{}\" (subimg={}, mip={}, tile@{},{},{})",
-        //     file.filename(), m_id.subimage(), m_id.miplevel(), m_id.x(),
-        //     m_id.y(), m_id.z());
-#if 0
-        std::cerr << "(1) error reading tile " << m_id.x() << ' ' << m_id.y()
-                  << ' ' << m_id.z()
-                  << " subimg=" << m_id.subimage()
-                  << " mip=" << m_id.miplevel()
-                  << " from " << file.filename() << "\n";
-#endif
-    }
-    m_pixels_ready = true;
-    // FIXME -- for shadow, fill in mindepth, maxdepth
-    return m_valid;
-}
-
-
-
-void
-ImageCacheTile::wait_pixels_ready() const
-{
-    atomic_backoff backoff;
-    while (!m_pixels_ready) {
-        backoff();
-    }
 }
 
 
@@ -2462,7 +2393,7 @@ ImageCacheImpl::find_tile_main_cache(const TileID& id, ImageCacheTileRef& tile,
             // released the lock (above) before calling wait_pixels_ready,
             // otherwise we could deadlock if another thread reading the
             // pixels needs to lock the cache because it's doing automip.
-            tile->wait_pixels_ready();
+            // tile->wait_pixels_ready();
             tile->use();
             OIIO_DASSERT(id == tile->id());
             OIIO_DASSERT(tile);
@@ -2502,19 +2433,19 @@ ImageCacheImpl::add_tile_to_cache(ImageCacheTileRef& tile,
     // somebody else to read the pixels.
     bool ok = true;
     if (ourtile) {
-        if (!tile->pixels_ready()) {
-            Timer timer;
-            ok              = tile->read(thread_info);
-            double readtime = timer();
-            thread_info->m_stats.fileio_time += readtime;
-            tile->id().file().iotime() += readtime;
-        }
+        // if (!tile->pixels_ready()) {
+        //     Timer timer;
+        //     ok              = tile->read(thread_info);
+        //     double readtime = timer();
+        //     thread_info->m_stats.fileio_time += readtime;
+        //     tile->id().file().iotime() += readtime;
+        // }
         check_max_mem(thread_info);
     } else {
         // Somebody else already added the tile to the cache before we
         // could, so we'll use their reference, but we need to wait until it
         // has read in the pixels.
-        tile->wait_pixels_ready();
+        // tile->wait_pixels_ready();
     }
     return ok;
 }
