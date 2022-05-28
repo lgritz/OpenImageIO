@@ -1,4 +1,4 @@
-// Copyright 2008-present Contributors to the OpenImageIO project.
+a// Copyright 2008-present Contributors to the OpenImageIO project.
 // SPDX-License-Identifier: BSD-3-Clause
 // https://github.com/OpenImageIO/oiio
 
@@ -674,15 +674,16 @@ public:
     }
 
 private:
-    std::unique_ptr<char[]> m_pixels;  ///< The pixel data
-    TileID m_id;                       ///< ID of this tile
-    TypeDesc m_datatype;               ///< Pixel format
-    size_t m_pixels_size { 0 };        ///< How much m_pixels has allocated
-    int m_channelsize { 0 };           ///< How big is each channel (bytes)
-    int m_pixelsize { 0 };             ///< How big is each pixel (bytes)
-    int m_tile_width { 0 };            ///< Tile width
-    bool m_valid { false };            ///< Valid pixels
-    bool m_nofree { false };  ///< We do NOT own the pixels, do not free!
+    std::unique_ptr<char[]> m_pixels;  // The pixel data
+    TileID m_id;                       // ID of this tile
+    TypeDesc m_datatype;               // Pixel format
+    size_t m_pixels_size { 0 };        // How much m_pixels has allocated
+    int m_channelsize { 0 };           // How big is each channel (bytes)
+    int m_pixelsize { 0 };             // How big is each pixel (bytes)
+    int m_tile_width { 0 };            // Tile width
+    bool m_valid { false };            // Valid pixels
+    bool m_nofree { false };           // We do NOT own m_pixels, don't free!
+    atomic_int deleted { 0 };          // This is a deleted TilePixels!
 };
 
 
@@ -745,41 +746,94 @@ public:
     OIIO_NODISCARD TilePixelsRef
     get_tilepixels(ImageCachePerThreadInfo* thread_info = nullptr)
     {
-        m_tilepixels_mutex.read_lock();
-        // TilePixelsRef r = std::atomic_load(&m_tilepixels);
-        TilePixelsRef r = m_tilepixels;
-        m_tilepixels_mutex.read_unlock();
-        if (!r) {
-            // r.reset(new TilePixels(m_id, thread_info));
-            // std::atomic_store(&m_tilepixels, r);
-            // // set_tilepixels(r);
-            // OIIO_ASSERT(r);
-            m_tilepixels_mutex.write_lock();
-            m_tilepixels = r;
-            use();
-            m_tilepixels_mutex.write_unlock();
+        // VERY TEMPORARILY, atomically swap with an empty pointer
+        TilePixels* raw = m_tilepixels.load();
+        // <----- DANGER ZONE ----->
+        TilePixelsRef tp(raw);
+    // if (raw)
+    //     raw->_incref();
+        // What are the possibilities here?
+        // 1. tp is empty, i.e. m_tilepixels didn't have any pixel data
+        //    because it was a tile that was previously reclaimed. We need
+        //    to safely give it pixel data again.
+        // 2. tp points to a legit TilePixels, and we've sucessfully bumped
+        //    its ref count, so it's safe and we should return it.
+        // 3. tp seems to point to TilePixels but actually while we were in
+        //    the DANGER ZONE, another thread tried to reclaim it, so it's
+        //    pointing to memory that will soon be freed.
+        if (tp) {
+            // We seem to have gotten a TilePixels.
+            // If another thread called release_tilepixels during the DANGER
+            // ZONE, we should be able to detect this by looking at the
+            // `deleted` field.
+            if (!tp->deleted) {
+                // Common case: we got the pointer we need, it wasn't released
+                // in the critical danger zone, it's safely in a ref-counted
+                // pointer, so return it.
+                return tp;
+            }
+            // If we get here, we retrieved a non-null pointer, but it's marked
+            // as `deleted`, so another thread must have reclaimed it. Put in
+            // on the "free later" list.
+            m_to_delete_later.push_back(tp);
+            tp.reset();
         }
-        return r;
+        // We did not retrieve a TilePixels. Create a new one.
+        raw = new TilePixels(m_id, thread_info);
+        tp.reset(raw);
+
+        // Now we want to add the new one to the ImageCacheTile. But what if
+        // another thread has already done the same thing?
+
+        // FIXME I am here
+        return tp;
     }
 
+#if 0
     // Thread-safe reassign the tile pixels.
-    void set_tilepixels(TilePixelsRef tp)
+    TilePixelsRef set_tilepixels(TilePixelsRef tp)
     {
-        // std::atomic<TilePixels*>& aptr = *(std::atomic<TilePixels*>*)&m_tilepixels;
-        // std::atomic_store(&m_tilepixels, tp);
-        m_tilepixels_mutex.write_lock();
+        // pre-incref the new one (if it's not empty)
+        if (tp)
+            tp->_incref();  // pre-incref the new one
+        // atomically swap old for new
+        TilePixels* old = m_tilepixels.exchange(tp);
+        // decref the old one (if it wasn't empty)
+        if (old)
+            intrusive_ptr_release(old);
+    }
+#endif
+
+    // Assign the tile pixels. This should only be called when creating an
+    // ImageCacheTile, because it's not thread-safe.
+    void new_tilepixels(TilePixels* tp)
+    {
+        // pre-incref the new one (if it's not empty)
+        if (tp)
+            tp->_incref();  // pre-incref the new one
         m_tilepixels = tp;
-        m_tilepixels_mutex.write_unlock();
+        // No race condition here because new_tilepixels is only called
+        // during ImageCacheTile construction when this thread is the only
+        // possible one with access to this ICT.
     }
 
-    // Thread-safe reassign the tile pixels.
-    void release_tilepixels()
+    // Thread-safe clear the tile pixels and return whatever was there
+    // before as a ref-counted TilePixelsRef.
+    OIIO_NODISCARD TilePixelsRef release_tilepixels()
     {
-        // std::atomic<TilePixels*>& aptr = *(std::atomic<TilePixels*>*)&m_tilepixels;
-        // std::atomic_store(&m_tilepixels, TilePixelsRef());
-        m_tilepixels_mutex.write_lock();
-        m_tilepixels.reset();
-        m_tilepixels_mutex.write_unlock();
+        // atomically swap old for a null pointer
+        TilePixels* old = m_tilepixels.exchange(nullptr);
+        if (old) {
+            old->deleted.fetch_add(1);
+            std::atomic_thread_fence(std::memory_order::seq_cst);
+        }
+        // Construct and return a ref-counted version. We just swapped as a
+        // pointer, which didn't decrease the ref count of the TilePixels,
+        // so construct it for return with "Adopt" to leave the ref count
+        // alone. Note that we set the `deleted` atomic field to true BEFORE
+        // we construct the ref and use an atomic_thread_fence to ensure
+        // sequential consistency versus any other atomic operations.
+        return TilePixelsRef(old, TilePixelsRef::Adopt);
     }
 
 private:
@@ -796,6 +850,7 @@ private:
     bool m_noreclaim { false };  ///< We do NOT reclaim the cache space
     atomic_int m_used { 1 };  ///< Used recently
     spin_rw_mutex m_tilepixels_mutex;
+    std::queue<TilePixelsRef> m_to_delete_later;
 };
 
 

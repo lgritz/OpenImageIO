@@ -1591,7 +1591,7 @@ ImageCacheTile::ImageCacheTile(const TileID& id)
     : m_id(id)
     , m_valid(true)
 {
-    set_tilepixels(new TilePixels(id, nullptr));
+    new_tilepixels(new TilePixels(id, nullptr));
     m_channelsize = m_tilepixels->channelsize();
     m_pixelsize   = m_tilepixels->pixelsize();
     m_tile_width  = m_tilepixels->tile_width();
@@ -1606,7 +1606,7 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
     : m_id(id)
     , m_noreclaim(true)
 {
-    set_tilepixels(
+    new_tilepixels(
           new TilePixels(id, pels, format, xstride, ystride, zstride, copy));
     m_channelsize = m_tilepixels->channelsize();
     m_pixelsize   = m_tilepixels->pixelsize();
@@ -1625,7 +1625,13 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
 
 ImageCacheTile::~ImageCacheTile()
 {
-    release_tilepixels();
+    TilePixelsRef released = release_tilepixels();
+    // Note: ImageCacheTile is only deleted when its ref count is 0, that is,
+    // it has been removed from all caches. This only happens at shutdown or
+    // if the tile is invalidated. Nobody should be asking for the pixels
+    // at this point, so we think there is no race condition and therefore we
+    // just allow `released` to exit scope and delete if it's the last
+    // reference to this TilePixels.
     file().imagecache().decr_cachetiles();
 }
 
@@ -2508,8 +2514,13 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
         OIIO_DASSERT(sweep->second);
 
         if (!sweep->second->release()) {
-            if (!sweep->second->ok_to_free_pixels())
-                sweep->second->release_tilepixels();
+            if (!sweep->second->ok_to_free_pixels()) {
+                TilePixelsRef released = sweep->second->release_tilepixels();
+                // FIXME: don't just let this go. It should be put on a
+                // "to delete" list that is destroyed only after enough time
+                // has gone by that other threads can't be in the middle of
+                // thinking it should be destroyed.
+            }
 #if 0
             // This is a tile we should delete.  To keep iterating
             // safely, we have a good trick:
