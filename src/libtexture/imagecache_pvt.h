@@ -746,19 +746,27 @@ public:
     get_tilepixels(ImageCachePerThreadInfo* thread_info = nullptr)
     {
         m_tilepixels_mutex.read_lock();
+        // TilePixelsRef r = std::atomic_load(&m_tilepixels);
         TilePixelsRef r = m_tilepixels;
         m_tilepixels_mutex.read_unlock();
         if (!r) {
-            r = new TilePixels(m_id, thread_info);
-            set_tilepixels(r);
+            // r.reset(new TilePixels(m_id, thread_info));
+            // std::atomic_store(&m_tilepixels, r);
+            // // set_tilepixels(r);
+            // OIIO_ASSERT(r);
+            m_tilepixels_mutex.write_lock();
+            m_tilepixels = r;
             use();
+            m_tilepixels_mutex.write_unlock();
         }
         return r;
     }
 
     // Thread-safe reassign the tile pixels.
-    void set_tilepixels(TilePixelsRef& tp)
+    void set_tilepixels(TilePixelsRef tp)
     {
+        // std::atomic<TilePixels*>& aptr = *(std::atomic<TilePixels*>*)&m_tilepixels;
+        // std::atomic_store(&m_tilepixels, tp);
         m_tilepixels_mutex.write_lock();
         m_tilepixels = tp;
         m_tilepixels_mutex.write_unlock();
@@ -767,6 +775,8 @@ public:
     // Thread-safe reassign the tile pixels.
     void release_tilepixels()
     {
+        // std::atomic<TilePixels*>& aptr = *(std::atomic<TilePixels*>*)&m_tilepixels;
+        // std::atomic_store(&m_tilepixels, TilePixelsRef());
         m_tilepixels_mutex.write_lock();
         m_tilepixels.reset();
         m_tilepixels_mutex.write_unlock();
@@ -774,7 +784,9 @@ public:
 
 private:
     TileID m_id;                       ///< ID of this tile
-    TilePixelsRef m_tilepixels;        ///< Pixels for this tile
+    std::atomic<TilePixels*> m_tilepixels {nullptr};        ///< Pixels for this tile
+    // TilePixelsRef m_tilepixels;        ///< Pixels for this tile
+    // static_assert(sizeof(m_tilepixels) == sizeof(std::atomic<TilePixels*>));
     size_t m_pixels_size { 0 };        ///< How much m_pixels has allocated
     int m_channelsize { 0 };           ///< How big is each channel (bytes)
     int m_pixelsize { 0 };             ///< How big is each pixel (bytes)

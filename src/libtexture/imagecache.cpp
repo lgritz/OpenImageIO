@@ -1589,9 +1589,9 @@ TilePixels::data(int x, int y, int z, int c) const
 
 ImageCacheTile::ImageCacheTile(const TileID& id)
     : m_id(id)
-    , m_tilepixels(new TilePixels(id, nullptr))
     , m_valid(true)
 {
+    set_tilepixels(new TilePixels(id, nullptr));
     m_channelsize = m_tilepixels->channelsize();
     m_pixelsize   = m_tilepixels->pixelsize();
     m_tile_width  = m_tilepixels->tile_width();
@@ -1604,12 +1604,10 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
                                TypeDesc format, stride_t xstride,
                                stride_t ystride, stride_t zstride, bool copy)
     : m_id(id)
-    , m_tilepixels(
-          new TilePixels(id, pels, format, xstride, ystride, zstride, copy))
     , m_noreclaim(true)
 {
-    // ImageCacheFile& file(m_id.file());
-    // const ImageSpec& spec(file.spec(id.subimage(), id.miplevel()));
+    set_tilepixels(
+          new TilePixels(id, pels, format, xstride, ystride, zstride, copy));
     m_channelsize = m_tilepixels->channelsize();
     m_pixelsize   = m_tilepixels->pixelsize();
     m_tile_width  = m_tilepixels->tile_width();
@@ -1618,7 +1616,6 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
     } else {
         m_nofree      = true;  // Don't free the pointer!
         m_pixels_size = 0;
-        // m_pixels.reset((char*)pels);
         m_valid = true;
     }
     id.file().imagecache().incr_cachetiles();
@@ -1628,6 +1625,7 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
 
 ImageCacheTile::~ImageCacheTile()
 {
+    release_tilepixels();
     file().imagecache().decr_cachetiles();
 }
 
