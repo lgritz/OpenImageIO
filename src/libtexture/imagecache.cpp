@@ -120,9 +120,10 @@ void
 ImageCacheStatistics::init()
 {
     // ImageCache stats:
-    find_tile_calls             = 0;
-    find_tile_microcache_misses = 0;
-    find_tile_cache_misses      = 0;
+    find_tile_calls               = 0;
+    find_tile_microcache_misses   = 0;
+    find_tile_thread_cache_misses = 0;
+    find_tile_cache_misses        = 0;
     //    tiles_created = 0;
     //    tiles_current = 0;
     //    tiles_peak = 0;
@@ -168,6 +169,7 @@ ImageCacheStatistics::merge(const ImageCacheStatistics& s)
     // ImageCache stats:
     find_tile_calls += s.find_tile_calls;
     find_tile_microcache_misses += s.find_tile_microcache_misses;
+    find_tile_thread_cache_misses += s.find_tile_thread_cache_misses;
     find_tile_cache_misses += s.find_tile_cache_misses;
     //    tiles_created += s.tiles_created;
     //    tiles_current += s.tiles_current;
@@ -1910,6 +1912,10 @@ ImageCacheImpl::getstats(int level) const
                   stats.find_tile_microcache_misses,
                   100.0 * stats.find_tile_microcache_misses
                       / (double)stats.find_tile_calls);
+            print(out, "    per-thread cache misses : {} ({:.1f}%)\n",
+                  stats.find_tile_thread_cache_misses,
+                  100.0 * stats.find_tile_thread_cache_misses
+                      / (double)stats.find_tile_calls);
             print(out, "    main cache misses : {} ({:.1f}%)\n",
                   stats.find_tile_cache_misses,
                   100.0 * stats.find_tile_cache_misses
@@ -2305,6 +2311,8 @@ ImageCacheImpl::getattribute(string_view name, TypeDesc type, void* val) const
         ATTR_DECODE("stat:find_tile_calls", long long, stats.find_tile_calls);
         ATTR_DECODE("stat:find_tile_microcache_misses", long long,
                     stats.find_tile_microcache_misses);
+        ATTR_DECODE("stat:find_tile_thread_cache_misses", long long,
+                    stats.find_tile_thread_cache_misses);
         ATTR_DECODE("stat:find_tile_cache_misses", int,
                     stats.find_tile_cache_misses);
         ATTR_DECODE("stat:files_totalsize", long long,
@@ -2342,8 +2350,6 @@ ImageCacheImpl::find_tile_main_cache(const TileID& id, ImageCacheTileRef& tile,
 {
     OIIO_DASSERT(!id.file().broken());
     ImageCacheStatistics& stats(thread_info->m_stats);
-
-    ++stats.find_tile_microcache_misses;
 
     {
 #if IMAGECACHE_TIME_STATS
@@ -2464,7 +2470,7 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     // of looping for too long, exit the loop if we just keep spinning
     // uncontrollably.
     int full_loops = 0;
-    while (m_mem_used >= (long long)m_max_memory_bytes && full_loops < 100) {
+    while (m_mem_used >= (long long)m_max_memory_bytes && full_loops < 2) {
         // If we have fallen off the end of the cache, loop back to the
         // beginning and increment our full_loops count.
         if (!sweep) {
@@ -2476,8 +2482,9 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
         if (!sweep)
             break;
         OIIO_DASSERT(sweep->second);
+        // Only remove from main cache if it's not in any thread caches.
 
-        if (!sweep->second->release()) {
+        if (!sweep->second->release() && sweep->second->_refcnt() == 1) {
             // This is a tile we should delete.  To keep iterating
             // safely, we have a good trick:
             // 1. remember the TileID of the tile to delete
@@ -3731,6 +3738,7 @@ ImageCacheImpl::get_perthread_info(ImageCachePerThreadInfo* p)
         p->lasttile = NULL;
         p->purge    = 0;
         p->m_thread_files.clear();
+        p->m_thread_tiles.clear();
     }
     return p;
 }
