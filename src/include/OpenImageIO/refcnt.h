@@ -191,6 +191,12 @@ public:
     ///
     bool _decref() const { return (--m_refcnt) == 0; }
 
+    /// Return the approximate ref count. If it's 1 and being checked by the
+    /// owner of the intrusive_ptr, then that is the only reference. But if
+    /// it's > 1, it might or might not be unique by the time the comparison
+    /// is made.
+    int _refcnt() const { return m_refcnt; }
+
     /// Define operator= to NOT COPY reference counts!  Assigning a struct
     /// doesn't change how many other things point to it.
     const RefCnt& operator=(const RefCnt&) const { return *this; }

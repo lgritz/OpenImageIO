@@ -38,6 +38,11 @@
 #define noNO_MICROCACHE 1
 // Don't use the microcache at all, check the main cache every time.
 
+#define PERTHREAD_CACHE 1600000
+// Have a full per-thread cache, which stores this many entries.
+
+#define NEVER_RECLAIM_MAIN_CACHE_TILES 1
+
 
 
 OIIO_NAMESPACE_BEGIN
@@ -78,6 +83,7 @@ struct ImageCacheStatistics {
     // First, the ImageCache-specific fields:
     long long find_tile_calls;
     long long find_tile_microcache_misses;
+    long long find_tile_thread_cache_misses;
     int find_tile_cache_misses;
     long long files_totalsize;
     long long files_totalsize_ondisk;
@@ -758,6 +764,13 @@ public:
         = tsl::robin_map<ustring, ImageCacheFile*, ustringHash>;
     ThreadFilenameMap m_thread_files;
 
+#ifdef PERTHREAD_CACHE
+    using ThreadTileMap
+        = tsl::robin_map<TileID, ImageCacheTileRef, TileID::Hasher>;
+    ThreadTileMap m_thread_tiles;
+    int m_thread_tile_count { 0 };
+#endif
+
     // We have a two-tile "microcache", storing the last two tiles needed.
     ImageCacheTileRef tile, lasttile;
     atomic_int purge;  // If set, tile ptrs need purging!
@@ -786,6 +799,72 @@ public:
     {
         auto f = m_thread_files.find(n);
         return f == m_thread_files.end() ? nullptr : f->second;
+    }
+
+    bool find_tile(const TileID& id, bool mark_same_tile_used)
+    {
+        if (tile) {
+#ifdef TRY_ALWAYS_RETURN_MICROCACHE_LAST_TILE
+            // HACK!!! If any tile has been stored in the microcache,
+            // just return it straightaway. This is a test to see
+            // how fast things can get if we almost never check the
+            // main cache.
+            if (mark_same_tile_used)
+                tile->use();
+            return true;  // already have the tile we want
+#endif
+#ifndef NO_MICROCACHE
+            if (tile->id() == id) {
+                if (mark_same_tile_used)
+                    tile->use();
+                return true;  // already have the tile we want
+            }
+#    ifndef ONLY_ONE_MICROCACHE_SLOT
+            // Tile didn't match, maybe lasttile will?  Swap tile
+            // and last tile.  Then the new one will either match,
+            // or we'll fall through and replace tile.
+            tile.swap(lasttile);
+            if (tile && tile->id() == id) {
+                tile->use();
+                return true;
+            }
+#    endif
+        }
+#endif
+        ++m_stats.find_tile_microcache_misses;
+#ifdef PERTHREAD_CACHE
+        auto found = m_thread_tiles.find(id);
+        if (found != m_thread_tiles.end()) {
+            tile = found->second;
+            // if (mark_same_tile_used)
+                // tile->use();
+            return true;
+        }
+#endif
+        ++m_stats.find_tile_thread_cache_misses;
+        return false;
+    }
+
+    void remember_tile(const TileID& id) {
+#ifdef PERTHREAD_CACHE
+        if (++m_thread_tile_count > PERTHREAD_CACHE) {
+            // If we've accumulated too many tiles in the per-thread cache,
+            // purge the ones not recently used that are only in this cache.
+            std::vector<TileID> todelete;
+            todelete.reserve(PERTHREAD_CACHE);
+            for (ThreadTileMap::const_iterator i = m_thread_tiles.cbegin(),
+                                               e = m_thread_tiles.cend();
+                 i != e; ++i) {
+                if (!i->second->used())
+                    todelete.push_back(i->first);
+            }
+            for (const auto& d : todelete) {
+                m_thread_tiles.erase(d);
+                --m_thread_tile_count;
+            }
+        }
+        m_thread_tiles.emplace(id, tile);
+#endif
     }
 };
 
@@ -1016,37 +1095,15 @@ public:
                    bool mark_same_tile_used)
     {
         ++thread_info->m_stats.find_tile_calls;
+        // return thread_info->find_tile(id, mark_same_tile_used);
+        if (thread_info->find_tile(id, mark_same_tile_used))
+            return true;
         ImageCacheTileRef& tile(thread_info->tile);
-        if (tile) {
-#ifdef TRY_ALWAYS_RETURN_MICROCACHE_LAST_TILE
-            // HACK!!! If any tile has been stored in the microcache,
-            // just return it straightaway. This is a test to see
-            // how fast things can get if we almost never check the
-            // main cache.
-            if (mark_same_tile_used)
-                tile->use();
-            return true;  // already have the tile we want
-#endif
-#ifndef NO_MICROCACHE
-            if (tile->id() == id) {
-                if (mark_same_tile_used)
-                    tile->use();
-                return true;  // already have the tile we want
-            }
-#ifndef ONLY_ONE_MICROCACHE_SLOT
-            // Tile didn't match, maybe lasttile will?  Swap tile
-            // and last tile.  Then the new one will either match,
-            // or we'll fall through and replace tile.
-            tile.swap(thread_info->lasttile);
-            if (tile && tile->id() == id) {
-                tile->use();
-                return true;
-            }
-#endif
-#endif
-        }
-        return find_tile_main_cache(id, tile, thread_info);
+        bool ok = find_tile_main_cache(id, tile, thread_info);
+        if (ok)
+            thread_info->remember_tile(id);
         // N.B. find_tile_main_cache marks the tile as used
+        return ok;
     }
 
     virtual Tile* get_tile(ustring filename, int subimage, int miplevel, int x,
