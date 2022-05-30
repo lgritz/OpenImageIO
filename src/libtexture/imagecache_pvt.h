@@ -25,6 +25,21 @@
 #include <OpenImageIO/unordered_map_concurrent.h>
 
 
+// Experiments
+
+#define noALWAYS_RETURN_MICROCACHE_LAST_TILE 1
+// Find out how fast things would go if we almost never check the
+// main cache: use main cache if nothing is yet in the microcache;
+// otherwise just return the tile.
+
+#define noONLY_ONE_MICROCACHE_SLOT 1
+// Just use a 1-tile microcache, don't consider the `last` slot.
+
+#define noNO_MICROCACHE 1
+// Don't use the microcache at all, check the main cache every time.
+
+
+
 OIIO_NAMESPACE_BEGIN
 
 namespace pvt {
@@ -1003,11 +1018,22 @@ public:
         ++thread_info->m_stats.find_tile_calls;
         ImageCacheTileRef& tile(thread_info->tile);
         if (tile) {
+#ifdef TRY_ALWAYS_RETURN_MICROCACHE_LAST_TILE
+            // HACK!!! If any tile has been stored in the microcache,
+            // just return it straightaway. This is a test to see
+            // how fast things can get if we almost never check the
+            // main cache.
+            if (mark_same_tile_used)
+                tile->use();
+            return true;  // already have the tile we want
+#endif
+#ifndef NO_MICROCACHE
             if (tile->id() == id) {
                 if (mark_same_tile_used)
                     tile->use();
                 return true;  // already have the tile we want
             }
+#ifndef ONLY_ONE_MICROCACHE_SLOT
             // Tile didn't match, maybe lasttile will?  Swap tile
             // and last tile.  Then the new one will either match,
             // or we'll fall through and replace tile.
@@ -1016,6 +1042,8 @@ public:
                 tile->use();
                 return true;
             }
+#endif
+#endif
         }
         return find_tile_main_cache(id, tile, thread_info);
         // N.B. find_tile_main_cache marks the tile as used
