@@ -304,6 +304,7 @@ jobs:
             skip_tests: 1
             setenvs: export OPENCOLORIO_VERSION=v2.1.2
                             OIIO_EXTRA_CPP_ARGS=-fanalyzer
+                            CMAKE_UNITY_BUILD=OFF
                             USE_OPENVDB=0
                             # The installed OpenVDB has a TLS conflict with Python 3.8
 
