@@ -16,6 +16,7 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
     sudo yum install -y opencv opencv-devel && true
     sudo yum install -y ffmpeg ffmpeg-devel && true
     if [[ "${EXTRA_DEP_PACKAGES}" != "" ]] ; then
+        echo "Extra installs: ${EXTRA_DEP_PACKAGES}"
         time sudo yum install -y ${EXTRA_DEP_PACKAGES}
     fi
 

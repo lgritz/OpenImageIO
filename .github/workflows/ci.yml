@@ -361,6 +361,7 @@ jobs:
 
 
   macos:
+    if: 0
     name: "${{matrix.os}} appleclang${{matrix.aclang}}/C++${{matrix.cxx_std}} py${{matrix.python_ver}} ${{matrix.desc}} boost1.76 exr3.1 ocio2.1"
     strategy:
       matrix:
@@ -422,6 +423,7 @@ jobs:
 
   windows:
     name: "${{matrix.desc}} VS${{matrix.vsver}}"
+    if: 0
     strategy:
       fail-fast: false
       matrix:
