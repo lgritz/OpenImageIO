@@ -876,6 +876,10 @@ Filter1D::get_filterdesc(int filternum, FilterDesc* filterdesc)
 Filter1D*
 Filter1D::create(string_view filtername, float width)
 {
+    OIIO_PRAGMA_WARNING_PUSH
+#if OIIO_GNUC_VERSION >= 110000
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wanalyzer-possible-null-dereference")
+#endif
     if (filtername == "box")
         return new FilterBox1D(width);
     if (filtername == "triangle")
@@ -906,6 +910,7 @@ Filter1D::create(string_view filtername, float width)
     if (filtername == "rifman")
         return new FilterRifman1D(width);
     return NULL;
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
@@ -970,6 +975,10 @@ Filter2D::get_filterdesc(int filternum, FilterDesc* filterdesc)
 Filter2D*
 Filter2D::create(string_view filtername, float width, float height)
 {
+    OIIO_PRAGMA_WARNING_PUSH
+#if OIIO_GNUC_VERSION >= 110000
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wanalyzer-possible-null-dereference")
+#endif
     if (filtername == "box")
         return new FilterBox2D(width, height);
     if (filtername == "triangle")
@@ -1004,6 +1013,7 @@ Filter2D::create(string_view filtername, float width, float height)
     if (filtername == "rifman")
         return new FilterRifman2D(width, height);
     return NULL;
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
