@@ -117,7 +117,7 @@ public:
     /// Construct from std::vector<T>.
     template<class Allocator>
     constexpr span (std::vector<T, Allocator> &v)
-        : m_data(v.size() ? &v[0] : nullptr), m_size(v.size()) {
+        : m_data(v.data()), m_size(v.size()) {
     }
 
     /// Construct from `const std::vector<T>.` This turns
@@ -125,7 +125,7 @@ public:
     /// but the data it points to will be).
     template<class Allocator>
     span (const std::vector<value_type, Allocator> &v)
-        : m_data(v.size() ? &v[0] : nullptr), m_size(v.size()) { }
+        : m_data(v.data()), m_size(v.size()) { }
 
     /// Construct from mutable element std::array
     template <size_t N>
@@ -293,14 +293,14 @@ public:
     /// Construct from std::vector<T>.
     template<class Allocator>
     OIIO_CONSTEXPR14 span_strided (std::vector<T, Allocator> &v)
-        : span_strided(v.size() ? &v[0] : nullptr, v.size(), 1) {}
+        : span_strided(v.data(), v.size(), 1) {}
 
     /// Construct from const std::vector<T>. This turns const std::vector<T>
     /// into an span_strided<const T> (the span_strided isn't
     /// const, but the data it points to will be).
     template<class Allocator>
     constexpr span_strided (const std::vector<value_type, Allocator> &v)
-        : span_strided(v.size() ? &v[0] : nullptr, v.size(), 1) {}
+        : span_strided(v.data(), v.size(), 1) {}
 
     /// Construct an span from an initializer_list.
     constexpr span_strided (std::initializer_list<T> il)
