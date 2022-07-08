@@ -30,10 +30,7 @@ public:
 /// The filters are NOT expected to have their results normalized.
 class OIIO_UTIL_API Filter1D {
 public:
-    Filter1D(float width)
-        : m_w(width)
-    {
-    }
+    Filter1D(float width);
     virtual ~Filter1D(void) {};
 
     /// Get the width of the filter
@@ -72,11 +69,7 @@ protected:
 /// The filters are NOT expected to have their results normalized.
 class OIIO_UTIL_API Filter2D {
 public:
-    Filter2D(float width, float height)
-        : m_w(width)
-        , m_h(height)
-    {
-    }
+    Filter2D(float width, float height);
     virtual ~Filter2D(void) {};
 
     /// Get the width of the filter

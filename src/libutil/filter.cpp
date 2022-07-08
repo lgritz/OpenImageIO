@@ -32,12 +32,36 @@
 
 OIIO_NAMESPACE_BEGIN
 
-// Below are the implementations of several 2D filters.  They all
-// inherit their interface from Filter2D.  Each must redefine two
-// virtual functions:
+
+OIIO_PRAGMA_WARNING_PUSH
+#if OIIO_GNUC_VERSION >= 110000
+OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wanalyzer-possible-null-dereference")
+#endif
+
+Filter1D::Filter1D(float width)
+    : m_w(width)
+{
+}
+
+
+Filter2D::Filter2D(float width, float height)
+    : m_w(width)
+    , m_h(height)
+{
+}
+
+OIIO_PRAGMA_WARNING_POP
+
+
+
+// Below are the implementations of several filters.  They all inherit their
+// interface from Filter1D or Filter2D.  Each must redefine two virtual
+// functions:
 //    char *name()                     Return the filter name
-//    float operator(float,float)      Evaluate the filter
+//    float operator(float)            Evaluate the filter (1D)
+//    float operator(float,float)      Evaluate the filter (2D)
 //
+
 
 class FilterBox1D final : public Filter1D {
 public:
@@ -876,10 +900,6 @@ Filter1D::get_filterdesc(int filternum, FilterDesc* filterdesc)
 Filter1D*
 Filter1D::create(string_view filtername, float width)
 {
-    OIIO_PRAGMA_WARNING_PUSH
-#if OIIO_GNUC_VERSION >= 110000
-    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wanalyzer-possible-null-dereference")
-#endif
     if (filtername == "box")
         return new FilterBox1D(width);
     if (filtername == "triangle")
@@ -910,7 +930,6 @@ Filter1D::create(string_view filtername, float width)
     if (filtername == "rifman")
         return new FilterRifman1D(width);
     return NULL;
-    OIIO_PRAGMA_WARNING_POP
 }
 
 
@@ -975,10 +994,6 @@ Filter2D::get_filterdesc(int filternum, FilterDesc* filterdesc)
 Filter2D*
 Filter2D::create(string_view filtername, float width, float height)
 {
-    OIIO_PRAGMA_WARNING_PUSH
-#if OIIO_GNUC_VERSION >= 110000
-    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wanalyzer-possible-null-dereference")
-#endif
     if (filtername == "box")
         return new FilterBox2D(width, height);
     if (filtername == "triangle")
@@ -1013,7 +1028,6 @@ Filter2D::create(string_view filtername, float width, float height)
     if (filtername == "rifman")
         return new FilterRifman2D(width, height);
     return NULL;
-    OIIO_PRAGMA_WARNING_POP
 }
 
 
