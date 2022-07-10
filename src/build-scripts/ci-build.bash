@@ -12,6 +12,10 @@ if [[ -n "$FMT_VERSION" ]] ; then
     MY_CMAKE_FLAGS="$MY_CMAKE_FLAGS -DBUILD_FMT_VERSION=$FMT_VERSION"
 fi
 
+if [[ -n "$CPPCHECK" ]] ; then
+    MY_CMAKE_FLAGS="$MY_CMAKE_FLAGS -DOIIO_CPPCHECK=${CPPCHECK}"
+fi
+
 # On GHA, we can reduce build time with "unity" builds.
 if [[ ${GITHUB_ACTIONS} == true ]] ; then
     MY_CMAKE_FLAGS+=" -DCMAKE_UNITY_BUILD=${CMAKE_UNITY_BUILD:=ON} -DCMAKE_UNITY_BUILD_MODE=${CMAKE_UNITY_BUILD_MODE:=BATCH}"

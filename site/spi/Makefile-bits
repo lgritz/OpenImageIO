@@ -37,7 +37,7 @@ else ifeq (${platform}, macosx)
     # Generic OSX machines (including LG's laptop)
     COMPILER ?= clang
     SPCOMP2_COMPILER ?= clang
-    CMAKE_CXX_STANDARD ?= 14
+    CMAKE_CXX_STANDARD ?= 17
     SP_OS ?= macosx
     SP_PLATFORM ?= macosx
 else

@@ -467,6 +467,18 @@ endif ()
 
 
 ###########################################################################
+# cppcheck options
+#
+option (${PROJ_NAME}_CPPCHECK "Do cppcheck static analysis" OFF)
+if (${PROJ_NAME}_CPPCHECK AND (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG))
+    message (STATUS "Compiling for cppcheck static analysis")
+    # set (CMAKE_CXX_CPPCHECK "cppcheck")
+    set (CMAKE_CXX_CPPCHECK "cppcheck;--std=c++${CMAKE_CXX_STANDARD}")
+    add_definitions ("-D${PROJ_NAME}_CPPCHECK=1")
+endif ()
+
+
+###########################################################################
 # clang-format options
 #
 # clang-format is a source code reformatter that is part of the LLVM tools.

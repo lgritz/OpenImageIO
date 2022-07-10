@@ -21,6 +21,7 @@
 
 // Some compilers already have a string_view pre-C++17
 // N.B. This logic is taken from fmtlib.
+#ifndef OIIO_CPPCHECK
 #if (__has_include(<string_view>) &&                                    \
      (__cplusplus > 201402L || defined(_LIBCPP_VERSION))) ||            \
     (defined(_MSVC_LANG) && _MSVC_LANG > 201402L && _MSC_VER >= 1910)
@@ -29,6 +30,7 @@
 #elif __has_include("experimental/string_view")
 #    include <experimental/string_view>
 #    define OIIO_EXPERIMENTAL_STRING_VIEW_AVAILABLE
+#endif
 #endif
 
 

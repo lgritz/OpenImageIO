@@ -23,7 +23,7 @@ include ${working_dir}/src/make/detectplatform.mk
 
 MY_MAKE_FLAGS ?=
 MY_NINJA_FLAGS ?=
-MY_CMAKE_FLAGS ?=
+MY_CMAKE_FLAGS ?= ${MY_CMAKE_FLAGS_SEED}
 BUILDSENTINEL ?= Makefile
 NINJA ?= ninja
 CMAKE ?= cmake
@@ -213,6 +213,10 @@ ifneq (${CLANG_TIDY_FIX},)
   MY_CMAKE_FLAGS += -DCLANG_TIDY_FIX:BOOL=${CLANG_TIDY_FIX}
   MY_NINJA_FLAGS += -j 1
   # N.B. when fixing, you don't want parallel jobs!
+endif
+
+ifeq (${CPPCHECK},1)
+  MY_CMAKE_FLAGS += -DOIIO_CPPCHECK:BOOL=${CPPCHECK}
 endif
 
 ifneq (${CLANG_FORMAT_INCLUDES},)

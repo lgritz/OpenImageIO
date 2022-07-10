@@ -151,8 +151,7 @@ jobs:
             simd: "avx2,f16c"
             fmt_ver: 8.1.1
             pybind11_ver: v2.9.0
-            setenvs: EXTRA_DEP_PACKAGES="cppcheck"
-                     MY_CMAKE_FLAGS="-DCMAKE_CXX_CPPCHECK=cppcheck"
+            setenvs: MY_CMAKE_FLAGS="-DOIIO_CPPCHECK=ON"
                      CMAKE_UNITY_BUILD=OFF
 
 
