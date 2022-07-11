@@ -888,7 +888,7 @@ ImageCacheFile::read_unmipped(ImageCachePerThreadInfo* thread_info,
     // Figure out the range of texels we need for this tile
     x -= spec.x;
     y -= spec.y;
-    z -= spec.z;
+    //    z -= spec.z; // unused until we support volumes FIXME
     int x0 = x - (x % spec.tile_width);
     int x1 = std::min(x0 + spec.tile_width - 1, spec.full_width - 1);
     int y0 = y - (y % spec.tile_height);
@@ -2489,8 +2489,7 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
             // safely, we have a good trick:
             // 1. remember the TileID of the tile to delete
             TileID todelete = sweep->first;
-            size_t size     = sweep->second->memsize();
-            OIIO_DASSERT(m_mem_used >= (long long)size);
+            OIIO_DASSERT(m_mem_used >= (long long)sweep->second->memsize());
             // 2. Find the TileID of the NEXT item. We do this by
             // incrementing the sweep iterator and grabbing its id.
             ++sweep;

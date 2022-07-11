@@ -1528,9 +1528,9 @@ OpenEXROutput::write_tiles(int xbegin, int xend, int ybegin, int yend,
                                data, xstride, ystride, zstride, m_scratch);
 
     // clamp to the image edge
-    xend           = std::min(xend, m_spec.x + m_spec.width);
-    yend           = std::min(yend, m_spec.y + m_spec.height);
-    zend           = std::min(zend, m_spec.z + m_spec.depth);
+    xend = std::min(xend, m_spec.x + m_spec.width);
+    yend = std::min(yend, m_spec.y + m_spec.height);
+    // N.B. OpenEXR doesn't support voumetric tiles, so we don't worry about z
     int firstxtile = (xbegin - m_spec.x) / m_spec.tile_width;
     int firstytile = (ybegin - m_spec.y) / m_spec.tile_height;
     int nxtiles = (xend - xbegin + m_spec.tile_width - 1) / m_spec.tile_width;

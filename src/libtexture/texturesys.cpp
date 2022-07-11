@@ -1387,14 +1387,14 @@ adjust_width(float& dsdx, float& dtdx, float& dsdy, float& dtdy, float swidth,
             dsdy   = 0;
             dtdx   = 0;
             dtdy   = eps;
-            dxlen2 = dylen2 = eps2;
+            // dxlen2 = dylen2 = eps2;
         } else {
             // Tiny dx, sane dy -- pick a small dx orthogonal to dy, but
             // of length eps.
             float scale = eps / sqrtf(dylen2);
             dsdx        = dtdy * scale;
             dtdx        = -dsdy * scale;
-            dxlen2      = eps2;
+            // dxlen2      = eps2;
         }
     } else if (dylen2 < eps2) {
         // Tiny dy, sane dx -- pick a small dy orthogonal to dx, but of
@@ -1402,7 +1402,7 @@ adjust_width(float& dsdx, float& dtdx, float& dsdy, float& dtdy, float swidth,
         float scale = eps / sqrtf(dxlen2);
         dsdy        = -dtdx * scale;
         dtdy        = dsdx * scale;
-        dylen2      = eps2;
+        // dylen2      = eps2;
     }
 }
 

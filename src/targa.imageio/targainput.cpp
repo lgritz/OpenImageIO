@@ -21,7 +21,8 @@ OIIO_PLUGIN_NAMESPACE_BEGIN
 
 using namespace TGA_pvt;
 
-#if 0 /* allow tga debugging */
+#define noTGADEBUG
+#ifdef TGADEBUG /* allow tga debugging */
 static bool tgadebug = Strutil::stoi(Sysutil::getenv("OIIO_TARGA_DEBUG"));
 #    define DBG(...)  \
         if (tgadebug) \
@@ -502,9 +503,11 @@ TGAInput::get_thumbnail(ImageBuf& thumb, int subimage)
         thumb.reset(thumbspec);
         int bytespp    = (m_tga.bpp == 15) ? 2 : (m_tga.bpp / 8);
         int palbytespp = (m_tga.cmap_size == 15) ? 2 : (m_tga.cmap_size / 8);
+#if 0
         int alphabits  = m_tga.attr & 0x0F;
         if (alphabits == 0 && m_tga.bpp == 32)
             alphabits = 8;
+#endif
         // read palette, if there is any
         std::unique_ptr<unsigned char[]> palette;
         if (is_palette()) {
@@ -675,12 +678,14 @@ TGAInput::readimg()
     // for 15-bit read 2 bytes and ignore the 16th bit
     int bytespp    = (m_tga.bpp == 15) ? 2 : (m_tga.bpp / 8);
     int palbytespp = (m_tga.cmap_size == 15) ? 2 : (m_tga.cmap_size / 8);
+
+#ifdef TGADEBUG
     int alphabits  = m_tga.attr & 0x0F;
     if (alphabits == 0 && m_tga.bpp == 32)
         alphabits = 8;
-
     DBG("TGA readimg {}, bytespp = {} palbytespp = {} alphabits = {}\n",
         m_filename, bytespp, palbytespp, alphabits);
+#endif
 
     try {
         DBG("TGA {} allocating for {}x{} {}-chan image = {}\n", m_filename,
@@ -784,10 +789,10 @@ TGAInput::readimg()
     }
 
     // flip the image, if necessary
-    if (is_palette())
-        bytespp = palbytespp;
     // Y-flipping is now done in read_native_scanline instead
     /*if (m_tga.attr & FLAG_Y_FLIP) {
+        if (is_palette())
+            bytespp = palbytespp;
         //std::cerr << "[tga] y flipping\n";
 
         std::vector<unsigned char> flip (m_spec.width * bytespp);

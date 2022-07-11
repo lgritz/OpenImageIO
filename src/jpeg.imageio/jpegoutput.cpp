@@ -375,7 +375,7 @@ JpgOutput::resmeta_to_density()
             XRes = YRes;
         if (YRes <= 0.0f)
             YRes = XRes;
-        aspect = YRes / XRes;
+        // aspect = YRes / XRes;
     } else {
         // PixelAspectRatio was set in the ImageSpec. Let that trump the
         // "resolution" fields, if they contradict.
