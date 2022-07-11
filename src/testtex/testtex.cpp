@@ -1303,6 +1303,7 @@ do_tex_thread_workout(int iterations, int mythread)
             break;
         default:
             OIIO_ASSERT_MSG(0, "Unkonwn thread work pattern %d", threadtimes);
+            return;
         }
         if (!ok && spec0.width && spec0.height) {
             s = (((2 * pixel) % spec0.width) + 0.5f) / spec0.width;

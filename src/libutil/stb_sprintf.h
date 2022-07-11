@@ -1406,7 +1406,7 @@ static char *stbsp__clamp_callback(const char *buf, void *user, int len)
          s = buf;
          se = buf + len;
          do {
-            *d++ = *s++;
+            *d++ = *s++; // NOLINT
          } while (s < se);
       }
       c->buf += len;

@@ -2021,6 +2021,8 @@ TextureSystemImpl::fade_to_pole(float t, float* accum, float& weight,
                                thread_info->tile, options.subimage, miplevel,
                                1);
     }
+    if (!polecolor)
+        return;
     pole = OIIO::clamp(pole, 0.0f, 1.0f);
     pole *= pole;  // squaring makes more pleasing appearance
     polecolor += options.firstchannel;
