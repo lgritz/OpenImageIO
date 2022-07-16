@@ -52,7 +52,9 @@ if (MSVC)
     endif ()
 endif ()
 
-set (Boost_COMPONENTS system thread)
+set (Boost_COMPONENTS 
+     # system 
+     thread)
 # if (NOT USE_STD_FILESYSTEM AND NOT USE_EXP_FILESYSTEM)
 if (NOT USE_STD_FILESYSTEM)
     list (APPEND Boost_COMPONENTS filesystem)
