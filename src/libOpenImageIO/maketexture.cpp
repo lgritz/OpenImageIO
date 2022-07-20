@@ -1479,6 +1479,12 @@ make_texture_impl(ImageBufAlgo::MakeTextureMode mode, const ImageBuf* input,
     // Default to black wrap mode, unless overridden by configspec
     dstspec.attribute("wrapmodes", "black,black");
 
+    // Copy any other metadata from configspec to dstspec. Note that any
+    // attribs in configspec that start with "maketx:" will not be copied, as
+    // they are for controlling the make_texture behavior, and are not actual
+    // metadata for the file.
+    maketx_merge_spec(dstspec, configspec);
+
     if (ignore_unassoc)
         dstspec.erase_attribute("oiio:UnassociatedAlpha");
 
@@ -1510,7 +1516,7 @@ make_texture_impl(ImageBufAlgo::MakeTextureMode mode, const ImageBuf* input,
             dstspec.attribute("PixarTextureFormat", "Shadow");
     } else if (envlatlmode) {
         dstspec.attribute("textureformat", "LatLong Environment");
-        configspec.attribute("wrapmodes", "periodic,clamp");
+        dstspec.attribute("wrapmodes", "periodic,clamp");
         if (prman_metadata)
             dstspec.attribute("PixarTextureFormat", "LatLong Environment");
     } else {
@@ -1844,12 +1850,10 @@ make_texture_impl(ImageBufAlgo::MakeTextureMode mode, const ImageBuf* input,
         dstspec.attribute("ImageDescription", desc);
     }
 
-    if (configspec.get_float_attribute("fovcot") == 0.0f) {
-        configspec.attribute("fovcot", float(srcspec.full_width)
-                                           / float(srcspec.full_height));
+    if (dstspec.get_float_attribute("fovcot") == 0.0f) {
+        dstspec.attribute("fovcot", float(srcspec.full_width)
+                                        / float(srcspec.full_height));
     }
-
-    maketx_merge_spec(dstspec, configspec);
 
     double misc_time_5 = alltime.lap();
     STATUS("misc4", misc_time_5);
