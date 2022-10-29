@@ -1516,8 +1516,8 @@ RawInput::read_metadata_exiftool()
         return false;
     const char* exiftoolargs = "-G -S -m -n";
     // Should we also use `-n` flag?
-    std::string command = Strutil::fmt::format("exiftool {} {}", exiftoolargs,
-                                               m_filename);
+    std::string command = Strutil::fmt::format("exiftool {} {} 2>/dev/null",
+                                               exiftoolargs, m_filename);
     std::string exiftoolout;
     if (!Filesystem::read_text_from_command(command, exiftoolout))
         return false;
