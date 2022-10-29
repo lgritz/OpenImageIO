@@ -1522,9 +1522,7 @@ RawInput::read_metadata_exiftool()
 {
     // Find exiftool, so we don't generate errors when we try to run it if it
     // doesn't exist.
-    std::string exiftoolpath = Filesystem::searchpath_find(
-        "exiftool",
-        Filesystem::searchpath_split(OIIO::Sysutil::getenv("PATH")));
+    std::string exiftoolpath = Filesystem::find_program("exiftool");
     if (exiftoolpath.empty())
         return true;  // Not an error to have no exiftool available
 
@@ -1534,21 +1532,21 @@ RawInput::read_metadata_exiftool()
 
 #define EXIFTOOL_USE_PIPE 1
 #if EXIFTOOL_USE_PIPE
-    if (!Filesystem::exists(m_filename))
+    if (!Filesystem::is_regular(m_filename))
         return false;
     std::string command = Strutil::fmt::format("{} {} {}", exiftoolpath,
                                                exiftoolargs, m_filename);
     if (!Filesystem::read_text_from_command(command, exiftoolout))
         return false;
 #else
-    if (!Filesystem::exists(m_filename))
+    if (!Filesystem::is_regular(m_filename))
         return false;
     std::string tempfilename = Filesystem::unique_path();
     std::string command = Strutil::fmt::format("{} {} {} >& {}", exiftoolpath,
                                                exiftoolargs, m_filename,
                                                tempfilename);
     int r               = system(command.c_str());
-    if (r == 0 && Filesystem::exists(tempfilename)) {
+    if (r == 0 && Filesystem::is_regular(tempfilename)) {
         Filesystem::read_text_file(tempfilename, exiftoolout);
         Filesystem::remove(tempfilename);
     }
