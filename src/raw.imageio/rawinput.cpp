@@ -229,8 +229,16 @@ OIIO_EXPORT int raw_imageio_version = OIIO_PLUGIN_VERSION;
 OIIO_EXPORT const char*
 raw_imageio_library_version()
 {
+    // Find exiftool, so we don't generate errors when we try to run it if it
+    // doesn't exist.
+    std::string exiftoolpath = Filesystem::searchpath_find(
+        "exiftool",
+        Filesystem::searchpath_split(OIIO::Sysutil::getenv("PATH")));
+
     std::string exiftoolver;
-    if (Filesystem::read_text_from_command("exiftool -ver", exiftoolver)) {
+    if (!exiftoolpath.empty()
+        && Filesystem::read_text_from_command("exiftool -ver", exiftoolver)
+        && !exiftoolver.empty()) {
         return ustring::fmtformat("libraw {} + exiftool {}", libraw_version(),
                                   Strutil::trimmed_whitespace(exiftoolver))
             .c_str();
@@ -1512,15 +1520,39 @@ is_float_array(string_view s)
 bool
 RawInput::read_metadata_exiftool()
 {
-    if (!Filesystem::exists(m_filename))
-        return false;
+    // Find exiftool, so we don't generate errors when we try to run it if it
+    // doesn't exist.
+    std::string exiftoolpath = Filesystem::searchpath_find(
+        "exiftool",
+        Filesystem::searchpath_split(OIIO::Sysutil::getenv("PATH")));
+    if (exiftoolpath.empty())
+        return true;  // Not an error to have no exiftool available
+
+    std::string exiftoolout;
     const char* exiftoolargs = "-G -S -m -n";
     // Should we also use `-n` flag?
-    std::string command = Strutil::fmt::format("exiftool {} {} 2>/dev/null",
+
+#define EXIFTOOL_USE_PIPE 1
+#if EXIFTOOL_USE_PIPE
+    if (!Filesystem::exists(m_filename))
+        return false;
+    std::string command = Strutil::fmt::format("{} {} {}", exiftoolpath,
                                                exiftoolargs, m_filename);
-    std::string exiftoolout;
     if (!Filesystem::read_text_from_command(command, exiftoolout))
         return false;
+#else
+    if (!Filesystem::exists(m_filename))
+        return false;
+    std::string tempfilename = Filesystem::unique_path();
+    std::string command = Strutil::fmt::format("{} {} {} >& {}", exiftoolpath,
+                                               exiftoolargs, m_filename,
+                                               tempfilename);
+    int r               = system(command.c_str());
+    if (r == 0 && Filesystem::exists(tempfilename)) {
+        Filesystem::read_text_file(tempfilename, exiftoolout);
+        Filesystem::remove(tempfilename);
+    }
+#endif
 
     string_view make = m_spec.get_string_attribute("Make");
     auto lines       = Strutil::splitsv(exiftoolout, "\n");
