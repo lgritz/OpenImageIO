@@ -52,7 +52,6 @@ echo "---------------"
 
 time vcpkg install boost-container:x64-windows
 time vcpkg install boost-filesystem:x64-windows
-# time vcpkg install boost-math:x64-windows
 time vcpkg install boost-stacktrace:x64-windows
 time vcpkg install boost-system:x64-windows
 time vcpkg install boost-thread:x64-windows
@@ -60,10 +59,11 @@ time vcpkg install boost-thread:x64-windows
 # # vcpkg install zlib:x64-windows
 vcpkg install tiff:x64-windows
 # vcpkg install libpng:x64-windows
-# vcpkg install giflib:x64-windows
+vcpkg install giflib:x64-windows
 vcpkg install freetype:x64-windows
 # # vcpkg install openexr:x64-windows
 vcpkg install libjpeg-turbo:x64-windows
+# vcpkg install opencolorio:x64-windows
 # 
 vcpkg install libraw:x64-windows
 # vcpkg install openjpeg:x64-windows
