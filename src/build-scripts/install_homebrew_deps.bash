@@ -35,7 +35,8 @@ brew link --overwrite --force python@${PYTHON_VERSION} || true
 brew install --display-times -q imath openexr opencolorio
 #brew install --display-times -q libpng giflib webp
 brew install --display-times -q jpeg-turbo openjpeg
-brew install --display-times -q freetype libraw dcmtk pybind11 numpy || true
+brew install --display-times -q freetype libraw exiftool dcmtk || true
+brew install --display-times -q pybind11 numpy || true
 brew install --display-times -q ffmpeg libheif ptex || true
 brew install --display-times -q tbb || true
 brew install --display-times -q openvdb || true
