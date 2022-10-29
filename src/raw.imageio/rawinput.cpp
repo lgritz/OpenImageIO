@@ -9,6 +9,7 @@
 
 #include <OpenImageIO/half.h>
 
+#include <OpenImageIO/filesystem.h>
 #include <OpenImageIO/fmath.h>
 #include <OpenImageIO/imageio.h>
 #include <OpenImageIO/platform.h>
@@ -91,6 +92,8 @@ private:
     // Do the actual open. It expects m_filename and m_config to be set.
     bool open_raw(bool unpack, const std::string& name,
                   const ImageSpec& config);
+    bool read_metadata_libraw();
+    bool read_metadata_exiftool();
     void get_makernotes();
     void get_makernotes_canon();
     void get_makernotes_nikon();
@@ -226,7 +229,14 @@ OIIO_EXPORT int raw_imageio_version = OIIO_PLUGIN_VERSION;
 OIIO_EXPORT const char*
 raw_imageio_library_version()
 {
-    return ustring::fmtformat("libraw {}", libraw_version()).c_str();
+    std::string exiftoolver;
+    if (Filesystem::read_text_from_command("exiftool -ver", exiftoolver)) {
+        return ustring::fmtformat("libraw {} + exiftool {}", libraw_version(),
+                                  Strutil::trimmed_whitespace(exiftoolver))
+            .c_str();
+    } else {
+        return ustring::fmtformat("libraw {}", libraw_version()).c_str();
+    }
 }
 
 OIIO_EXPORT ImageInput*
@@ -816,7 +826,19 @@ RawInput::open_raw(bool unpack, const std::string& name,
         }
     }
 
+    bool ok = read_metadata_libraw();
+    if (config.get_int_attribute("raw:exiftool", 1)
+        && Strutil::from_string<int>(
+            Sysutil::getenv("OPENIMAGEIO_RAW_EXIFTOOL", "1")))  // back door
+        ok &= read_metadata_exiftool();
+    return ok;
+}
 
+
+
+bool
+RawInput::read_metadata_libraw()
+{
     // Metadata
 
     const libraw_image_sizes_t& sizes(m_processor->imgdata.sizes);
@@ -1459,6 +1481,102 @@ RawInput::do_unpack()
     bool ok    = open_raw(true, m_filename, m_config);
     m_unpacked = true;
     return ok;
+}
+
+
+
+inline size_t
+is_int_array(string_view s)
+{
+    auto vals = Strutil::splitsv(s, " ");
+    for (auto& v : vals)
+        if (!Strutil::string_is_int(v))
+            return 0;
+    return vals.size();
+}
+
+
+
+inline size_t
+is_float_array(string_view s)
+{
+    auto vals = Strutil::splitsv(s, " ");
+    for (auto& v : vals)
+        if (!Strutil::string_is_float(v))
+            return 0;
+    return vals.size();
+}
+
+
+
+bool
+RawInput::read_metadata_exiftool()
+{
+    if (!Filesystem::exists(m_filename))
+        return false;
+    const char* exiftoolargs = "-G -S -m -n";
+    // Should we also use `-n` flag?
+    std::string command = Strutil::fmt::format("exiftool {} {}", exiftoolargs,
+                                               m_filename);
+    std::string exiftoolout;
+    if (!Filesystem::read_text_from_command(command, exiftoolout))
+        return false;
+
+    string_view make = m_spec.get_string_attribute("Make");
+    auto lines       = Strutil::splitsv(exiftoolout, "\n");
+    // Strutil::print("exiftool output was {} lines\n", lines.size());
+    for (string_view line : lines) {
+        using namespace Strutil;
+        // Strutil::print("line: {}\n", line);
+        if (!parse_char(line, '['))
+            continue;
+        string_view metacategory = parse_until(line, "]");
+        if (!parse_char(line, ']'))
+            continue;
+        skip_whitespace(line);
+        string_view metaname = parse_until(line, ":");
+        trim_whitespace(metaname);
+        if (!parse_char(line, ':'))
+            continue;
+        string_view metavalue = line;
+        trim_whitespace(metavalue);
+
+        if (metacategory == "MakerNotes" && make.size())
+            metacategory = make;
+        if (metacategory == "EXIF")
+            metacategory = "Exif";
+        // Skip categories that we think we have thoroughly covered
+        if (metacategory == "File" || metacategory == "Exif"
+            || metacategory == "GPS" || metacategory == "Composite"
+            || metacategory == "ExifTool")
+            continue;
+        if (metavalue.empty())
+            continue;
+        // print("  cat='{}'  name='{}'  value='{}'\n", metacategory, metaname,
+        //       metavalue);
+        std::string ourname = Strutil::fmt::format("{}:{}", metacategory,
+                                                   metaname);
+        if (string_is_int(metavalue)) {
+            m_spec.attribute(ourname, stoi(metavalue));
+        } else if (string_is_float(metavalue)) {
+            m_spec.attribute(ourname, stof(metavalue));
+        } else if (size_t len = is_int_array(metavalue)) {
+            auto vals = Strutil::extract_from_list_string<int>(metavalue, len,
+                                                               0, " ");
+            m_spec.attribute(ourname, TypeDesc(TypeDesc::INT, len),
+                             vals.data());
+        } else if (size_t len = is_float_array(metavalue)) {
+            auto vals = Strutil::extract_from_list_string<float>(metavalue, len,
+                                                                 0, " ");
+            m_spec.attribute(ourname, TypeDesc(TypeDesc::FLOAT, len),
+                             vals.data());
+        } else {
+            if (starts_with(metavalue, "(Binary data "))
+                continue;
+            m_spec.attribute(ourname, metavalue);
+        }
+    }
+    return true;
 }
 
 
