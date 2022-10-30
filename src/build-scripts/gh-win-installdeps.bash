@@ -86,6 +86,10 @@ export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH;$VCPKG_INSTALLATION_ROOT/installed/
 # 
 echo "All VCPkg installs:"
 vcpkg list
+
+echo "VcPkg install area:"
+ls -R C:/vcpkg/installed/x64-windows
+echo "------------------"
 #
 ########################################################################
 
