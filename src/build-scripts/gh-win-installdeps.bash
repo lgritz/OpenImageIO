@@ -66,9 +66,12 @@ vcpkg install libjpeg-turbo:x64-windows
 # vcpkg install opencolorio:x64-windows
 # 
 vcpkg install libraw:x64-windows
+export LibRaw_DIR="C:/vcpkg/installed/x64-windows"
+export LibRaw_ROOT="C:/vcpkg/installed/x64-windows"
+
 # vcpkg install openjpeg:x64-windows
 # # vcpkg install ffmpeg:x64-windows   # takes FOREVER!
-# # vcpkg install webp:x64-windows  # No such vcpkg package?a
+vcpkg install libwebp:x64-windows
 # 
 # #echo "$VCPKG_INSTALLATION_ROOT"
 # #ls "$VCPKG_INSTALLATION_ROOT"

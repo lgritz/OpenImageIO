@@ -209,7 +209,7 @@ endif ()
 checked_find_package (LibRaw
                       RECOMMEND_MIN 0.18
                       RECOMMEND_MIN_REASON "for ACES support and better camera metadata"
-                      PREFER_CONFIG
+                    #   PREFER_CONFIG
                       PRINT LibRaw_r_LIBRARIES)
 if (LibRaw_FOUND AND LibRaw_VERSION VERSION_LESS 0.20 AND CMAKE_CXX_STANDARD VERSION_GREATER_EQUAL 17)
     message (STATUS "${ColorYellow}WARNING When building for C++17, LibRaw should be 0.20 or higher (found ${LibRaw_VERSION}). You may get errors, depending on the compiler.${ColorReset}")
