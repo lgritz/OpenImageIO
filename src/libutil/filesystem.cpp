@@ -411,13 +411,16 @@ Filesystem::is_executable(string_view path) noexcept
     auto stat = filesystem::status(u8path(path), ec);
     auto perm = stat.permissions();
 #ifdef USE_STD_FILESYSTEM
-    return (perm & filesystem::perms::owner_exec)
-           || (perm & filesystem::perms::group_exec)
-           || (perm & filesystem::perms::others_exec);
+    return (perm & filesystem::perms::owner_exec) != filesystem::perms::none
+           || (perm & filesystem::perms::group_exec) != filesystem::perms::none
+           || (perm & filesystem::perms::others_exec)
+                  != filesystem::perms::none;
 #else
-    return (perm & filesystem::perms::owner_exe)
+    return (perm & filesystem::perms::owner_exe) != filesystem::perms::no_perms
            || (perm & filesystem::perms::group_exe)
-           || (perm & filesystem::perms::others_exe);
+                  != filesystem::perms::no_perms
+           || (perm & filesystem::perms::others_exe)
+                  != filesystem::perms::no_perms;
 #endif
 }
 
