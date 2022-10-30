@@ -150,6 +150,10 @@ if [[ "$LIBRAW_VERSION" != "" ]] ; then
     source src/build-scripts/build_libraw.bash
 fi
 
+if [[ "$EXIFTOOL_VERSION" != "" ]] ; then
+    source src/build-scripts/build_exiftool.bash
+fi
+
 if [[ "$OPENJPEG_VERSION" != "" ]] ; then
     source src/build-scripts/build_OpenJPEG.bash
 fi

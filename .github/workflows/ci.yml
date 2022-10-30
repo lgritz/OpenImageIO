@@ -241,7 +241,8 @@ jobs:
             pybind11_ver: v2.10.0
             python_ver: 3.8
             simd: avx2,f16c
-            setenvs: export LIBRAW_VERSION=0.20.2
+            setenvs: export EXIFTOOL_VERSION=12.49
+                            LIBRAW_VERSION=0.20.2
                             LIBTIFF_VERSION=v4.4.0
                             OPENCOLORIO_VERSION=v2.1.2
                             OPENIMAGEIO_OPTIONS="openexr:core=1"
@@ -262,7 +263,8 @@ jobs:
             pybind11_ver: master
             python_ver: "3.10"
             simd: avx2,f16c
-            setenvs: export LIBRAW_VERSION=master
+            setenvs: export EXIFTOOL_VERSION=12.49
+                            LIBRAW_VERSION=master
                             LIBTIFF_VERSION=master
                             OPENCOLORIO_VERSION=main
                             OPENIMAGEIO_OPTIONS="openexr:core=1"
