@@ -65,6 +65,104 @@ getargs(int argc, char* argv[])
 
 
 
+template<class Rtype, class Atype = Rtype, class Btype = Atype>
+bool
+test_impl(ImageBuf& R, const ImageBuf& A, const ImageBuf& B, ROI roi,
+          int nthreads)
+{
+    print("test_impl {} {} {}\n", TypeDescFromC<Rtype>::value(),
+          TypeDescFromC<Atype>::value(), TypeDescFromC<Btype>::value());
+    ImageBuf::Iterator<Rtype> r(R, roi);
+    ImageBuf::ConstIterator<Atype> a(A, roi);
+    ImageBuf::ConstIterator<Btype> b(B, roi);
+    // for (; !r.done(); ++r, ++a, ++b)
+    //     for (int c = roi.chbegin; c < roi.chend; ++c)
+    //         r[c] = std::min(a[c], b[c]);
+    return true;
+}
+
+
+static void
+test_iba_dispatch()
+{
+#if defined(__cpp_generic_lambdas)
+    print("generic lambdas supported {}\n", __cpp_generic_lambdas);
+#else
+    print("generic lambdas not supported\n");
+#endif
+
+#ifdef OIIO_DISPATCHER_HAS_GENERIC_LAMBDAS
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_CLANG_PRAGMA(GCC diagnostic ignored "-Wc++20-extensions")
+    auto f = []<typename T, typename... Args>(T x, Args&&... args) {
+        return test_impl<T>(std::forward<Args>(args)...);
+    };
+
+    using namespace ImageBufAlgo;
+    ImageBuf R, A, B;
+    Dispatcher d("test");
+    print("float:\n");
+    d.run(TypeDesc::FLOAT, f, R, A, B, ROI(), 1);
+    print("uint8:\n");
+    d.run(TypeDesc::UINT8, f, R, A, B, ROI(), 1);
+    print("int8:\n");
+    d.run(TypeDesc::INT8, f, R, A, B, ROI(), 1);
+    print("int8 (common):\n");
+    d.runcommon(TypeDesc::INT8, f, R, A, B, ROI(), 1);
+
+#    if 1
+    print("\n");
+    Dispatcher d2("test 2 args");
+    auto f2 = []<typename Rtype, typename Atype, typename... Args>(
+                  Rtype rdummy, Atype adummy, Args&&... args) {
+        return test_impl<Rtype, Atype>(std::forward<Args>(args)...);
+    };
+    print("float/float:\n");
+    d2.run(TypeDesc::FLOAT, TypeDesc::FLOAT, f2, R, A, B, ROI(), 1);
+    print("float/u8:\n");
+    d2.run(TypeDesc::FLOAT, TypeDesc::UINT8, f2, R, A, B, ROI(), 1);
+    print("int/float:\n");
+    d2.run(TypeDesc::INT, TypeDesc::FLOAT, f2, R, A, B, ROI(), 1);
+    print("float/int16 (common):\n");
+    d2.runcommon(TypeDesc::FLOAT, TypeDesc::INT16, f2, R, A, B, ROI(), 1);
+    print("int/int16 (common):\n");
+    d2.runcommon(TypeDesc::INT, TypeDesc::INT16, f2, R, A, B, ROI(), 1);
+#    endif
+
+#    if 1
+    print("\n");
+    Dispatcher d3("test 3 args");
+    auto f3 =
+        []<typename Rtype, typename Atype, typename Btype, typename... Args>(
+            Rtype rdummy, Atype adummy, Btype bdummy, Args&&... args) {
+            return test_impl<Rtype, Atype, Btype>(std::forward<Args>(args)...);
+        };
+    print("float/float/float:\n");
+    d2.runcommon(TypeDesc::FLOAT, TypeDesc::FLOAT, TypeDesc::FLOAT, f3, R, A, B,
+                 ROI(), 1);
+    print("float/uint8/float:\n");
+    d2.runcommon(TypeDesc::FLOAT, TypeDesc::UINT8, TypeDesc::FLOAT, f3, R, A, B,
+                 ROI(), 1);
+    print("float/uint8/half:\n");
+    d2.runcommon(TypeDesc::FLOAT, TypeDesc::UINT8, TypeDesc::HALF, f3, R, A, B,
+                 ROI(), 1);
+    print("float/uint8/int16:\n");
+    d2.runcommon(TypeDesc::FLOAT, TypeDesc::UINT8, TypeDesc::INT16, f3, R, A, B,
+                 ROI(), 1);
+    print("half/int8/int16:\n");
+    d2.runcommon(TypeDesc::HALF, TypeDesc::INT8, TypeDesc::INT16, f3, R, A, B,
+                 ROI(), 1);
+    // print("int/float:\n");
+    // d2.runcommon(TypeDesc::INT, TypeDesc::FLOAT, f3, R, A, B, ROI(), 1 );
+    // print("float/u8/u16:\n");
+    // d2.runcommon(TypeDesc::FLOAT, TypeDesc::UINT8, f3, R, A, B, ROI(), 1 );
+    print("\n");
+#    endif
+    OIIO_PRAGMA_WARNING_POP
+#endif
+}
+
+
 void
 test_type_merge()
 {
@@ -579,7 +677,7 @@ test_over(TypeDesc dtype = TypeFloat)
 
     // Test over
     ImageBuf R = ImageBufAlgo::over(FG, BG);
-    int nc = R.nchannels();
+    int nc     = R.nchannels();
     for (ImageBuf::ConstIterator<float> r(R); !r.done(); ++r) {
         if (roi.contains(r.x(), r.y()))
             for (int c = 0; c < nc; ++c)
@@ -1166,6 +1264,7 @@ main(int argc, char** argv)
 
     getargs(argc, argv);
 
+    test_iba_dispatch();
     test_type_merge();
     test_zero_fill();
     test_copy();

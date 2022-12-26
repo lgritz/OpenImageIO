@@ -173,6 +173,346 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
     return TypeDesc::basetype_merge(TypeDesc::basetype_merge(a,b), c);
 }
 
+#if OIIO_CPLUSPLUS_VERSION >= 20 || __cpp_generic_lambdas >= 201707 \
+    || OIIO_CLANG_VERSION >= 90000 /* in clang 9 */ \
+    || OIIO_APPLE_CLANG_VERSION >= 90000 \
+    || OIIO_GCC_VERSION >= 80000 /* in gcc 8 */ \
+    || OIIO_MSVS_VERSION >= 1922 /* in MSVS 2019 16.2 */
+// If the compiler supports C++20 style generic lambdas, we can use them to
+// implement all the type dispatching with templated lambdas, which is better
+// than the macro soup we need for older C++.
+#define OIIO_DISPATCHER_HAS_GENERIC_LAMBDAS 1
+
+OIIO_PRAGMA_WARNING_PUSH
+OIIO_CLANG_PRAGMA(GCC diagnostic ignored "-Wc++20-extensions")
+
+class Dispatcher {
+public:
+    Dispatcher(string_view name)
+        : m_name(name)
+    {
+    }
+
+    // Single type dispatch, common types
+    template<typename Func, typename... Args>
+    bool runcommon(TypeDesc Rtype, Func func, ImageBuf& R, Args&&... args)
+    {
+            switch (Rtype.basetype) {
+            case TypeDesc::FLOAT:
+                return func(float(0), R, std::forward<Args>(args)...);
+            case TypeDesc::UINT8:
+                return func(uint8_t(0), R, std::forward<Args>(args)...);
+            case TypeDesc::HALF:
+                return func(half(0), R, std::forward<Args>(args)...);
+            case TypeDesc::UINT16:
+                return func(uint16_t(0), R, std::forward<Args>(args)...);
+            default: {
+                // other types: punt and convert to float, then copy back */
+                ImageBuf Rtmp;
+                if (R.initialized())
+                    Rtmp.copy(R, TypeDesc::FLOAT);
+                bool ret = func(float(0), Rtmp, std::forward<Args>(args)...);
+                if (ret)
+                    R.copy(Rtmp);
+                else
+                    R.errorfmt("{}", Rtmp.geterror());
+                return ret;
+            }
+            }
+    }
+
+    // Single type dispatch, all types
+    template<typename Func, typename... Args>
+    bool run(TypeDesc Rtype, Func func, ImageBuf& R, Args&&... args)
+    {
+            switch (Rtype.basetype) {
+            case TypeDesc::FLOAT:
+            case TypeDesc::UINT8:
+            case TypeDesc::HALF:
+            case TypeDesc::UINT16:
+                return runcommon(Rtype, func, R, std::forward<Args>(args)...);
+            // Less common types:
+            case TypeDesc::INT8:
+                return func(int8_t(0), R, std::forward<Args>(args)...);
+            case TypeDesc::INT16:
+                return func(int16_t(0), R, std::forward<Args>(args)...);
+            case TypeDesc::UINT32:
+                return func(uint32_t(0), R, std::forward<Args>(args)...);
+            case TypeDesc::INT32:
+                return func(int32_t(0), R, std::forward<Args>(args)...);
+            case TypeDesc::DOUBLE:
+                return func(double(0), R, std::forward<Args>(args)...);
+            default:
+                R.errorfmt("{}: Unsupported pixel data format '{}'", m_name,
+                           Rtype);
+                return false;
+            }
+    }
+
+    // 2-type dispatch, common types
+    template<typename Func, typename... Args>
+    bool runcommon(TypeDesc Rtype, TypeDesc Atype, Func func, ImageBuf& R,
+             const ImageBuf& A, Args&&... args)
+    {
+            if (Atype == Rtype) {
+                // Handle the full set of types, as long as R and A match
+                switch (Rtype.basetype) {
+                case TypeDesc::FLOAT:
+                    return func(float(0), float(0), R, A,
+                                std::forward<Args>(args)...);
+                case TypeDesc::UINT8:
+                    return func(uint8_t(0), uint8_t(0), R, A,
+                                std::forward<Args>(args)...);
+                case TypeDesc::UINT16:
+                    return func(uint16_t(0), uint16_t(0), R, A,
+                                std::forward<Args>(args)...);
+                case TypeDesc::HALF:
+                    return func(half(0), half(0), R, A,
+                                std::forward<Args>(args)...);
+                case TypeDesc::INT8:
+                    return func(int8_t(0), int8_t(0), R, A,
+                                std::forward<Args>(args)...);
+                case TypeDesc::INT16:
+                    return func(int16_t(0), int16_t(0), R, A,
+                                std::forward<Args>(args)...);
+                case TypeDesc::UINT32:
+                    return func(uint32_t(0), uint32_t(0), R, A,
+                                std::forward<Args>(args)...);
+                case TypeDesc::INT32:
+                    return func(int32_t(0), int32_t(0), R, A,
+                                std::forward<Args>(args)...);
+                case TypeDesc::DOUBLE:
+                    return func(double(0), double(0), R, A,
+                                std::forward<Args>(args)...);
+                default:;
+                }
+            }
+
+            // If R and A do not match, but at least A is one of the 4
+            // commonly encountered types, partially specialize on A's type
+            // and dispatch based on R's type.
+            switch (Atype.basetype) {
+            case TypeDesc::FLOAT: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename... Ar>(Rt r,
+                                                              Ar&&... args) {
+                    return func(Rt(0), float(0), std::forward<Ar>(args)...);
+                };
+                return dR.runcommon(Rtype, funcR, R, A,
+                                    std::forward<Args>(args)...);
+            }
+            case TypeDesc::UINT8: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename... Ar>(Rt r,
+                                                              Ar&&... args) {
+                    return func(Rt(0), uint8_t(0), std::forward<Ar>(args)...);
+                };
+                return dR.runcommon(Rtype, funcR, R, A,
+                                    std::forward<Args>(args)...);
+            }
+            case TypeDesc::HALF: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename... Ar>(Rt r,
+                                                              Ar&&... args) {
+                    return func(Rt(0), half(0), std::forward<Ar>(args)...);
+                };
+                return dR.runcommon(Rtype, funcR, R, A,
+                                    std::forward<Args>(args)...);
+            }
+            case TypeDesc::UINT16: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename... Ar>(Rt r,
+                                                              Ar&&... args) {
+                    return func(Rt(0), uint16_t(0), std::forward<Ar>(args)...);
+                };
+                return dR.runcommon(Rtype, funcR, R, A,
+                                    std::forward<Args>(args)...);
+            }
+            default:;
+            }
+            // If A is a rare type, punt and convert A to float, try again.
+            {
+                ImageBuf Atmp;
+                Atmp.copy(A, TypeDesc::FLOAT);
+                return runcommon(Rtype, TypeFloat, func, R, Atmp,
+                                 std::forward<Args>(args)...);
+            }
+    }
+
+    // 2-type dispatch, all types
+    template<typename Func, typename... Args>
+    bool run(TypeDesc Rtype, TypeDesc Atype, Func func, ImageBuf& R,
+             Args&&... args)
+    {
+            // outsource the common cases
+            if (Atype == Rtype || Atype.basetype == TypeDesc::FLOAT
+                || Atype.basetype == TypeDesc::UINT8
+                || Atype.basetype == TypeDesc::HALF
+                || Atype.basetype == TypeDesc::UINT16) {
+            return runcommon(Rtype, Atype, func, R,
+                             std::forward<Args>(args)...);
+            }
+            // Less common cases: handle each separately
+            switch (Atype.basetype) {
+            case TypeDesc::INT8: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename... Ar>(Rt r,
+                                                              Ar&&... args) {
+                    return func(Rt(0), int8_t(0), std::forward<Ar>(args)...);
+                };
+                return dR.run(Rtype, funcR, R, std::forward<Args>(args)...);
+            }
+            case TypeDesc::INT16: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename... Ar>(Rt r,
+                                                              Ar&&... args) {
+                    return func(Rt(0), int16_t(0), std::forward<Ar>(args)...);
+                };
+                return dR.run(Rtype, funcR, R, std::forward<Args>(args)...);
+            }
+            case TypeDesc::UINT32: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename... Ar>(Rt r,
+                                                              Ar&&... args) {
+                    return func(Rt(0), uint32_t(0), std::forward<Ar>(args)...);
+                };
+                return dR.run(Rtype, funcR, R, std::forward<Args>(args)...);
+            }
+            case TypeDesc::INT32: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename... Ar>(Rt r,
+                                                              Ar&&... args) {
+                    return func(Rt(0), int32_t(0), std::forward<Ar>(args)...);
+                };
+                return dR.run(Rtype, funcR, R, std::forward<Args>(args)...);
+            }
+            case TypeDesc::DOUBLE: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename... Ar>(Rt r,
+                                                              Ar&&... args) {
+                    return func(Rt(0), double(0), std::forward<Ar>(args)...);
+                };
+                return dR.run(Rtype, funcR, R, std::forward<Args>(args)...);
+            }
+            default:
+                R.errorfmt("{}: Unsupported pixel data format '{}'", m_name,
+                           Rtype);
+                return false;
+            }
+    }
+
+    // 3-type dispatch, common types
+    template<typename Func, typename... Args>
+    bool runcommon(TypeDesc Rtype, TypeDesc Atype, TypeDesc Btype, Func func,
+                   ImageBuf& R, const ImageBuf& A, const ImageBuf& B,
+                   Args&&... args)
+    {
+            if (Atype == Btype && Atype == Rtype) {
+                // Handle the full set of types, as long as R, A, B match
+                switch (Rtype.basetype) {
+                case TypeDesc::FLOAT:
+                    return func(float(0), float(0), float(0), R, A, B,
+                                std::forward<Args>(args)...);
+                case TypeDesc::UINT8:
+                    return func(uint8_t(0), uint8_t(0), uint8_t(0), R, A, B,
+                                std::forward<Args>(args)...);
+                case TypeDesc::UINT16:
+                    return func(uint16_t(0), uint16_t(0), uint16_t(0), R, A, B,
+                                std::forward<Args>(args)...);
+                case TypeDesc::HALF:
+                    return func(half(0), half(0), half(0), R, A, B,
+                                std::forward<Args>(args)...);
+                case TypeDesc::INT8:
+                    return func(int8_t(0), int8_t(0), int8_t(0), R, A, B,
+                                std::forward<Args>(args)...);
+                case TypeDesc::INT16:
+                    return func(int16_t(0), int16_t(0), int16_t(0), R, A, B,
+                                std::forward<Args>(args)...);
+                case TypeDesc::UINT32:
+                    return func(uint32_t(0), uint32_t(0), uint32_t(0), R, A, B,
+                                std::forward<Args>(args)...);
+                case TypeDesc::INT32:
+                    return func(int32_t(0), int32_t(0), int32_t(0), R, A, B,
+                                std::forward<Args>(args)...);
+                case TypeDesc::DOUBLE:
+                    return func(double(0), double(0), double(0), R, A, B,
+                                std::forward<Args>(args)...);
+                default: ;
+                }
+            }
+
+            // If R, A, B do not match, but at least B is one of the 4
+            // commonly encountered types, partially specialize on B's type
+            // and dispatch based on R and A's types.
+            switch (Btype.basetype) {
+            case TypeDesc::FLOAT: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename At, typename... Ar>(
+                                 Rt r, At a, Ar&&... args) {
+                    return func(Rt(0), At(0), float(0),
+                                std::forward<Ar>(args)...);
+                };
+                return dR.runcommon(Rtype, Atype, funcR, R, A, B,
+                                    std::forward<Args>(args)...);
+            }
+            case TypeDesc::UINT8: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename At, typename... Ar>(
+                                 Rt r, At a, Ar&&... args) {
+                    return func(Rt(0), At(0), uint8_t(0),
+                                std::forward<Ar>(args)...);
+                };
+                return dR.runcommon(Rtype, Atype, funcR, R, A, B,
+                                    std::forward<Args>(args)...);
+            }
+            case TypeDesc::HALF: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename At, typename... Ar>(
+                                 Rt r, At a, Ar&&... args) {
+                    return func(Rt(0), At(0), half(0),
+                                std::forward<Ar>(args)...);
+                };
+                return dR.runcommon(Rtype, Atype, funcR, R, A, B,
+                                    std::forward<Args>(args)...);
+            }
+            case TypeDesc::UINT16: {
+                Dispatcher dR(m_name);  // Sub-dispatch based on Rtype
+                auto funcR = [&]<typename Rt, typename At, typename... Ar>(
+                                 Rt r, At a, Ar&&... args) {
+                    return func(Rt(0), At(0), uint16_t(0),
+                                std::forward<Ar>(args)...);
+                };
+                return dR.runcommon(Rtype, Atype, funcR, R, A, B,
+                                    std::forward<Args>(args)...);
+            }
+            default:;
+            }
+            // If B is a rare type, punt and convert it to float, try again.
+            {
+                ImageBuf Btmp;
+                Btmp.copy(B, TypeDesc::FLOAT);
+                return runcommon(Rtype, Atype, TypeFloat, func, R, A, Btmp,
+                                 std::forward<Args>(args)...);
+            }
+    }
+
+private:
+    std::string m_name;
+};
+
+
+// Macro to call a type-specialized version func<type>(R,...)
+#define XOIIO_DISPATCH_TYPES(ret,name,func,type,R,...)                   \
+    {                                                                    \
+        auto f = []<typename T, typename... Args>(T x, Args&&... args) { \
+            return func<T>(std::forward<Args>(args)...);                 \
+        };                                                               \
+        Dispatcher d(name);                                              \
+        d.run(type, f, R, __VA_ARGS__);                                  \
+    }
+
+OIIO_PRAGMA_WARNING_POP
+#endif
 
 
 // Macro to call a type-specialized version func<type>(R,...)
@@ -489,6 +829,8 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
             OIIO_DISPATCH_COMMON_TYPES3_HELP(ret,name,func,Rtype,float,Btype,R,Atmp,B,__VA_ARGS__); \
         }                                                               \
     }
+
+
 
 
 // Utility: for span av, if it had fewer elements than len, alloca a new
