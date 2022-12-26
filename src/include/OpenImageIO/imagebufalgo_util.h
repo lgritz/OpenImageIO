@@ -176,7 +176,7 @@ inline TypeDesc type_merge (TypeDesc a, TypeDesc b, TypeDesc c)
 #if OIIO_CPLUSPLUS_VERSION >= 20 || __cpp_generic_lambdas >= 201707 \
     || OIIO_CLANG_VERSION >= 90000 /* in clang 9 */ \
     || OIIO_APPLE_CLANG_VERSION >= 90000 \
-    || OIIO_GCC_VERSION >= 80000 /* in gcc 8 */ \
+    || OIIO_GNUC_VERSION >= 80000 /* in gcc 8 */ \
     || OIIO_MSVS_VERSION >= 1922 /* in MSVS 2019 16.2 */
 // If the compiler supports C++20 style generic lambdas, we can use them to
 // implement all the type dispatching with templated lambdas, which is better
