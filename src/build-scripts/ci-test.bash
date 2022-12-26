@@ -28,6 +28,8 @@ $OpenImageIO_ROOT/bin/oiiotool --unittest --list-formats --threads 0 \
 echo ; echo "Try unknown command:"
 $OpenImageIO_ROOT/bin/oiiotool -q --unknown || true
 
+$OpenImageIO_ROOT/../build/bin/imagebufalgo_test || true
+
 
 #
 # Full test suite
