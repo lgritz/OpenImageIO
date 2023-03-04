@@ -780,42 +780,46 @@ get_value_override(string_view localoption, string_view defaultval)
 // Given a (potentially empty) overall data format, per-channel formats,
 // and bit depth, modify the existing spec.
 static void
-set_output_dataformat(ImageSpec& spec, TypeDesc format,
-                      std::map<std::string, std::string>& channelformats,
-                      int bitdepth)
+set_output_dataformat(
+    ImageSpec& spec, TypeDesc requested_format,
+    std::map<std::string, std::string>& requested_channelformats,
+    int requested_bitdepth)
 {
     // Account for default requested format
-    if (format != TypeUnknown)
-        spec.format = format;
-    if (bitdepth)
-        spec.attribute("oiio:BitsPerSample", bitdepth);
+    if (requested_format != TypeUnknown)
+        spec.format = requested_format;
+    if (requested_bitdepth)
+        spec.attribute("oiio:BitsPerSample", requested_bitdepth);
     else
         spec.erase_attribute("oiio:BitsPerSample");
 
     // See if there's a recommended format for this subimage
     std::string subimagename = spec["oiio:subimagename"];
-    if (format == TypeUnknown && subimagename.size()) {
+    if (requested_format == TypeUnknown && subimagename.size()) {
         auto key = Strutil::fmt::format("{}.*", subimagename);
-        if (channelformats[key] != "")
-            spec.format = TypeDesc(channelformats[key]);
+        if (requested_channelformats[key] != "")
+            spec.format = TypeDesc(requested_channelformats[key]);
     }
 
     // Honor any per-channel requests
-    if (channelformats.size()) {
+    if (requested_channelformats.size()) {
         spec.channelformats.clear();
         spec.channelformats.resize(spec.nchannels, spec.format);
         for (int c = 0; c < spec.nchannels; ++c) {
-            std::string chname = spec.channel_name(c);
-            auto subchname     = Strutil::fmt::format("{}.{}", subimagename,
+            auto chname    = spec.channel_name(c);
+            auto subchname = Strutil::fmt::format("{}.{}", subimagename,
                                                   chname);
-            if (channelformats[subchname] != "" && subimagename.size())
-                spec.channelformats[c] = TypeDesc(channelformats[subchname]);
-            else if (channelformats[chname] != "")
-                spec.channelformats[c] = TypeDesc(channelformats[chname]);
+            if (requested_channelformats[subchname] != ""
+                && subimagename.size())
+                spec.channelformats[c] = TypeDesc(
+                    requested_channelformats[subchname]);
+            else if (requested_channelformats[chname] != "")
+                spec.channelformats[c] = TypeDesc(
+                    requested_channelformats[chname]);
             else
                 spec.channelformats[c] = spec.format;
         }
-    } else {
+    } else if (requested_format != TypeUnknown) {
         spec.channelformats.clear();
     }
 
