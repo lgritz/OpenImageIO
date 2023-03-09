@@ -4,6 +4,7 @@
 
 # Python-related options.
 option (USE_PYTHON "Build the Python bindings" ON)
+option (INSTALL_PYTHON_BINDINGS "Install the Python bindinds" ON)
 set (PYTHON_VERSION "" CACHE STRING "Target version of python to find")
 option (PYLIB_INCLUDE_SONAME "If ON, soname/soversion will be set for Python module library" OFF)
 option (PYLIB_LIB_PREFIX "If ON, prefix the Python module with 'lib'" OFF)
@@ -136,11 +137,12 @@ macro (setup_python_module)
             ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/python/site-packages
             )
 
-    install (TARGETS ${target_name}
-             RUNTIME DESTINATION ${PYTHON_SITE_DIR} COMPONENT user
-             LIBRARY DESTINATION ${PYTHON_SITE_DIR} COMPONENT user)
-
-    install(FILES __init__.py DESTINATION ${PYTHON_SITE_DIR})
+    if (INSTALL_PYTHON_BINDINGS)
+        install (TARGETS ${target_name}
+                 RUNTIME DESTINATION ${PYTHON_SITE_DIR} COMPONENT user
+                 LIBRARY DESTINATION ${PYTHON_SITE_DIR} COMPONENT user)
+        install(FILES __init__.py DESTINATION ${PYTHON_SITE_DIR})
+    endif ()
 
 endmacro ()
 
