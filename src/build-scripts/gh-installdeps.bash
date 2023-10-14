@@ -60,9 +60,10 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
         # repo require a libstd++ too new for the ASWF containers we run CI on
         # because their default install of gcc 9 based toolchain.
         df -h .
-        sudo cp src/build-scripts/oneAPI.repo /etc/yum.repos.d
         # make room by clearing cached packages
-        yum clean packages
+        sudo yum clean packages
+        df -h .
+        sudo cp src/build-scripts/oneAPI.repo /etc/yum.repos.d
         # sudo yum install -y intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic-2023.1.0.x86_64
         sudo yum install -y intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
         set +e; source /opt/intel/oneapi/setvars.sh; set -e
