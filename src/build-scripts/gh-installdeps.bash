@@ -15,7 +15,8 @@ set -ex
 if [[ "$ASWF_ORG" != ""  ]] ; then
     # Using ASWF CentOS container
 
-    #ls /etc/yum.repos.d
+    # ls /etc/yum.repos.d
+    yum list installed -v
     df -h .
 
     sudo yum install -y giflib giflib-devel && true
@@ -27,6 +28,9 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
     fi
     if [[ "${EXTRA_DEP_PACKAGES}" != "" ]] ; then
         time sudo yum install -y ${EXTRA_DEP_PACKAGES}
+    fi
+    if [[ "${REMOVE_DEP_PACKAGES}" != "" ]] ; then
+        time sudo yum autoremove -y ${REMOVE_DEP_PACKAGES}
     fi
 
     if [[ "${CONAN_LLVM_VERSION}" != "" ]] ; then
@@ -61,7 +65,7 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
         # because their default install of gcc 9 based toolchain.
         df -h .
         # make room by clearing cached packages
-        sudo yum clean packages
+        sudo yum clean all
         df -h .
         sudo cp src/build-scripts/oneAPI.repo /etc/yum.repos.d
         # sudo yum install -y intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic-2023.1.0.x86_64
