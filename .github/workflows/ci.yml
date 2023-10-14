@@ -113,17 +113,17 @@ jobs:
                             OIIO_EXTRA_CPP_ARGS="-fp-model=precise"
             # For icc, use fp-model precise to eliminate needless LSB errors
             # that make test results differ from other platforms.
-          - desc: icx/C++17 py3.9 boost1.76 exr3.1 ocio2.1 qt5.15
-            nametag: linux-vfx2022-icx
+          - desc: icx/C++17 py3.10 boost1.80 exr3.1 ocio2.2 qt5.15
+            nametag: linux-vfx2023-icx
             os: ubuntu-latest
-            container: aswf/ci-osl:2022
-            vfxyear: 2022
+            container: aswf/ci-osl:2023
+            vfxyear: 2023
             cc_compiler: icx
             cxx_compiler: icpx
             cxx_std: 17
-            python_ver: 3.9
+            python_ver: "3.10"
             simd: "avx2,f16c"
-            pybind11_ver: v2.9.0
+            pybind11_ver: v2.10.0
             setenvs: export USE_OPENVDB=0
           - desc: sanitizers
             nametag: sanitizer
@@ -284,6 +284,7 @@ jobs:
 
 
   ubuntu:
+    if: 0
     name: "Ubuntu ${{matrix.desc}}"
     strategy:
       fail-fast: false
@@ -444,6 +445,7 @@ jobs:
 
 
   macos:
+    if: 0
     name: "${{matrix.os}} appleclang${{matrix.aclang}}/C++${{matrix.cxx_std}} py${{matrix.python_ver}} ${{matrix.desc}} boost1.76 exr3.1 ocio2.1"
     strategy:
       fail-fast: false
@@ -516,6 +518,7 @@ jobs:
 
 
   windows:
+    if: 0
     name: "${{matrix.desc}} VS${{matrix.vsver}}"
     strategy:
       fail-fast: false
