@@ -124,7 +124,8 @@ jobs:
             python_ver: "3.10"
             simd: "avx2,f16c"
             pybind11_ver: v2.10.0
-            setenvs: export USE_OPENVDB=0
+            setenvs: export USE_OPENVDB=0 USE_OPENCV=0
+            # Note: disable OpenCV install for the sake of limited disk space
           - desc: sanitizers
             nametag: sanitizer
             os: ubuntu-latest
