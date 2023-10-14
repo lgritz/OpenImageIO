@@ -125,7 +125,9 @@ jobs:
             simd: "avx2,f16c"
             pybind11_ver: v2.10.0
             setenvs: export USE_OPENVDB=0 USE_OPENCV=0
-            # Note: disable OpenCV install for the sake of limited disk space
+                            REMOVE_DEP_PACKAGES=nsight-compute-2022.3.0.x86_64
+            # Note: disable OpenCV install and remove nsight-compute for the
+            # sake of limited disk space on the runner.
           - desc: sanitizers
             nametag: sanitizer
             os: ubuntu-latest

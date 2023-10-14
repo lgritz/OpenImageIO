@@ -16,8 +16,8 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
     # Using ASWF CentOS container
 
     # ls /etc/yum.repos.d
-    yum list installed -v
-    df -h .
+    # yum list installed -v
+    # df -h .
 
     sudo yum install -y giflib giflib-devel && true
     if [[ "${USE_OPENCV}" != "0" ]] ; then
@@ -30,7 +30,10 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
         time sudo yum install -y ${EXTRA_DEP_PACKAGES}
     fi
     if [[ "${REMOVE_DEP_PACKAGES}" != "" ]] ; then
+        df -h .
         time sudo yum autoremove -y ${REMOVE_DEP_PACKAGES}
+        time sudo yum clean all
+        df -h .
     fi
 
     if [[ "${CONAN_LLVM_VERSION}" != "" ]] ; then
@@ -73,6 +76,7 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
         set +e; source /opt/intel/oneapi/setvars.sh; set -e
         echo "Verifying installation of Intel(r) oneAPI DPC++/C++ Compiler:"
         icpx --version
+        df -h .
     fi
 
 else
