@@ -62,7 +62,7 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
         sudo cp src/build-scripts/oneAPI.repo /etc/yum.repos.d
         sudo /usr/bin/yum install -y intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic-2022.1.0.x86_64
         set +e; source /opt/intel/oneapi/setvars.sh --config oneapi_2022.1.0.cfg; set -e
-    elif [[ "$CXX" == "icpc" || "$CC" == "icc" || "$USE_ICC" != "" || "$CXX" == "icpx" || "$CC" == "icx" || "$USE_ICX" != "" ]] ; then
+    elif [[ "$CXX" == "icpx" || "$CC" == "icx" || "$USE_ICX" != "" ]] ; then
         # Lock down icx to 2023.1 because newer versions hosted on the Intel
         # repo require a libstd++ too new for the ASWF containers we run CI on
         # because their default install of gcc 9 based toolchain.
@@ -72,7 +72,8 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
         df -h .
         sudo cp src/build-scripts/oneAPI.repo /etc/yum.repos.d
         # sudo yum install -y intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic-2023.1.0.x86_64
-        sudo yum install -y intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
+        sudo yum install -y intel-oneapi-compiler-dpcpp-cpp
+        # intel-oneapi-compiler-dpcpp-cpp-2023.2.1.x86_64
         set +e; source /opt/intel/oneapi/setvars.sh; set -e
         echo "Verifying installation of Intel(r) oneAPI DPC++/C++ Compiler:"
         icpx --version
