@@ -143,26 +143,64 @@ int global_nontsp_value = 0;
 void
 test_tsp()
 {
+    print("\nTesting tsp\n");
     OIIO::thread_specific_ptr<int> otsp;
     boost::thread_specific_ptr<int> btsp;
-    std::unique_ptr<int> uptr;
+    std::shared_ptr<int> sptr;
     otsp.reset(new int(0));
     btsp.reset(new int(0));
-    uptr.reset(new int(0));
+    sptr.reset(new int(0));
+    int iacc = 0;
 
     Benchmarker bench;
-    bench("set and get unique_ptr", [&]() {
-        int i = DoNotOptimize(*uptr);
-        *uptr = i + 1;
+    bench("create shared_ptr", [&]() {
+        std::shared_ptr<int> ptr;
+        ptr.reset(new int(0));
+        clobber_all_memory();
+    });
+    bench("create boost::thread_specific_ptr", [&]() {
+        boost::thread_specific_ptr<int> ptr;
+        ptr.reset(new int(0));
+        clobber_all_memory();
+    });
+    bench("create oiio::thread_specific_ptr", [&]() {
+        OIIO::thread_specific_ptr<int> ptr;
+        ptr.reset(new int(0));
+        clobber_all_memory();
+    });
+
+    bench("set and get shared_ptr", [&]() {
+        int i = DoNotOptimize(*sptr);
+        clobber_all_memory();
+        *sptr = i + 1;
     });
     bench("set and get boost::thread_specific_ptr", [&]() {
         int i = DoNotOptimize(*btsp.get());
-        *btsp.get() = i + 1;
+        clobber_all_memory();
+        *btsp = i + 1;
     });
     bench("set and get oiio::thread_specific_ptr", [&]() {
         int i = DoNotOptimize(*otsp.get());
-        *otsp.get() = i + 1;
+        clobber_all_memory();
+        *otsp = i + 1;
     });
+
+    bench("get shared_ptr", [&]() {
+        clobber_all_memory();
+        int i = DoNotOptimize(*sptr);
+        iacc += i;
+    });
+    bench("get boost::thread_specific_ptr", [&]() {
+        clobber_all_memory();
+        int i = DoNotOptimize(*btsp.get());
+        iacc += i;
+    });
+    bench("get oiio::thread_specific_ptr", [&]() {
+        clobber_all_memory();
+        int i = DoNotOptimize(*otsp.get());
+        iacc += i;
+    });
+
 
     // otsp.reset(nullptr);
     // btsp.reset(nullptr);

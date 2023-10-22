@@ -22,6 +22,7 @@
 #include <functional>
 #include <future>
 #include <memory>
+#include <unordered_map>
 
 #include <OpenImageIO/parallel.h>
 #include <OpenImageIO/strutil.h>
@@ -928,12 +929,135 @@ parallel_for_2D(int64_t xbegin, int64_t xend, int64_t ybegin, int64_t yend,
 
 namespace pvt {
 
-static thread_local boost::container::flat_map<const void*, void*> tsp_map;
+// Each tsp has a map of thread -> pointer values. That map is destroyed when
+// the tsp is destroyed, and should delete all the pointers it owns.
 
-void*& oiio_tsp_ref(const void* key) {
+struct tsp_internal {
+    std::unordered_map<std::thread::id, std::shared_ptr<void>> tsp_map;
+    std::mutex tsp_mutex;
+
+    // Get the pointer for the current thread
+    void* get() {
+        std::lock_guard<std::mutex> lock(tsp_mutex);
+        auto found = tsp_map.find(std::this_thread::get_id());
+        return (found != tsp_map.end()) ? found->second.get() : nullptr;
+    }
+    // Set the pointer for the current thread
+    void set(void* ptr, tsp_deleter_t deleter) {
+        std::lock_guard<std::mutex> lock(tsp_mutex);
+        tsp_map[std::this_thread::get_id()] = std::shared_ptr<void>(ptr, deleter);
+    }
+};
+
+// Request a new TSP object.
+void* tsp_create()
+{
+    return new tsp_internal;
+}
+
+// Destroy a TSP object.
+void tsp_destroy(void* tsp_opaque)
+{
+    auto tsp = static_cast<tsp_internal*>(tsp_opaque);
+    delete tsp;
+}
+
+// Given an opaque pointer that identifies the tsp, get the payload pointer in
+// that tsp for the current thread.
+void* tsp_get(void* tsp_opaque)
+{
+    auto tsp = static_cast<tsp_internal*>(tsp_opaque);
+    return tsp->get();
+}
+
+// Given an opaque pointer that identifies the tsp, set the payload pointer in
+// that tsp for the current thread.
+void tsp_set(void* tsp_opaque, void* ptr, tsp_deleter_t deleter)
+{
+    auto tsp = static_cast<tsp_internal*>(tsp_opaque);
+    tsp->set(ptr, deleter);
+}
+
+
+#if 0
+// There are { threads X tsps } pointers stored.
+
+// Each thread owns its own map of tsp -> pointer values. That map is
+// destroyed when the thread terminates, and should delete all the pointers it
+// owns.
+
+
+struct tsp_key {
+    void* object_key;    // identifies the tsp
+    std::thread::id id;  // thread it belongs to
+};
+struct tsp_value {
+    std::shared_ptr<void> sptr;
+};
+
+// This map contains the full set of { tsp_object, threadid, pointer_value }
+// tuples.
+static thread_local std::unordered_map<tsp_key, tsp_value> tsp_map;
+
+// Mutex that guards tsp_map
+static std::mutex tsp_mutex;
+
+// Called when a thread terminates, this function removes all entries of
+// all tsps that belong to the thread.
+void tsp_end_thread(std::thread::id id)
+{
+    std::lock_guard<std::mutex> lock(tsp_mutex);
+    for (auto it = tsp_map.begin(); it != tsp_map.end();) {
+        if (it->first.id == id) {
+            it = tsp_map.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+// Called when a tsp is destroyed, this function removes all entries of
+// the tsp for all threads.
+void tsp_destroy_tsp(const void* key)
+{
+    std::lock_guard<std::mutex> lock(tsp_mutex);
+    for (auto it = tsp_map.begin(); it != tsp_map.end();) {
+        if (it->first.object_key == tsp) {
+            it = tsp_map.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+static std::unordered_map<> tsp_everything;
+
+void*& oiio_tsp_ref(const void* key, tsp_deleter_t deleter) {
+    auto found = tsp_map.find(key);
+    if (found != tsp_map.end())
+        return found->second;
+    // We need to create it
+
     return tsp_map[key];
 }
 
-};
+void* oiio_tsp_get(const void* tspobj) {
+    tsp_key key = { key, std::this_thread::get_id() };
+    std::lock_guard<std::mutex> lock(tsp_mutex);
+    auto found = tsp_map.find(key);
+    return (found != tsp_map.end()) ? found->second.sptr.get() : nullptr;
+}
+
+void* oiio_tsp_set(const void* key) {
+    auto found = tsp_map.find(key);
+    if (found != tsp_map.end()) {
+
+        tsp_map.insert(key);
+    }
+    return (found != tsp_map.end()) ? found->second : nullptr;
+}
+#endif
+
+}  // namespace pvt
 
 OIIO_NAMESPACE_END
