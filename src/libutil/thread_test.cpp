@@ -15,6 +15,8 @@
 #include <OpenImageIO/unittest.h>
 #include <OpenImageIO/ustring.h>
 
+#include <boost/thread/tss.hpp>
+
 using namespace OIIO;
 
 static int iterations     = 100000;
@@ -135,6 +137,39 @@ time_thread_pool()
 
 
 
+int global_nontsp_value = 0;
+
+
+void
+test_tsp()
+{
+    OIIO::thread_specific_ptr<int> otsp;
+    boost::thread_specific_ptr<int> btsp;
+    std::unique_ptr<int> uptr;
+    otsp.reset(new int(0));
+    btsp.reset(new int(0));
+    uptr.reset(new int(0));
+
+    Benchmarker bench;
+    bench("set and get unique_ptr", [&]() {
+        int i = DoNotOptimize(*uptr);
+        *uptr = i + 1;
+    });
+    bench("set and get boost::thread_specific_ptr", [&]() {
+        int i = DoNotOptimize(*btsp.get());
+        *btsp.get() = i + 1;
+    });
+    bench("set and get oiio::thread_specific_ptr", [&]() {
+        int i = DoNotOptimize(*otsp.get());
+        *otsp.get() = i + 1;
+    });
+
+    // otsp.reset(nullptr);
+    // btsp.reset(nullptr);
+}
+
+
+
 int
 main(int argc, char** argv)
 {
@@ -152,6 +187,8 @@ main(int argc, char** argv)
 
     time_thread_group();
     time_thread_pool();
+
+    test_tsp();
 
     return unit_test_failures;
 }

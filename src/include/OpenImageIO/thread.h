@@ -859,4 +859,74 @@ private:
 };
 
 
+namespace pvt {
+OIIO_UTIL_API void*& oiio_tsp_ref(const void* key);
+}
+
+/// thread_specific_ptr<T> is a per-thread `T*`. It behaves like thread_local,
+/// except the tsp may be an object, unlike the C++ thread_local storage
+/// class, which can only apply to static variables.
+///
+/// This is an attempt to replace boost::thread_specific_ptr. It's a lot
+/// simpler and probably not as robust, but it's enough for our purposes.
+/// Important known limitations:
+///
+/// * The tsp only stores a per-thread dumb pointer, it is entirely up
+///   to each thread to destroy anything stored there before the thread
+///   exits and before the tsp itself is destroyed.
+///
+/// * A thread that terminates before it calls reset(nullptr) on the tsp
+///   will leak anything stored in the per-thread pointer of this tsp. When
+///   a thread terminates, all of its pointers in any tsps it ever accessed
+///   will be gone.
+///
+/// * A tsp that is destroyed will leak any pointers stored by threads that
+///   haven't yet called tsp.reset(nullptr).
+///
+template<typename T>
+class thread_specific_ptr
+{
+public:
+    /// Construct a tsp<T>. The key is its own address.
+    thread_specific_ptr() : m_key(&m_key) { }
+
+    /// You can't copy a tsp
+    thread_specific_ptr(const thread_specific_ptr&) = delete;
+
+    /// Destructor deletes the pointer stored in the tsp for this thread,
+    /// but not any others. The are on their own, or better have called
+    /// reset(nullptr) already.
+    ~thread_specific_ptr() {
+        void*& p = pvt::oiio_tsp_ref(m_key);
+        delete reinterpret_cast<T*>(p);
+        p = nullptr;
+    }
+
+    /// Retrieve the pointer for the calling thread, which will be nullptr if
+    /// reset() was never called to supply a pointer for the calling thread.
+    T* get() const {
+        return reinterpret_cast<T*>(pvt::oiio_tsp_ref(m_key));
+    }
+    /// Dereference the pointer of the calling thread.
+    T* operator->() const { return get(); }
+    /// Dereference the pointer of the calling thread.
+    T& operator*() const { return *get(); }
+
+    /// Implicit cast to bool checks if the calling thread's pointer is null.
+    operator bool () const { return get() != nullptr; }
+
+    /// Replace the calling thread's pointer with a new value and call delete
+    /// on any old value.
+    void reset(T* obj = nullptr) {
+        void*& p = pvt::oiio_tsp_ref(m_key);
+        if (p)
+            delete reinterpret_cast<T*>(p);
+        p = obj;
+    }
+
+private:
+    const void* m_key;   // Dummy variable, its address is the "key"
+};
+
+
 OIIO_NAMESPACE_END

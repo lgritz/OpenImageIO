@@ -153,7 +153,8 @@ if (OIIO_BUILD_TESTS AND BUILD_TESTING)
     add_test (unit_timer ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/timer_test)
 
     add_executable (thread_test thread_test.cpp)
-    target_link_libraries (thread_test PRIVATE OpenImageIO_Util)
+    target_link_libraries (thread_test PRIVATE OpenImageIO_Util
+                              $<TARGET_NAME_IF_EXISTS:Boost::thread>)
     set_target_properties (thread_test PROPERTIES FOLDER "Unit Tests")
     add_test (unit_thread ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/thread_test)
 

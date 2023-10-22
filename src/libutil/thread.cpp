@@ -925,4 +925,15 @@ parallel_for_2D(int64_t xbegin, int64_t xend, int64_t ybegin, int64_t yend,
 }
 
 
+
+namespace pvt {
+
+static thread_local boost::container::flat_map<const void*, void*> tsp_map;
+
+void*& oiio_tsp_ref(const void* key) {
+    return tsp_map[key];
+}
+
+};
+
 OIIO_NAMESPACE_END
