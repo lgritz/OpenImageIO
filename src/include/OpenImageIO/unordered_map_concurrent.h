@@ -444,6 +444,41 @@ public:
         return result.second;
     }
 
+    /// Insert <key,value> into the hash map if the key is not already there,
+    /// or if the key is already present, replace its value with the new one.
+    /// Return true if the insertion took place, false if it was already
+    /// present and the assignment took place.
+    ///
+    /// If do_lock is true, lock the bin containing key while doing this
+    /// operation; if do_lock is false, assume that the caller already
+    /// has the bin locked, so do no locking or unlocking.
+    bool insert_or_replace(const KEY& key, const VALUE& value, bool do_lock = true)
+    {
+        size_t hash = m_hash(key);
+        size_t b    = whichbin(hash);
+        Bin& bin(m_bins[b]);
+        if (do_lock)
+            bin.lock();
+        bool did_insert = false;
+#if OIIO_CPLUSPLUS_VERSION >= 17
+        auto result = bin.map.insert_or_assign(key, value);
+        did_insert = result.second;
+#else
+        auto found = bin.map.find(key);
+        if (found != bin.map.end()) {
+            found->second = value;
+        } else {
+            auto result = bin.map.emplace(key, value);
+            did_insert = result.second;
+        }
+#endif
+        if (did_insert)
+            ++m_size;
+        if (do_lock)
+            bin.unlock();
+        return did_insert;
+    }
+
     /// If the key is in the map, safely erase it.
     /// If do_lock is true, lock the bin containing key while doing this
     /// operation; if do_lock is false, assume that the caller already
