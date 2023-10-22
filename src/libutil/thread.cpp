@@ -28,6 +28,7 @@
 #include <OpenImageIO/strutil.h>
 #include <OpenImageIO/sysutil.h>
 #include <OpenImageIO/thread.h>
+#include <OpenImageIO/unordered_map_concurrent.h>
 
 #if OIIO_TBB
 #    include <tbb/parallel_for.h>
@@ -928,24 +929,92 @@ parallel_for_2D(int64_t xbegin, int64_t xend, int64_t ybegin, int64_t yend,
 
 
 namespace pvt {
+typedef void tsp_deleter_t(void* p);
+OIIO_UTIL_API void*& oiio_tsp_ref(const void* key, tsp_deleter_t deleter);
+OIIO_UTIL_API void* tsp_create();
+OIIO_UTIL_API void tsp_destroy(void* tsp_opaque);
+OIIO_UTIL_API void* tsp_get(void* tsp_opaque);
+OIIO_UTIL_API void tsp_set(void* tsp_opaque, void* ptr, tsp_deleter_t deleter);
+}
+
+/// thread_specific_ptr<T> is a per-thread `T*`. It behaves like thread_local,
+/// except the tsp may be an object, unlike the C++ thread_local storage
+/// class, which can only apply to static variables.
+///
+/// This is an attempt to replace boost::thread_specific_ptr. It's a lot
+/// simpler and probably not as robust, but it's enough for our purposes.
+///
+///
+/// Accessing the tsp with `*`, `->` or `get()` will retrieve the specific
+/// pointer for the calling thread. If the tsp is not set for the calling
+/// thread, it will return nullptr.
+///
+/// The pointers are owned by the tsp itself. So when the tsp is destroyed,
+/// all the pointers stored in the tsp (for all threads) will be deleted. When
+/// a thread is destroyed, the pointers are not yet freed.
+///
+template<typename T>
+class thread_specific_ptr
+{
+public:
+    /// Construct a tsp<T>.
+    thread_specific_ptr() : m_tsp_internals(pvt::tsp_create()) { }
+
+    /// You can't copy a tsp
+    thread_specific_ptr(const thread_specific_ptr&) = delete;
+    /// You can't move a tsp
+    thread_specific_ptr(thread_specific_ptr&&) = delete;
+
+    /// Destroy a tsp.
+    ~thread_specific_ptr() { pvt::tsp_destroy(m_tsp_internals); }
+
+    /// Retrieve the pointer for the calling thread, which will be nullptr if
+    /// reset() was never called to supply a pointer for the calling thread.
+    T* get() const {
+        return reinterpret_cast<T*>(pvt::tsp_get(m_tsp_internals));
+    }
+    /// Dereference the pointer of the calling thread.
+    T* operator->() const { return get(); }
+    /// Dereference the pointer of the calling thread.
+    T& operator*() const { return *get(); }
+
+    /// Implicit cast to bool checks if the calling thread's pointer is null.
+    operator bool () const { return get() != nullptr; }
+
+    /// Replace the calling thread's pointer with a new value and call delete
+    /// on any old value.
+    void reset(T* obj = nullptr) {
+        pvt::tsp_set(m_tsp_internals, obj, deleter);
+    }
+
+private:
+    void* m_tsp_internals;
+    static void deleter(void* p) { delete reinterpret_cast<T*>(p); }
+};
+
+
+namespace pvt {
 
 // Each tsp has a map of thread -> pointer values. That map is destroyed when
 // the tsp is destroyed, and should delete all the pointers it owns.
 
 struct tsp_internal {
-    std::unordered_map<std::thread::id, std::shared_ptr<void>> tsp_map;
-    std::mutex tsp_mutex;
+    // std::unordered_map<std::thread::id, std::shared_ptr<void>> tsp_map;
+    unordered_map_concurrent<std::thread::id, std::shared_ptr<void>> tsp_map;
+    // std::mutex tsp_mutex;
 
     // Get the pointer for the current thread
     void* get() {
-        std::lock_guard<std::mutex> lock(tsp_mutex);
+        // std::lock_guard<std::mutex> lock(tsp_mutex);
         auto found = tsp_map.find(std::this_thread::get_id());
         return (found != tsp_map.end()) ? found->second.get() : nullptr;
     }
     // Set the pointer for the current thread
     void set(void* ptr, tsp_deleter_t deleter) {
-        std::lock_guard<std::mutex> lock(tsp_mutex);
-        tsp_map[std::this_thread::get_id()] = std::shared_ptr<void>(ptr, deleter);
+        // std::lock_guard<std::mutex> lock(tsp_mutex);
+        // tsp_map[std::this_thread::get_id()] = std::shared_ptr<void>(ptr, deleter);
+        tsp_map.insert_or_replace(std::this_thread::get_id(),
+                                  std::shared_ptr<void>(ptr, deleter));
     }
 };
 
