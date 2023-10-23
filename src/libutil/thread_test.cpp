@@ -148,8 +148,9 @@ OIIO_NAMESPACE_BEGIN
 // tsp_base1 has a single unordered_map_concurrent from threadid to shared_ptr
 // of the payload. This has reader/writer locks and locks on every access.
 class OIIO_UTIL_API tsp_base1 {
-protected:
+public:
     struct internals;
+protected:
     typedef void deleter_t(void* p);
 
     tsp_base1();
@@ -213,8 +214,9 @@ tsp_base1::set(void* ptr, deleter_t deleter)
 // tsp to unowned raw pointer, for speedy get(). The set() still needs
 // to lock the tsp_map.
 class OIIO_UTIL_API tsp_base2 {
-protected:
+public:
     struct internals;
+protected:
     typedef void deleter_t(void* p);
 
     tsp_base2();
@@ -280,8 +282,9 @@ tsp_base2::set(void* ptr, deleter_t deleter)
 
 // tsp_base3 is tsp_base2, but using a std::map.
 class OIIO_UTIL_API tsp_base3 {
-protected:
+public:
     struct internals;
+protected:
     typedef void deleter_t(void* p);
 
     tsp_base3();
@@ -348,8 +351,9 @@ tsp_base3::set(void* ptr, deleter_t deleter)
 
 // tsp_base4 is tsp_base2, but using a flat_map.
 class OIIO_UTIL_API tsp_base4 {
-protected:
+public:
     struct internals;
+protected:
     typedef void deleter_t(void* p);
 
     tsp_base4();
@@ -412,62 +416,78 @@ tsp_base4::set(void* ptr, deleter_t deleter)
 }
 
 
+//////////////////////////////////////////////////////////////////////
 
-
-
-/// thread_specific_ptr<T> is a per-thread `T*`. It behaves like thread_local,
-/// except the tsp may be an object, unlike the C++ thread_local storage
-/// class, which can only apply to static variables.
-///
-/// This is an attempt to replace boost::thread_specific_ptr. It's a lot
-/// simpler and probably not as robust, but it's enough for our purposes.
-///
-///
-/// Accessing the tsp with `*`, `->` or `get()` will retrieve the specific
-/// pointer for the calling thread. If the tsp is not set for the calling
-/// thread, it will return nullptr.
-///
-/// The pointers are owned by the tsp itself. So when the tsp is destroyed,
-/// all the pointers stored in the tsp (for all threads) will be deleted. When
-/// a thread is destroyed, the pointers are not yet freed.
-///
-template<typename T, typename Base = tsp_base1>
-class thread_specific_ptr : public Base
-{
+// tsp_base5 is tsp_base3 (std::map for the global thread_local map),
+// but uses a locked flat_map for the per-tsp thread->payload map.
+class OIIO_UTIL_API tsp_base5 {
 public:
-    /// Construct a tsp<T>.
-    thread_specific_ptr() { }
+    struct internals;
+protected:
+    typedef void deleter_t(void* p);
 
-    /// You can't copy a tsp
-    thread_specific_ptr(const thread_specific_ptr&) = delete;
-    /// You can't move a tsp
-    thread_specific_ptr(thread_specific_ptr&&) = delete;
+    tsp_base5();
+    ~tsp_base5();
+    tsp_base5(const tsp_base5&) = delete;
+    tsp_base5(tsp_base5&&) = delete;
 
-    /// Destroy a tsp.
-    ~thread_specific_ptr() { }
-
-    /// Retrieve the pointer for the calling thread, which will be nullptr if
-    /// reset() was never called to supply a pointer for the calling thread.
-    T* get() const { return reinterpret_cast<T*>(Base::get()); }
-    /// Dereference the pointer of the calling thread.
-    T* operator->() const { return this->get(); }
-    /// Dereference the pointer of the calling thread.
-    T& operator*() const { return *this->get(); }
-
-    /// Implicit cast to bool checks if the calling thread's pointer is null.
-    operator bool () const { return Base::get() != nullptr; }
-
-    /// Replace the calling thread's pointer with a new value and call delete
-    /// on any old value.
-    void reset(T* obj = nullptr) {
-        Base::set(obj, deleter);
-    }
-
-private:
-    static void deleter(void* p) { delete reinterpret_cast<T*>(p); }
+    void* get() const;
+    void set(void* ptr, deleter_t deleter);
+    std::unique_ptr<internals> m_internals;
 };
 
+// Each tsp has a map of thread -> pointer values. That map is destroyed when
+// the tsp is destroyed, and should delete all the pointers it owns.
 
+typedef std::map<void*, void*> one_thread_map_t5;
+static thread_local one_thread_map_t5 tl_one_thread_map5;
+
+struct tsp_base5::internals {
+    // static thread_local std::shared_ptr<void> tsp_map;
+    // For each thread, map the tsp object to a non-owning payload pointer
+
+    // boost::container::flat_map<std::thread::id, std::shared_ptr<void>> tsp_map;
+    std::unordered_map<std::thread::id, std::shared_ptr<void>> tsp_map;
+    spin_mutex tsp_mutex;
+
+    // Get the pointer for the current thread
+    void* get() {
+        return tl_one_thread_map5[this];
+    }
+
+    // Set the pointer for the current thread. Here we need to do some
+    // double accounting.
+    void set(void* ptr, deleter_t deleter)
+    {
+        {
+            std::lock_guard<spin_mutex> lock(tsp_mutex);
+            tsp_map[std::this_thread::get_id()].reset(ptr, deleter);
+        }
+        tl_one_thread_map5[this] = ptr;
+    }
+};
+
+tsp_base5::tsp_base5()
+    : m_internals(new internals)
+{
+}
+
+tsp_base5::~tsp_base5()
+{
+    // implicitly destroys m_internals
+}
+
+void*
+tsp_base5::get() const
+{
+    return m_internals->get();
+}
+
+void
+tsp_base5::set(void* ptr, deleter_t deleter)
+{
+    m_internals->set(ptr, deleter);
+}
 
 
 
@@ -484,29 +504,33 @@ test_tsp()
 {
     print("\nTesting tsp\n");
     // Make a bunch
-    constexpr int ntsps = 10000;
+    constexpr int ntsps = 1000;
     OIIO::thread_specific_ptr<int, tsp_base1> otsp1_arr[ntsps];
     OIIO::thread_specific_ptr<int, tsp_base2> otsp2_arr[ntsps];
     OIIO::thread_specific_ptr<int, tsp_base3> otsp3_arr[ntsps];
     OIIO::thread_specific_ptr<int, tsp_base4> otsp4_arr[ntsps];
+    OIIO::thread_specific_ptr<int, tsp_base5> otsp5_arr[ntsps];
     boost::thread_specific_ptr<int> btsp_arr[ntsps];
     for (int i = 0; i < ntsps; ++i) {
         otsp1_arr[i].reset(new int(i));
         otsp2_arr[i].reset(new int(i));
         otsp3_arr[i].reset(new int(i));
         otsp4_arr[i].reset(new int(i));
+        otsp5_arr[i].reset(new int(i));
         btsp_arr[i].reset(new int(i));
     }
     OIIO::thread_specific_ptr<int, tsp_base1> otsp1;
     OIIO::thread_specific_ptr<int, tsp_base2> otsp2;
     OIIO::thread_specific_ptr<int, tsp_base3> otsp3;
     OIIO::thread_specific_ptr<int, tsp_base4> otsp4;
+    OIIO::thread_specific_ptr<int, tsp_base5> otsp5;
     boost::thread_specific_ptr<int> btsp;
     std::shared_ptr<int> sptr;
     otsp1.reset(new int(0));
     otsp2.reset(new int(0));
     otsp3.reset(new int(0));
     otsp4.reset(new int(0));
+    otsp5.reset(new int(0));
     btsp.reset(new int(0));
     sptr.reset(new int(0));
     static thread_local std::shared_ptr<int> tlptr;
@@ -538,40 +562,19 @@ test_tsp()
         ptr.reset(new int(0));
         clobber_all_memory();
     });
+    bench("create oiio::thread_specific_ptr type 4", [&]() {
+        OIIO::thread_specific_ptr<int, tsp_base4> ptr;
+        ptr.reset(new int(0));
+        clobber_all_memory();
+    });
+    bench("create oiio::thread_specific_ptr type 5", [&]() {
+        OIIO::thread_specific_ptr<int, tsp_base5> ptr;
+        ptr.reset(new int(0));
+        clobber_all_memory();
+    });
     bench("create thread_local shared_ptr", [&]() {
         tlptr.reset(new int(0));
         clobber_all_memory();
-    });
-
-    bench("set and get shared_ptr value", [&]() {
-        int i = DoNotOptimize(*sptr);
-        clobber_all_memory();
-        *sptr = i + 1;
-    });
-    bench("set and get boost::thread_specific_ptr value", [&]() {
-        int i = DoNotOptimize(*btsp.get());
-        clobber_all_memory();
-        *btsp = i + 1;
-    });
-    bench("set and get oiio::thread_specific_ptr1 value", [&]() {
-        int i = DoNotOptimize(*otsp1.get());
-        clobber_all_memory();
-        *otsp1 = i + 1;
-    });
-    bench("set and get oiio::thread_specific_ptr2 value", [&]() {
-        int i = DoNotOptimize(*otsp2.get());
-        clobber_all_memory();
-        *otsp2 = i + 1;
-    });
-    bench("set and get oiio::thread_specific_ptr3 value", [&]() {
-        int i = DoNotOptimize(*otsp3.get());
-        clobber_all_memory();
-        *otsp3 = i + 1;
-    });
-    bench("set and get oiio::thread_specific_ptr4 value", [&]() {
-        int i = DoNotOptimize(*otsp4.get());
-        clobber_all_memory();
-        *otsp3 = i + 1;
     });
 
     bench("get shared_ptr value", [&]() {
@@ -604,15 +607,92 @@ test_tsp()
         int i = DoNotOptimize(*otsp4.get());
         iacc += i;
     });
+    bench("get oiio::thread_specific_ptr5 value once", [&]() {
+        clobber_all_memory();
+        int i = DoNotOptimize(*otsp5.get());
+        iacc += i;
+    });
+
+    bench("set and get shared_ptr value", [&]() {
+        int i = DoNotOptimize(*sptr);
+        clobber_all_memory();
+        *sptr = i + 1;
+    });
+    bench("set and get boost::thread_specific_ptr value", [&]() {
+        int i = DoNotOptimize(*btsp.get());
+        clobber_all_memory();
+        *btsp = i + 1;
+    });
+    bench("set and get oiio::thread_specific_ptr1 value", [&]() {
+        int i = DoNotOptimize(*otsp1.get());
+        clobber_all_memory();
+        *otsp1 = i + 1;
+    });
+    bench("set and get oiio::thread_specific_ptr2 value", [&]() {
+        int i = DoNotOptimize(*otsp2.get());
+        clobber_all_memory();
+        *otsp2 = i + 1;
+    });
+    bench("set and get oiio::thread_specific_ptr3 value", [&]() {
+        int i = DoNotOptimize(*otsp3.get());
+        clobber_all_memory();
+        *otsp3 = i + 1;
+    });
+    bench("set and get oiio::thread_specific_ptr4 value", [&]() {
+        int i = DoNotOptimize(*otsp4.get());
+        clobber_all_memory();
+        *otsp3 = i + 1;
+    });
+    bench("set and get oiio::thread_specific_ptr5 value", [&]() {
+        int i = DoNotOptimize(*otsp5.get());
+        clobber_all_memory();
+        *otsp3 = i + 1;
+    });
 
     tlptr.reset(new int(42));
     bench("get thread_local ptr value", [&]() {
         clobber_all_memory();
-        int i = DoNotOptimize(*tlptr);
+        tlptr.reset(new int(0));
+    });
+
+    bench("reset shared_ptr to new ptr", [&]() {
+        clobber_all_memory();
+        sptr.reset(new int(0));
+    });
+    bench("reset boost::thread_specific_ptr to new ptr", [&]() {
+        clobber_all_memory();
+        btsp.reset(new int(0));
+    });
+    bench("reset oiio::thread_specific_ptr1 to new ptr", [&]() {
+        clobber_all_memory();
+        otsp1.reset(new int(0));
+    });
+    bench("reset oiio::thread_specific_ptr2 to new ptr", [&]() {
+        clobber_all_memory();
+        int i = DoNotOptimize(*otsp2.get());
+        iacc += i;
+    });
+    bench("reset oiio::thread_specific_ptr3 to new ptr", [&]() {
+        clobber_all_memory();
+        int i = DoNotOptimize(*otsp3.get());
+        iacc += i;
+    });
+    bench("reset oiio::thread_specific_ptr4 to new ptr", [&]() {
+        clobber_all_memory();
+        int i = DoNotOptimize(*otsp4.get());
+        iacc += i;
+    });
+    bench("reset oiio::thread_specific_ptr5 to new ptr", [&]() {
+        clobber_all_memory();
+        int i = DoNotOptimize(*otsp5.get());
         iacc += i;
     });
 
-
+    print("sizeof(tsp_base1) = {}\n", sizeof(OIIO::tsp_base1::internals));
+    print("sizeof(tsp_base2) = {}\n", sizeof(OIIO::tsp_base2::internals));
+    print("sizeof(tsp_base3) = {}\n", sizeof(OIIO::tsp_base3::internals));
+    print("sizeof(tsp_base4) = {}\n", sizeof(OIIO::tsp_base4::internals));
+    print("sizeof(tsp_base5) = {}\n", sizeof(OIIO::tsp_base5::internals));
     // otsp.reset(nullptr);
     // btsp.reset(nullptr);
 }

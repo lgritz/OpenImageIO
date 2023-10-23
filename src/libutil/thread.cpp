@@ -928,4 +928,85 @@ parallel_for_2D(int64_t xbegin, int64_t xend, int64_t ybegin, int64_t yend,
 
 
 
+namespace pvt {
+
+// Implementation of OIIO::thread_specific_pointer. The tsp_base is the
+// underlying tsp implementation that's based on opaque pointers. The
+// user-facing `thread_specific_pointer<T>` template is just a thin wrapper
+// that casts the void* to the right type.
+//
+// There are two main data structures:
+//
+// The global tl_one_thread_map is a two-level lookup: because it's
+// thread-local, accessing it implicitly is looking at only the map for the
+// calling thread. That map is a tsp-object -> non-owning-raw-pointer lookup
+// that gives the payload pointer. This map doesn't need any locking because
+// it's per-thread.
+//
+// NOTE: this map currently grows without bound, it's a map that contains
+// `nthreads * n_tsp_objects` pointer entries, and never shrinks, but for
+// now, who cares? Even if you have tens or hundreds of thousands of these
+// over a course of a run, we're still talking about a few MB of waste.
+// Maybe don't use this in your aircraft avionics or medical device software,
+// but that seems fine for our use. It's extremely challenging to make the
+// destruction of the tsp find the maps for all the threads and safely
+// delete their entries, so we just don't bother.
+//
+// Each tsp object itself contains a thread-locked hash map that maps the
+// threadid to the payload for that thread (thus, we expect this to grow to a
+// maximum of the number of threads that try to access that particular tsb, so
+// perhaps dozens of entries, each of which is a shared_ptr?). This is the
+// actual owner of the payload, so when the tsp is destroyed, all the
+// per-thread payloads ever put in it also are deleted.
+
+
+// For each thread, map the tsp object to a non-owning payload pointer
+typedef std::map<void*, void*> one_thread_map_t;
+static thread_local one_thread_map_t tl_one_thread_map;
+
+struct tsp_base::internals {
+    // The tsp_map maps threads to payloads for this tsp object.
+    std::unordered_map<std::thread::id, std::shared_ptr<void>> tsp_map;
+    spin_mutex tsp_mutex;
+
+    // Get the pointer for the current thread
+    void* get() { return tl_one_thread_map[this]; }
+
+    // Set the pointer for the current thread. Here we need to do some
+    // double accounting.
+    void set(void* ptr, deleter_t deleter)
+    {
+        {
+            std::lock_guard<spin_mutex> lock(tsp_mutex);
+            tsp_map[std::this_thread::get_id()].reset(ptr, deleter);
+        }
+        tl_one_thread_map[this] = ptr;
+    }
+};
+
+tsp_base::tsp_base()
+    : m_internals(new internals)
+{
+}
+
+tsp_base::~tsp_base()
+{
+    // implicitly destroys m_internals
+}
+
+void*
+tsp_base::get() const
+{
+    return m_internals->get();
+}
+
+void
+tsp_base::set(void* ptr, deleter_t deleter)
+{
+    m_internals->set(ptr, deleter);
+}
+
+}  // namespace pvt
+
+
 OIIO_NAMESPACE_END

@@ -859,4 +859,89 @@ private:
 };
 
 
+
+namespace pvt {
+// Hides implementation details of thread_specific_ptr
+class OIIO_UTIL_API tsp_base {
+protected:
+    struct internals;
+    typedef void deleter_t(void* p);
+
+    tsp_base();
+    ~tsp_base();
+    tsp_base(const tsp_base&) = delete;
+    tsp_base(tsp_base&&) = delete;
+
+    void* get() const;
+    void set(void* ptr, deleter_t deleter);
+    std::unique_ptr<internals> m_internals;
+};
+}  // namespace pvt
+
+
+
+/// `thread_specific_ptr<T>` is a per-thread `T*`. It behaves like
+/// thread_local, except the tsp may be an object (including living on the
+/// stack, or as a member variable of another class), unlike the C++
+/// thread_local storage class, which can only apply to static variables.
+///
+/// Accessing the tsp's payload with `*`, `->` or `get()` will retrieve the
+/// specific pointer for the calling thread. If the tsp is not set for the
+/// calling thread, it will return nullptr. These operations are not very
+/// expensive, never significantly more so than accessing a
+/// `boost_thread_specific_ptr<T>`, and much less in some circumstances (like
+/// when there are thousands of tsps) in the process.
+///
+/// Calling `reset()` to reassign the pointer is more expensive, but we
+/// are presuming that this tends to happen infrequently, approximately
+/// once per thread per tsp object.
+///
+/// The pointers are owned by the tsp itself. So when the tsp is destroyed,
+/// all the pointers stored in the tsp (for all threads) will be deleted. When
+/// a thread is destroyed, the pointers are not yet freed.
+///
+/// Developer note: this class is templated on the Base type to allow for
+/// easy experimentation with alternate internal implementations. But the
+/// tsp_base is the best one we've found so far, so you shouldn't mess with
+/// that unless you really know what you're doing.
+template<typename T, typename Base = pvt::tsp_base>
+class thread_specific_ptr : public Base
+{
+public:
+    /// Construct a tsp<T>.
+    thread_specific_ptr() { }
+
+    /// Destroy a tsp.
+    ~thread_specific_ptr() { }
+
+    /// You can't copy a tsp
+    thread_specific_ptr(const thread_specific_ptr&) = delete;
+    /// You can't move a tsp
+    thread_specific_ptr(thread_specific_ptr&&) = delete;
+
+    /// Retrieve the pointer for the calling thread, which will be nullptr if
+    /// reset() was never called to supply a pointer for the calling thread.
+    /// This is fairly efficient, but it's not free -- if you need to access
+    /// the same tsp's payload several times within one function, for example,
+    /// get() it once and store that in a raw pointer.
+    T* get() const { return reinterpret_cast<T*>(Base::get()); }
+    /// Dereference the pointer of the calling thread.
+    T* operator->() const { return this->get(); }
+    /// Dereference the pointer of the calling thread.
+    T& operator*() const { return *this->get(); }
+
+    /// Implicit cast to bool checks if the calling thread's pointer is null.
+    operator bool () const { return Base::get() != nullptr; }
+
+    /// Replace the calling thread's pointer with a new value and call delete
+    /// on any old value.
+    void reset(T* obj = nullptr) {
+        Base::set(obj, deleter);
+    }
+
+private:
+    static void deleter(void* p) { delete reinterpret_cast<T*>(p); }
+};
+
+
 OIIO_NAMESPACE_END
