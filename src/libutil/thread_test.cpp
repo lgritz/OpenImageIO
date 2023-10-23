@@ -137,6 +137,136 @@ time_thread_pool()
 
 
 
+#include <OpenImageIO/unordered_map_concurrent.h>
+
+OIIO_NAMESPACE_BEGIN
+
+
+// tsp_base1 has a single unordered_map_concurrent from threadid to shared_ptr
+// of the payload. This has reader/writer locks and locks on every access.
+class OIIO_UTIL_API tsp_base1 {
+protected:
+    struct internals;
+    typedef void deleter_t(void* p);
+
+    tsp_base1();
+    ~tsp_base1();
+    tsp_base1(const tsp_base1&) = delete;
+    tsp_base1(tsp_base1&&) = delete;
+
+    void* get() const;
+    void set(void* ptr, deleter_t deleter);
+    std::unique_ptr<internals> m_internals;
+};
+
+// Each tsp has a map of thread -> pointer values. That map is destroyed when
+// the tsp is destroyed, and should delete all the pointers it owns.
+
+struct tsp_base1::internals {
+    // std::unordered_map<std::thread::id, std::shared_ptr<void>> tsp_map;
+    OIIO::unordered_map_concurrent<std::thread::id, std::shared_ptr<void>> tsp_map;
+    // std::mutex tsp_mutex;
+
+    // Get the pointer for the current thread
+    void* get() {
+        // std::lock_guard<std::mutex> lock(tsp_mutex);
+        auto found = tsp_map.find(std::this_thread::get_id());
+        return (found != tsp_map.end()) ? found->second.get() : nullptr;
+    }
+    // Set the pointer for the current thread
+    void set(void* ptr, deleter_t deleter) {
+        // std::lock_guard<std::mutex> lock(tsp_mutex);
+        // tsp_map[std::this_thread::get_id()] = std::shared_ptr<void>(ptr, deleter);
+        tsp_map.insert_or_replace(std::this_thread::get_id(),
+                                  std::shared_ptr<void>(ptr, deleter));
+    }
+};
+
+tsp_base1::tsp_base1()
+    : m_internals(new internals)
+{
+}
+
+tsp_base1::~tsp_base1()
+{
+    // implicitly destroys m_internals
+}
+
+void*
+tsp_base1::get() const
+{
+    return m_internals->get();
+}
+
+void
+tsp_base1::set(void* ptr, deleter_t deleter)
+{
+    m_internals->set(ptr, deleter);
+}
+
+
+
+/// thread_specific_ptr<T> is a per-thread `T*`. It behaves like thread_local,
+/// except the tsp may be an object, unlike the C++ thread_local storage
+/// class, which can only apply to static variables.
+///
+/// This is an attempt to replace boost::thread_specific_ptr. It's a lot
+/// simpler and probably not as robust, but it's enough for our purposes.
+///
+///
+/// Accessing the tsp with `*`, `->` or `get()` will retrieve the specific
+/// pointer for the calling thread. If the tsp is not set for the calling
+/// thread, it will return nullptr.
+///
+/// The pointers are owned by the tsp itself. So when the tsp is destroyed,
+/// all the pointers stored in the tsp (for all threads) will be deleted. When
+/// a thread is destroyed, the pointers are not yet freed.
+///
+template<typename T, typename Base = tsp_base1>
+class thread_specific_ptr : public Base
+{
+public:
+    /// Construct a tsp<T>.
+    thread_specific_ptr() { }
+
+    /// You can't copy a tsp
+    thread_specific_ptr(const thread_specific_ptr&) = delete;
+    /// You can't move a tsp
+    thread_specific_ptr(thread_specific_ptr&&) = delete;
+
+    /// Destroy a tsp.
+    ~thread_specific_ptr() { }
+
+    /// Retrieve the pointer for the calling thread, which will be nullptr if
+    /// reset() was never called to supply a pointer for the calling thread.
+    T* get() const { return reinterpret_cast<T*>(Base::get()); }
+    /// Dereference the pointer of the calling thread.
+    T* operator->() const { return this->get(); }
+    /// Dereference the pointer of the calling thread.
+    T& operator*() const { return *this->get(); }
+
+    /// Implicit cast to bool checks if the calling thread's pointer is null.
+    operator bool () const { return Base::get() != nullptr; }
+
+    /// Replace the calling thread's pointer with a new value and call delete
+    /// on any old value.
+    void reset(T* obj = nullptr) {
+        Base::set(obj, deleter);
+    }
+
+private:
+    static void deleter(void* p) { delete reinterpret_cast<T*>(p); }
+};
+
+
+
+
+
+
+
+OIIO_NAMESPACE_END
+
+
 int global_nontsp_value = 0;
 
 
@@ -150,6 +280,7 @@ test_tsp()
     otsp.reset(new int(0));
     btsp.reset(new int(0));
     sptr.reset(new int(0));
+    static thread_local std::shared_ptr<int> tlptr;
     int iacc = 0;
 
     Benchmarker bench;
@@ -166,6 +297,10 @@ test_tsp()
     bench("create oiio::thread_specific_ptr", [&]() {
         OIIO::thread_specific_ptr<int> ptr;
         ptr.reset(new int(0));
+        clobber_all_memory();
+    });
+    bench("create thread_local shared_ptr", [&]() {
+        tlptr.reset(new int(0));
         clobber_all_memory();
     });
 
@@ -198,6 +333,13 @@ test_tsp()
     bench("get oiio::thread_specific_ptr", [&]() {
         clobber_all_memory();
         int i = DoNotOptimize(*otsp.get());
+        iacc += i;
+    });
+
+    tlptr.reset(new int(42));
+    bench("get thread_local ptr", [&]() {
+        clobber_all_memory();
+        int i = DoNotOptimize(*tlptr);
         iacc += i;
     });
 
