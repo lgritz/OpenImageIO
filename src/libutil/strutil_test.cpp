@@ -1673,6 +1673,38 @@ test_base64_encode()
 }
 
 
+class StringViewSpan {
+public:
+    using svs = OIIO::span<OIIO::string_view>;
+
+    /// Construct from a single string_view
+    // StringViewSpan (string_view s) : m_svs(s) { }  // Necessary?
+
+    /// Construct from a span<string_view>
+    StringViewSpan (const span<string_view>& s) : m_svs(s) { }
+
+    /// Construct from a vector<string_view>.  Necessary?
+    // StringViewSpan (const std::vector<string_view>& s) : m_svs(s) { }
+
+
+    // Indexing gives you the i-th string_view
+    string_view operator[](int i) { return (*m_svs)[i]; }
+
+    size_t size() const { return m_svs->size(); }
+
+private:
+    span<string_view> m_svs;
+    std::vector<string_view> m_local;
+};
+
+
+
+void test_stringviewspan()
+{
+
+}
+
+
 
 void
 test_eval_as_bool()
@@ -1749,6 +1781,7 @@ main(int /*argc*/, char* /*argv*/[])
     test_safe_strcat();
     test_safe_strlen();
     test_string_view();
+    test_stringviewspan();
     test_parse();
     test_locale();
     // test_float_formatting ();
