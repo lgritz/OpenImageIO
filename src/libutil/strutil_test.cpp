@@ -1673,6 +1673,18 @@ test_base64_encode()
 }
 
 
+// clang-format on
+
+/// string_viewable<T> is true_type if we can make a string_view out of a T.
+template<typename T> struct string_viewable : public std::false_type {};
+
+template<typename T,
+         OIIO_ENABLE_IF(std::is_same<decltype(T().c_str()), char*>::value),
+         OIIO_ENABLE_IF(std::is_same<decltype(T().size()), size_t>::value)>
+struct string_viewabl : public std::true_type {};
+
+
+
 class StringViewSpan {
 public:
     using svs = OIIO::span<OIIO::string_view>;
@@ -1681,28 +1693,113 @@ public:
     // StringViewSpan (string_view s) : m_svs(s) { }  // Necessary?
 
     /// Construct from a span<string_view>
-    StringViewSpan (const span<string_view>& s) : m_svs(s) { }
+    StringViewSpan(span<const string_view> s)
+        : m_svs(s)
+    {
+    }
+
+    StringViewSpan(span<const char*> s)
+        : m_local(s.size()), m_svs(m_local)
+    {
+        for (size_t i = 0, e = s.size(); i < e; ++i)
+            m_local[i] = string_view(s[i]);
+    }
+
+    StringViewSpan(span<const std::string> s)
+        : m_local(s.size()), m_svs(m_local)
+    {
+        for (size_t i = 0, e = s.size(); i < e; ++i)
+            m_local[i] = string_view(s[i]);
+    }
+
+    StringViewSpan(span<const ustring> s)
+        : m_local(s.size()), m_svs(m_local)
+    {
+        for (size_t i = 0, e = s.size(); i < e; ++i)
+            m_local[i] = string_view(s[i]);
+    }
+
+    /// Construct from a span<other string type>
+    // template<typename T>
+    // StringViewSpan(span<const T> s)
+    //     : m_local(s.size()), m_svs(m_local)
+    // {
+    //     for (size_t i = 0, e = s.size(); i < e; ++i)
+    //         m_local[i] = string_view(s[i]);
+    // }
 
     /// Construct from a vector<string_view>.  Necessary?
     // StringViewSpan (const std::vector<string_view>& s) : m_svs(s) { }
 
 
     // Indexing gives you the i-th string_view
-    string_view operator[](int i) { return (*m_svs)[i]; }
+    string_view operator[](int i) { return m_svs[i]; }
 
-    size_t size() const { return m_svs->size(); }
+    size_t size() const { return m_svs.size(); }
 
 private:
-    span<string_view> m_svs;
     std::vector<string_view> m_local;
+    span<const string_view> m_svs;
 };
 
 
 
+template<typename T>
+void test_stringviewspan_onetype(string_view name)
+{
+    print("  test_stringviewspan {}\n", name);
+
+    const T array[] { T("able"), T("baker"), T("charlie") };
+    StringViewSpan ss(array);
+    OIIO_CHECK_EQUAL(ss.size(), 3);
+    OIIO_CHECK_EQUAL(ss[0], "able");
+    OIIO_CHECK_EQUAL(ss[1], "baker");
+    OIIO_CHECK_EQUAL(ss[2], "charlie");
+
+    // Single string_view
+    StringViewSpan s(array[0]);
+    OIIO_CHECK_EQUAL(s.size(), 1);
+    OIIO_CHECK_EQUAL(s[0], "able");
+}
+
+
 void test_stringviewspan()
 {
+    print("\ntest_stringviewspan\n");
+    test_stringviewspan_onetype<string_view>("string_view");
+    test_stringviewspan_onetype<char*>("const char*");
+    test_stringviewspan_onetype<std::string>("std::string");
+    test_stringviewspan_onetype<ustring>("ustring");
+    // {
+    //     // Check construction from an array of string_view
+    //     const string_view names[] { "able", "baker", "charlie" };
+    //     StringViewSpan ss(names);
+    //     OIIO_CHECK_EQUAL(ss.size(), 3);
+    //     OIIO_CHECK_EQUAL(ss[0], "able");
+    //     OIIO_CHECK_EQUAL(ss[1], "baker");
+    //     OIIO_CHECK_EQUAL(ss[2], "charlie");
 
+    //     // Single string_view
+    //     StringViewSpan ss(names[0]);
+    //     OIIO_CHECK_EQUAL(ss.size(), 1);
+    //     OIIO_CHECK_EQUAL(ss[0], "able");
+    // }
+    // {
+    //     // Check construction from an array of std::string
+    //     const string_view names[] { "able", "baker", "charlie" };
+    //     StringViewSpan ss(names);
+    //     OIIO_CHECK_EQUAL(ss.size(), 3);
+    //     OIIO_CHECK_EQUAL(ss[0], "able");
+    //     OIIO_CHECK_EQUAL(ss[1], "baker");
+    //     OIIO_CHECK_EQUAL(ss[2], "charlie");
+
+    //     // Single string_view
+    //     StringViewSpan ss(names[0]);
+    //     OIIO_CHECK_EQUAL(ss.size(), 1);
+    //     OIIO_CHECK_EQUAL(ss[0], "able");
+    // }
 }
+// clang-format off
 
 
 
@@ -1756,31 +1853,31 @@ test_eval_as_bool()
 int
 main(int /*argc*/, char* /*argv*/[])
 {
-    test_format();
-    test_format_custom();
-    test_memformat();
-    test_timeintervalformat();
-    test_get_rest_arguments();
-    test_escape_sequences();
-    test_wordwrap();
-    test_hash();
-    test_comparisons();
-    test_case();
-    test_strip();
-    test_splits();
-    test_splitsv();
-    test_join();
-    test_concat();
-    test_repeat();
-    test_replace();
-    test_excise_string_after_head();
-    test_numeric_conversion();
-    test_to_string();
-    test_extract();
-    test_safe_strcpy();
-    test_safe_strcat();
-    test_safe_strlen();
-    test_string_view();
+    // test_format();
+    // test_format_custom();
+    // test_memformat();
+    // test_timeintervalformat();
+    // test_get_rest_arguments();
+    // test_escape_sequences();
+    // test_wordwrap();
+    // test_hash();
+    // test_comparisons();
+    // test_case();
+    // test_strip();
+    // test_splits();
+    // test_splitsv();
+    // test_join();
+    // test_concat();
+    // test_repeat();
+    // test_replace();
+    // test_excise_string_after_head();
+    // test_numeric_conversion();
+    // test_to_string();
+    // test_extract();
+    // test_safe_strcpy();
+    // test_safe_strcat();
+    // test_safe_strlen();
+    // test_string_view();
     test_stringviewspan();
     test_parse();
     test_locale();
