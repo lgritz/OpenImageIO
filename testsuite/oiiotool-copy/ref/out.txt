@@ -68,6 +68,34 @@ chname.exr           :   38 x   38, 5 channel, float openexr
     screenWindowWidth: 1
     oiio:ColorSpace: "Linear"
     oiio:subimages: 1
+ch regex select:
+  64 x   64, 3 channel, float 
+    channel list: foo.R, foo.G, foo.B
+  64 x   64, 3 channel, float 
+    Stats Min: 0.500000 0.600000 0.700000 (float)
+    Stats Max: 0.500000 0.600000 0.700000 (float)
+    Stats Avg: 0.500000 0.600000 0.700000 (float)
+    Stats StdDev: 0.000000 0.000000 0.000000 (float)
+    Stats NanCount: 0 0 0 
+    Stats InfCount: 0 0 0 
+    Stats FiniteCount: 4096 4096 4096 
+    Constant: Yes
+    Constant Color: 0.500000 0.600000 0.700000 (float)
+    Monochrome: No
+ch regex exclude:
+  64 x   64, 5 channel, float 
+    channel list: R, G, B, A, Zbar
+  64 x   64, 5 channel, float 
+    Stats Min: 0.100000 0.200000 0.300000 0.400000 0.800000 (float)
+    Stats Max: 0.100000 0.200000 0.300000 0.400000 0.800000 (float)
+    Stats Avg: 0.100000 0.200000 0.300000 0.400000 0.800000 (float)
+    Stats StdDev: 0.000000 0.000000 0.000000 0.000000 0.000000 (float)
+    Stats NanCount: 0 0 0 0 0 
+    Stats InfCount: 0 0 0 0 0 
+    Stats FiniteCount: 4096 4096 4096 4096 4096 
+    Constant: Yes
+    Constant Color: 0.100000 0.200000 0.300000 0.400000 0.800000 (float)
+    Monochrome: No
 Reading green.exr
 green.exr            :   64 x   64, 3 channel, half openexr
     SHA-1: 8B61993247469F3C208CA894D71856727B11606A

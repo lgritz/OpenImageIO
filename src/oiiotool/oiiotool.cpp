@@ -3054,6 +3054,30 @@ OiioTool::decode_channel_set(const ImageSpec& spec, string_view chanlist,
 
 
 
+// Find the list of channel names and indices in the spec that match the
+// regex.  If `invert` is true, then return the channels that don't match.
+static bool
+decode_channel_set_regex(const ImageSpec& spec, string_view chan_regex,
+                         bool invert, std::vector<std::string>& newchannelnames,
+                         std::vector<int>& channels)
+{
+    try {
+        const std::regex re(chan_regex.str());
+        for (int chan = 0, nc = spec.nchannels; chan < nc; ++chan) {
+            std::string chname = spec.channel_name(chan);
+            if (std::regex_search(chname, re) != invert) {
+                // print("  Chan {}: {}\n", chan, chname);
+                newchannelnames.push_back(chname);
+                channels.push_back(chan);
+            }
+        }
+    } catch (...) {
+    }
+    return newchannelnames.size() > 0;
+}
+
+
+
 // --ch
 static void
 action_channels(Oiiotool& ot, cspan<const char*> argv)
@@ -3065,6 +3089,7 @@ action_channels(Oiiotool& ot, cspan<const char*> argv)
     string_view chanlist = ot.express(argv[1]);
     auto options         = ot.extract_options(command);
     bool allsubimages    = options.get_int("allsubimages", ot.allsubimages);
+    int use_regex        = options.get_int("regex");
 
     ImageRecRef A(ot.top());
     ot.read(A);
@@ -3084,8 +3109,13 @@ action_channels(Oiiotool& ot, cspan<const char*> argv)
         std::vector<std::string> newchannelnames;
         std::vector<int> channels;
         std::vector<float> values;
-        bool ok = decode_channel_set(*A->spec(s, 0), chanlist, newchannelnames,
-                                     channels, values, ot.eh);
+        bool ok = use_regex
+                      ? decode_channel_set_regex(*A->spec(s, 0), chanlist,
+                                                 use_regex < 0, newchannelnames,
+                                                 channels)
+                      : decode_channel_set(*A->spec(s, 0), chanlist,
+                                           newchannelnames, channels, values,
+                                           ot.eh);
         if (!ok) {
             ot.errorfmt(command, "Invalid or unknown channel selection \"{}\"",
                         chanlist);
@@ -3138,14 +3168,22 @@ action_channels(Oiiotool& ot, cspan<const char*> argv)
         std::vector<std::string> newchannelnames;
         std::vector<int> channels;
         std::vector<float> values;
-        decode_channel_set(*A->spec(s, 0), chanlist, newchannelnames, channels,
-                           values, ot.eh);
+        bool ok = use_regex
+                      ? decode_channel_set_regex(*A->spec(s, 0), chanlist,
+                                                 use_regex < 0, newchannelnames,
+                                                 channels)
+                      : decode_channel_set(*A->spec(s, 0), chanlist,
+                                           newchannelnames, channels, values,
+                                           ot.eh);
+        if (!ok) {
+            ot.error(command, "Invalid or unknown channel selection");
+            return;
+        }
         for (int m = 0, miplevels = R->miplevels(s); m < miplevels; ++m) {
             // Shuffle the indexed/named channels
             bool ok = ImageBufAlgo::channels((*R)(s, m), (*A)(s, m),
-                                             (int)channels.size(), &channels[0],
-                                             &values[0], &newchannelnames[0],
-                                             false);
+                                             (int)channels.size(), channels,
+                                             values, newchannelnames, false);
             if (!ok) {
                 ot.error(command, (*R)(s, m).geterror());
                 break;
@@ -7108,7 +7146,7 @@ Oiiotool::getargs(int argc, char* argv[])
 
     ap.separator("Manipulating channels or subimages:");
     ap.arg("--ch %s:CHANLIST")
-      .help("Select or shuffle channels (e.g., \"R,G,B\", \"B,G,R\", \"2,3,4\")")
+      .help("Select or shuffle channels (e.g., \"R,G,B\", \"B,G,R\", \"2,3,4\") (options: regex=INT)")
       .OTACTION(action_channels);
     ap.arg("--chappend")
       .help("Append the channels of the last two images")

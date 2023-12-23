@@ -2151,9 +2151,40 @@ current top image.
     shorter than the number of channels in the source image, unspecified
     channels will be omitted.
 
+    Optional appended modifiers include:
+
+      `:regex=` *int*
+        If this option is specified and is nonzero, instead of individually
+        selecting or reordering channels, the `channellist` will be assumed
+        to be a regular expression. Channel names matching the pattern in
+        any substring will be preserved and non-matching channels will be
+        removed, or if the argument to `regex=` is -1, then matching channels
+        will be removed and all others will be kept.
+
     If the channel list does not specify any changes (neither order, nor
     name, nor value), then this will just leave the images as-is, without
     any unnecessary expense or pointless copying of images in memory.
+
+    Examples::
+
+        # Select RGB channels, exclude all others
+        oiiotool rgba.tif --ch R,G,B -o rgb.tif
+
+        # Select R,G,B, but swap the data of the red and blue channels
+        oiiotool rgba.tif --ch R=B,G,B=R -o bgra.tif
+
+        # Set R to 0, A to 1, preserve G and B, exclude all others
+        oiiotool in.exr --ch R=0.0,G,B,A=1.0 -o out.exr
+
+        # Select channels 4, 5, and 6, plus A (regardless of index)
+        oiiotool in.exr --ch 4,5,6,A -o out.exr
+
+        # Select all channels that consist of R followed by 1 or more digits
+        oiiotool in.exr --ch:regex=1 "^R[0-9]+$" -o out.exr
+        
+        # Remove all channels that start with "diffuse."
+        oiiotool in.exr --ch:regex=-1 "^diffuse\\." -o out.exr
+        
 
 .. option:: --chappend
 

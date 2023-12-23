@@ -82,6 +82,14 @@ command += oiiotool ("ch-rgba.exr ch-z.exr --chappend -o chappend-rgbaz.exr")
 command += oiiotool ("src/rgbaz.exr --chnames Red,,,,Depth -o chname.exr")
 command += info_command ("chname.exr", safematch=1)
 
+# test --ch with regex
+command += oiiotool ("-pattern fill:color=0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8 64x64 8"
+                     + " -chnames R,G,B,A,foo.R,foo.G,foo.B,Zbar --ch:regex=1 \"foo\\..*\""
+                     + " -echo \"ch regex select:\" --printinfo --printstats")
+command += oiiotool ("-pattern fill:color=0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8 64x64 8"
+                     + " -chnames R,G,B,A,foo.R,foo.G,foo.B,Zbar --ch:regex=-1 \"foo\\..*\""
+                     + " -echo \"ch regex exclude:\" --printinfo --printstats")
+
 # test --crop
 command += oiiotool ("../common/grid.tif --crop 100x400+50+200 -o crop.tif")
 
