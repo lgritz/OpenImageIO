@@ -20,6 +20,10 @@ add_custom_target ( CopyFiles ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/testsuite
 set(OIIO_TESTSUITE_IMAGEDIR "${PROJECT_BINARY_DIR}/testsuite" CACHE PATH
     "Location of oiio-images, openexr-images, libtiffpic, etc.." )
 
+# Additional test names that can be customized per site
+set(OIIO_TESTSUITE_ADDITIONS "" CACHE STRING
+    "Additional site-specific tests (semicolon-separated path list)" )
+message (STATUS "OIIO_TESTSUITE_ADDITIONS = ${OIIO_TESTSUITE_ADDITIONS}")
 
 
 # oiio_add_tests() - add a set of test cases.
@@ -51,9 +55,14 @@ set(OIIO_TESTSUITE_IMAGEDIR "${PROJECT_BINARY_DIR}/testsuite" CACHE PATH
 # test.
 #
 macro (oiio_add_tests)
-    cmake_parse_arguments (_ats "" "SUFFIX;TESTNAME" "URL;IMAGEDIR;LABEL;FOUNDVAR;ENABLEVAR;ENVIRONMENT" ${ARGN})
+    cmake_parse_arguments (_ats "" "SUFFIX;TESTNAME;SRCDIR"
+                           "URL;IMAGEDIR;LABEL;FOUNDVAR;ENABLEVAR;ENVIRONMENT" ${ARGN})
        # Arguments: <prefix> <options> <one_value_keywords> <multi_value_keywords> args...
-    set (_ats_testdir "${OIIO_TESTSUITE_IMAGEDIR}/${_ats_IMAGEDIR}")
+    if (IS_ABSOLUTE "${_ats_IMAGEDIR}" AND IS_DIRECTORY "${_ats_IMAGEDIR}")
+        set (_ats_testdir "${_ats_IMAGEDIR}")
+    else ()
+        set (_ats_testdir "${OIIO_TESTSUITE_IMAGEDIR}/${_ats_IMAGEDIR}")
+    endif ()
     # If there was a FOUNDVAR param specified and that variable name is
     # not defined, mark the test as broken.
     foreach (_var ${_ats_FOUNDVAR})
@@ -90,10 +99,13 @@ macro (oiio_add_tests)
         message (STATUS "  -> You can find it at ${_ats_URL}\n")
     else ()
         # Add the tests if all is well.
-        set (_has_generator_expr TRUE)
         set (_testsuite "${CMAKE_SOURCE_DIR}/testsuite")
         foreach (_testname ${_ats_UNPARSED_ARGUMENTS})
-            set (_testsrcdir "${_testsuite}/${_testname}")
+            if (_ats_SRCDIR)
+                set (_testsrcdir "${_ats_SRCDIR}")
+            else ()
+                set (_testsrcdir "${_testsuite}/${_testname}")
+            endif ()
             set (_testdir "${CMAKE_BINARY_DIR}/testsuite/${_testname}${_ats_SUFFIX}")
             if (_ats_TESTNAME)
                 set (_testname "${_ats_TESTNAME}")
@@ -349,13 +361,13 @@ macro (oiio_add_all_tests)
     oiio_add_tests (zfile ENABLEVAR ENABLE_ZFILE
                     IMAGEDIR oiio-images)
 
-    if (SPI_TESTS)
-        oiio_add_tests (oiiotool-spi
-                        FOUNDVAR SPI_TESTS
-                        IMAGEDIR spi-oiio-tests
-                        URL "noplace -- it's SPI specific tests")
-    endif ()
-
+    # Add optional per-site lists
+    foreach (test IN LISTS OIIO_TESTSUITE_ADDITIONS)
+        get_filename_component(testname_ ${test} NAME)
+        message (STATUS "Adding custom site test: ${testname_} -> ${test}")
+        oiio_add_tests (${testname_}
+                        SRCDIR ${test})
+    endforeach ()
 endmacro()
 
 
