@@ -452,44 +452,44 @@ template<typename P> struct BaseTypeFromC<P*> { static const TypeDesc::BASETYPE 
 /// A template mechanism for getting the TypeDesc from a C type.
 /// The default for simple types is just the TypeDesc based on BaseTypeFromC.
 /// But we can specialize more complex types.
-template<typename T> struct TypeDescFromC { static const constexpr TypeDesc value() { return TypeDesc(BaseTypeFromC<T>::value); } };
-template<> struct TypeDescFromC<int32_t> { static const constexpr TypeDesc value() { return TypeDesc::INT32; } };
-template<> struct TypeDescFromC<uint32_t> { static const constexpr TypeDesc value() { return TypeDesc::UINT32; } };
-template<> struct TypeDescFromC<int16_t> { static const constexpr TypeDesc value() { return TypeDesc::INT16; } };
-template<> struct TypeDescFromC<uint16_t> { static const constexpr TypeDesc value() { return TypeDesc::UINT16; } };
-template<> struct TypeDescFromC<int8_t> { static const constexpr TypeDesc value() { return TypeDesc::INT8; } };
-template<> struct TypeDescFromC<uint8_t> { static const constexpr TypeDesc value() { return TypeDesc::UINT8; } };
-template<> struct TypeDescFromC<float> { static const constexpr TypeDesc value() { return TypeDesc::FLOAT; } };
+template<typename T> struct TypeDescFromC { static const constexpr TypeDesc value = TypeDesc(BaseTypeFromC<T>::value); };
+template<> struct TypeDescFromC<int32_t> { static const constexpr TypeDesc value = TypeDesc::INT32; };
+template<> struct TypeDescFromC<uint32_t> { static const constexpr TypeDesc value = TypeDesc::UINT32; };
+template<> struct TypeDescFromC<int16_t> { static const constexpr TypeDesc value = TypeDesc::INT16; };
+template<> struct TypeDescFromC<uint16_t> { static const constexpr TypeDesc value = TypeDesc::UINT16; };
+template<> struct TypeDescFromC<int8_t> { static const constexpr TypeDesc value = TypeDesc::INT8; };
+template<> struct TypeDescFromC<uint8_t> { static const constexpr TypeDesc value = TypeDesc::UINT8; };
+template<> struct TypeDescFromC<float> { static const constexpr TypeDesc value = TypeDesc::FLOAT; };
 #if defined(_HALF_H_) || defined(IMATH_HALF_H_)
-template<> struct TypeDescFromC<half> { static const constexpr TypeDesc value() { return TypeDesc::HALF; } };
+template<> struct TypeDescFromC<half> { static const constexpr TypeDesc value = TypeDesc::HALF; };
 #endif
-template<> struct TypeDescFromC<double> { static const constexpr TypeDesc value() { return TypeDesc::DOUBLE; } };
-template<> struct TypeDescFromC<char*> { static const constexpr TypeDesc value() { return TypeDesc::STRING; } };
-template<> struct TypeDescFromC<const char*> { static const constexpr TypeDesc value() { return TypeDesc::STRING; } };
-template<size_t S> struct TypeDescFromC<char[S]> { static const constexpr TypeDesc value() { return TypeDesc::STRING; } };
-template<size_t S> struct TypeDescFromC<const char[S]> { static const constexpr TypeDesc value() { return TypeDesc::STRING; } };
-template<> struct TypeDescFromC<ustring> { static const constexpr TypeDesc value() { return TypeDesc::STRING; } };
-template<typename T> struct TypeDescFromC<T*> { static const constexpr TypeDesc value() { return TypeDesc::PTR; } };
+template<> struct TypeDescFromC<double> { static const constexpr TypeDesc value = TypeDesc::DOUBLE; };
+template<> struct TypeDescFromC<char*> { static const constexpr TypeDesc value = TypeDesc::STRING; };
+template<> struct TypeDescFromC<const char*> { static const constexpr TypeDesc value = TypeDesc::STRING; };
+template<size_t S> struct TypeDescFromC<char[S]> { static const constexpr TypeDesc value = TypeDesc::STRING; };
+template<size_t S> struct TypeDescFromC<const char[S]> { static const constexpr TypeDesc value = TypeDesc::STRING; };
+template<> struct TypeDescFromC<ustring> { static const constexpr TypeDesc value = TypeDesc::STRING; };
+template<typename T> struct TypeDescFromC<T*> { static const constexpr TypeDesc value = TypeDesc::PTR; };
 #ifdef INCLUDED_IMATHVEC_H
-template<> struct TypeDescFromC<Imath::V3f> { static const constexpr TypeDesc value() { return TypeVector; } };
-template<> struct TypeDescFromC<Imath::V2f> { static const constexpr TypeDesc value() { return TypeVector2; } };
-template<> struct TypeDescFromC<Imath::V4f> { static const constexpr TypeDesc value() { return TypeVector4; } };
-template<> struct TypeDescFromC<Imath::V2i> { static const constexpr TypeDesc value() { return TypeVector2i; } };
+template<> struct TypeDescFromC<Imath::V3f> { static const constexpr TypeDesc value = TypeVector; };
+template<> struct TypeDescFromC<Imath::V2f> { static const constexpr TypeDesc value = TypeVector2; };
+template<> struct TypeDescFromC<Imath::V4f> { static const constexpr TypeDesc value = TypeVector4; };
+template<> struct TypeDescFromC<Imath::V2i> { static const constexpr TypeDesc value = TypeVector2i; };
 #endif
 #ifdef INCLUDED_IMATHCOLOR_H
-template<> struct TypeDescFromC<Imath::Color3f> { static const constexpr TypeDesc value() { return TypeColor; } };
+template<> struct TypeDescFromC<Imath::Color3f> { static const constexpr TypeDesc value = TypeColor; };
 #endif
 #ifdef INCLUDED_IMATHMATRIX_H
-template<> struct TypeDescFromC<Imath::M33f> { static const constexpr TypeDesc value() { return TypeMatrix33; } };
-template<> struct TypeDescFromC<Imath::M44f> { static const constexpr TypeDesc value() { return TypeMatrix44; } };
-template<> struct TypeDescFromC<Imath::M33d> { static const constexpr TypeDesc value() { return TypeDesc(TypeDesc::DOUBLE, TypeDesc::MATRIX33); } };
-template<> struct TypeDescFromC<Imath::M44d> { static const constexpr TypeDesc value() { return TypeDesc(TypeDesc::DOUBLE, TypeDesc::MATRIX44); } };
+template<> struct TypeDescFromC<Imath::M33f> { static const constexpr TypeDesc value = TypeMatrix33; };
+template<> struct TypeDescFromC<Imath::M44f> { static const constexpr TypeDesc value = TypeMatrix44; };
+template<> struct TypeDescFromC<Imath::M33d> { static const constexpr TypeDesc value = TypeDesc(TypeDesc::DOUBLE, TypeDesc::MATRIX33); };
+template<> struct TypeDescFromC<Imath::M44d> { static const constexpr TypeDesc value = TypeDesc(TypeDesc::DOUBLE, TypeDesc::MATRIX44); };
 #endif
 #ifdef INCLUDED_IMATHBOX_H
-template<> struct TypeDescFromC<Imath::Box2f> { static const constexpr TypeDesc value() { return TypeBox2; } };
-template<> struct TypeDescFromC<Imath::Box2i> { static const constexpr TypeDesc value() { return TypeBox2i; } };
-template<> struct TypeDescFromC<Imath::Box3f> { static const constexpr TypeDesc value() { return TypeBox3; } };
-template<> struct TypeDescFromC<Imath::Box3i> { static const constexpr TypeDesc value() { return TypeBox3i; } };
+template<> struct TypeDescFromC<Imath::Box2f> { static const constexpr TypeDesc value = TypeBox2; };
+template<> struct TypeDescFromC<Imath::Box2i> { static const constexpr TypeDesc value = TypeBox2i; };
+template<> struct TypeDescFromC<Imath::Box3f> { static const constexpr TypeDesc value = TypeBox3; };
+template<> struct TypeDescFromC<Imath::Box3i> { static const constexpr TypeDesc value = TypeBox3i; };
 #endif
 
 

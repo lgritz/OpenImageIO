@@ -568,7 +568,7 @@ template<typename T>
 static void
 test_swap_endian(T val, T swapval)
 {
-    std::string type     = TypeDescFromC<T>::value().c_str();
+    std::string type     = TypeDescFromC<T>::value.c_str();
     static const int len = 100;
     Benchmarker bench;
     std::array<T, len> v;
