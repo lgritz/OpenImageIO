@@ -426,28 +426,28 @@ std::string tostring (TypeDesc type, const void *data,
 /// A template mechanism for getting the a base type from C type
 ///
 template<typename T> struct BaseTypeFromC {};
-template<> struct BaseTypeFromC<unsigned char> { static const TypeDesc::BASETYPE value = TypeDesc::UINT8; };
-template<> struct BaseTypeFromC<char> { static const TypeDesc::BASETYPE value = TypeDesc::INT8; };
-template<> struct BaseTypeFromC<unsigned short> { static const TypeDesc::BASETYPE value = TypeDesc::UINT16; };
-template<> struct BaseTypeFromC<short> { static const TypeDesc::BASETYPE value = TypeDesc::INT16; };
-template<> struct BaseTypeFromC<unsigned int> { static const TypeDesc::BASETYPE value = TypeDesc::UINT; };
-template<> struct BaseTypeFromC<int> { static const TypeDesc::BASETYPE value = TypeDesc::INT; };
-template<> struct BaseTypeFromC<unsigned long long> { static const TypeDesc::BASETYPE value = TypeDesc::UINT64; };
-template<> struct BaseTypeFromC<long long> { static const TypeDesc::BASETYPE value = TypeDesc::INT64; };
+template<> struct BaseTypeFromC<unsigned char> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::UINT8; };
+template<> struct BaseTypeFromC<char> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::INT8; };
+template<> struct BaseTypeFromC<unsigned short> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::UINT16; };
+template<> struct BaseTypeFromC<short> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::INT16; };
+template<> struct BaseTypeFromC<unsigned int> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::UINT; };
+template<> struct BaseTypeFromC<int> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::INT; };
+template<> struct BaseTypeFromC<unsigned long long> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::UINT64; };
+template<> struct BaseTypeFromC<long long> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::INT64; };
 #if defined(_HALF_H_) || defined(IMATH_HALF_H_)
-template<> struct BaseTypeFromC<half> { static const TypeDesc::BASETYPE value = TypeDesc::HALF; };
+template<> struct BaseTypeFromC<half> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::HALF; };
 #endif
-template<> struct BaseTypeFromC<float> { static const TypeDesc::BASETYPE value = TypeDesc::FLOAT; };
-template<> struct BaseTypeFromC<double> { static const TypeDesc::BASETYPE value = TypeDesc::DOUBLE; };
-template<> struct BaseTypeFromC<const char*> { static const TypeDesc::BASETYPE value = TypeDesc::STRING; };
-template<> struct BaseTypeFromC<char*> { static const TypeDesc::BASETYPE value = TypeDesc::STRING; };
-template<> struct BaseTypeFromC<std::string> { static const TypeDesc::BASETYPE value = TypeDesc::STRING; };
-template<> struct BaseTypeFromC<string_view> { static const TypeDesc::BASETYPE value = TypeDesc::STRING; };
+template<> struct BaseTypeFromC<float> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::FLOAT; };
+template<> struct BaseTypeFromC<double> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::DOUBLE; };
+template<> struct BaseTypeFromC<const char*> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::STRING; };
+template<> struct BaseTypeFromC<char*> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::STRING; };
+template<> struct BaseTypeFromC<std::string> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::STRING; };
+template<> struct BaseTypeFromC<string_view> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::STRING; };
 class ustring;
-template<> struct BaseTypeFromC<ustring> { static const TypeDesc::BASETYPE value = TypeDesc::STRING; };
-template<size_t S> struct BaseTypeFromC<char[S]> { static const TypeDesc::BASETYPE value = TypeDesc::STRING; };
-template<size_t S> struct BaseTypeFromC<const char[S]> { static const TypeDesc::BASETYPE value = TypeDesc::STRING; };
-template<typename P> struct BaseTypeFromC<P*> { static const TypeDesc::BASETYPE value = TypeDesc::PTR; };
+template<> struct BaseTypeFromC<ustring> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::STRING; };
+template<size_t S> struct BaseTypeFromC<char[S]> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::STRING; };
+template<size_t S> struct BaseTypeFromC<const char[S]> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::STRING; };
+template<typename P> struct BaseTypeFromC<P*> { static const constexpr TypeDesc::BASETYPE value = TypeDesc::PTR; };
 
 /// A template mechanism for getting the TypeDesc from a C type.
 /// The default for simple types is just the TypeDesc based on BaseTypeFromC.

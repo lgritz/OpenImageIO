@@ -157,8 +157,8 @@ public:
     inline T get_indexed(int index, const T& defaultval = T()) const
     {
         T result;
-        if (!m_obj->getattribute_indexed(m_name, index,
-                                         TypeDescFromC<T>::value, &result))
+        if (!m_obj->getattribute_indexed(m_name, index, TypeDescFromC<T>::value,
+                                         &result))
             result = defaultval;
         return result;
     }
