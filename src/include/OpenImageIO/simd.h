@@ -491,10 +491,13 @@ template<> struct is_simd<matrix44> : std::true_type {};
 // it more succinct to express per-element operations.
 
 #define SIMD_DO(x) for (int i = 0; i < elements; ++i) x
-#define SIMD_CONSTRUCT(x) for (int i = 0; i < elements; ++i) m_val[i] = (x)
-#define SIMD_CONSTRUCT_PAD(x) for (int i = 0; i < elements; ++i) m_val[i] = (x); \
-                              for (int i = elements; i < paddedelements; ++i) m_val[i] = 0
+#define SIMD_CONSTRUCT(x) for (int i = 0; i < elements; ++i) setcomp(i, x)
+#define SIMD_CONSTRUCT_PAD(x) for (int i = 0; i < elements; ++i) setcomp(i, x); \
+                              for (int i = elements; i < paddedelements; ++i) setcomp(i, 0)
 #define SIMD_RETURN(T,x) T r; for (int i = 0; i < r.elements; ++i) r[i] = (x); return r
+#define SIMD_RETURN_PAD(T,x) T r; for (int i = 0; i < r.elements; ++i) r[i] = (x); \
+                                  for (int i = r.elements; i < r.paddedelements; ++i) r[i] = 0; \
+                                  return r
 #define SIMD_RETURN_REDUCE(T,init,op) T r = init; for (int i = 0; i < v.elements; ++i) op; return r
 
 
@@ -883,7 +886,7 @@ public:
     int operator[] (int i) const;
 
     /// Component access (set).
-    void setcomp (int i, bool value);
+    void setcomp(int i, value_t value);
 
     /// Extract the lower precision vbool8
     vbool8 lo () const;
@@ -1051,8 +1054,15 @@ public:
     /// Component access (set)
     int& operator[] (int i);
 
+    // Helpers to type pun to access individual elements
+    value_t comp(int i) const { return data()[i]; }
+    value_t& comp(int i) { return data()[i]; }
+
     /// Component access (set).
-    void setcomp (int i, int value);
+    void setcomp(int i, value_t value) {
+        OIIO_DASSERT(i >= 0 && i < elements);
+        data()[i] = value;
+    }
 
     value_t x () const;
     value_t y () const;
@@ -1167,7 +1177,7 @@ private:
     // The actual data representation
     union {
         simd_t  m_simd;
-        value_t m_val[elements];
+        // value_t m_val[elements];
     };
 };
 
@@ -1350,8 +1360,15 @@ public:
     /// Component access (set)
     int& operator[] (int i);
 
+    // Helpers to type pun to access individual elements
+    value_t comp(int i) const { return data()[i]; }
+    value_t& comp(int i) { return data()[i]; }
+
     /// Component access (set).
-    void setcomp (int i, int value);
+    void setcomp(int i, value_t value) {
+        OIIO_DASSERT(i >= 0 && i < elements);
+        data()[i] = value;
+    }
 
     value_t x () const;
     value_t y () const;
@@ -1655,8 +1672,15 @@ public:
     /// Component access (set)
     int& operator[] (int i);
 
+    // Helpers to type pun to access individual elements
+    value_t comp(int i) const { return data()[i]; }
+    value_t& comp(int i) { return data()[i]; }
+
     /// Component access (set).
-    void setcomp (int i, int value);
+    void setcomp(int i, value_t value) {
+        OIIO_DASSERT(i >= 0 && i < elements);
+        data()[i] = value;
+    }
 
     value_t x () const;
     value_t y () const;
@@ -1997,8 +2021,15 @@ public:
     /// Component access (set)
     float& operator[] (int i);
 
+    // Helpers to type pun to access individual elements
+    value_t comp(int i) const { return data()[i]; }
+    value_t& comp(int i) { return data()[i]; }
+
     /// Component access (set).
-    void setcomp (int i, float value);
+    void setcomp(int i, value_t value) {
+        OIIO_DASSERT(i >= 0 && i < elements);
+        data()[i] = value;
+    }
 
     value_t x () const;
     value_t y () const;
@@ -2124,10 +2155,10 @@ public:
 
 protected:
     // The actual data representation
-    union {
+    // union {
         simd_t  m_simd;
-        value_t m_val[paddedelements];
-    };
+        // value_t m_val[paddedelements];
+    // };
 };
 
 
@@ -2519,12 +2550,12 @@ public:
     /// Stream output
     friend inline std::ostream& operator<< (std::ostream& cout, const matrix44 &M);
 
-    const float* data() const { return m_vals[0]; }
+    const value_t* data () const { return (const value_t*)this; }
 
 private:
     union {
         vfloat4 m_row[rows];
-        value_t m_vals[rows][cols];
+        // value_t m_vals[rows][cols];
     };
 };
 
@@ -2637,8 +2668,15 @@ public:
     /// Component access (set)
     float& operator[] (int i);
 
+    // Helpers to type pun to access individual elements
+    value_t comp(int i) const { return data()[i]; }
+    value_t& comp(int i) { return data()[i]; }
+
     /// Component access (set).
-    void setcomp (int i, float value);
+    void setcomp(int i, value_t value) {
+        OIIO_DASSERT(i >= 0 && i < elements);
+        data()[i] = value;
+    }
 
     value_t x () const;
     value_t y () const;
@@ -2960,8 +2998,15 @@ public:
     /// Component access (set)
     float& operator[] (int i);
 
+    // Helpers to type pun to access individual elements
+    value_t comp(int i) const { return data()[i]; }
+    value_t& comp(int i) { return data()[i]; }
+
     /// Component access (set).
-    void setcomp (int i, float value);
+    void setcomp(int i, value_t value) {
+        OIIO_DASSERT(i >= 0 && i < elements);
+        data()[i] = value;
+    }
 
     value_t x () const;
     value_t y () const;
@@ -3257,19 +3302,27 @@ OIIO_FORCEINLINE int vbool4::operator[] (int i) const {
 #if OIIO_SIMD_SSE
     return ((_mm_movemask_ps(m_simd) >> i) & 1) ? -1 : 0;
 #else
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return ((const int *)this)[i];
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
 OIIO_FORCEINLINE int& vbool4::operator[] (int i) {
     OIIO_DASSERT(i >= 0 && i < elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return ((int *)this)[i];
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
 OIIO_FORCEINLINE void vbool4::setcomp (int i, bool value) {
     OIIO_DASSERT(i >= 0 && i < elements);
-    m_val[i] = value ? -1 : 0;
+    ((int *)this)[i] = value ? -1 : 0;
 }
 
 
@@ -3287,8 +3340,7 @@ OIIO_FORCEINLINE void vbool4::load (bool a) {
 #elif OIIO_SIMD_NEON
     m_simd = vdupq_n_u32(a ? 0xffffffff : 0);
 #else
-    int val = -int(a);
-    SIMD_CONSTRUCT (val);
+    SIMD_CONSTRUCT (a);
 #endif
 }
 
@@ -3304,10 +3356,10 @@ OIIO_FORCEINLINE void vbool4::load (bool a, bool b, bool c, bool d) {
     // this if we were using int:
     // m_simd = vld1q_s32(values);
 #else
-    m_val[0] = -int(a);
-    m_val[1] = -int(b);
-    m_val[2] = -int(c);
-    m_val[3] = -int(d);
+    setcomp(0, a);
+    setcomp(1, b);
+    setcomp(2, c);
+    setcomp(3, d);
 #endif
 }
 
@@ -3327,7 +3379,7 @@ OIIO_FORCEINLINE int vbool4::bitmask () const {
 #else
     int r = 0;
     for (int i = 0; i < elements; ++i)
-        if (m_val[i])
+        if ((*this)[i])
             r |= 1<<i;
     return r;
 #endif
@@ -3373,13 +3425,13 @@ OIIO_FORCEINLINE const vbool4 vbool4::True () {
 }
 
 OIIO_FORCEINLINE void vbool4::store (bool *values) const {
-    SIMD_DO (values[i] = m_val[i] ? true : false);
+    SIMD_DO (values[i] = (*this)[i] ? true : false);
 }
 
 OIIO_FORCEINLINE void vbool4::store (bool *values, int n) const {
     OIIO_DASSERT (n >= 0 && n <= elements);
     for (int i = 0; i < n; ++i)
-        values[i] = m_val[i] ? true : false;
+        values[i] = (*this)[i] ? true : false;
 }
 
 
@@ -3605,18 +3657,26 @@ OIIO_FORCEINLINE int vbool8::operator[] (int i) const {
 #if OIIO_SIMD_AVX
     return ((_mm256_movemask_ps(m_simd) >> i) & 1) ? -1 : 0;
 #else
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return ((const int *)this)[i];
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
 OIIO_FORCEINLINE void vbool8::setcomp (int i, bool value) {
     OIIO_DASSERT(i >= 0 && i < elements);
-    m_val[i] = value ? -1 : 0;
+    ((int *)this)[i] = value ? -1 : 0;
 }
 
 OIIO_FORCEINLINE int& vbool8::operator[] (int i) {
     OIIO_DASSERT(i >= 0 && i < elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return ((int *)this)[i];
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
@@ -3635,13 +3695,12 @@ OIIO_FORCEINLINE void vbool8::load (bool a) {
     m_4[0].load(a);
     m_4[1].load(a);
 #else
-    int val = -int(a);
-    SIMD_CONSTRUCT (val);
+    SIMD_CONSTRUCT (a);
 #endif
 }
 
 
-OIIO_FORCEINLINE void vbool8::load (bool a, bool b, bool c, bool d,
+OIIO_FORCEINLINE void vbool8::load(bool a, bool b, bool c, bool d,
                                    bool e, bool f, bool g, bool h) {
 #if OIIO_SIMD_AVX
     // N.B. -- we need to reverse the order because of our convention
@@ -3652,14 +3711,14 @@ OIIO_FORCEINLINE void vbool8::load (bool a, bool b, bool c, bool d,
     m_4[0].load(a, b, c, d);
     m_4[1].load(e, f, g, h);
 #else
-    m_val[0] = -int(a);
-    m_val[1] = -int(b);
-    m_val[2] = -int(c);
-    m_val[3] = -int(d);
-    m_val[4] = -int(e);
-    m_val[5] = -int(f);
-    m_val[6] = -int(g);
-    m_val[7] = -int(h);
+    ((int *)this)[0] = -int(a);
+    ((int *)this)[1] = -int(b);
+    ((int *)this)[2] = -int(c);
+    ((int *)this)[3] = -int(d);
+    ((int *)this)[4] = -int(e);
+    ((int *)this)[5] = -int(f);
+    ((int *)this)[6] = -int(g);
+    ((int *)this)[7] = -int(h);
 #endif
 }
 
@@ -3728,13 +3787,13 @@ OIIO_FORCEINLINE const vbool8 vbool8::True () {
 
 
 OIIO_FORCEINLINE void vbool8::store (bool *values) const {
-    SIMD_DO (values[i] = m_val[i] ? true : false);
+    SIMD_DO (values[i] = (*this)[i] ? true : false);
 }
 
 OIIO_FORCEINLINE void vbool8::store (bool *values, int n) const {
     OIIO_DASSERT (n >= 0 && n <= elements);
     for (int i = 0; i < n; ++i)
-        values[i] = m_val[i] ? true : false;
+        values[i] = (*this)[i] ? true : false;
 }
 
 
@@ -4153,17 +4212,20 @@ OIIO_FORCEINLINE vint4& vint4::operator=(const vint4& other) {
 
 OIIO_FORCEINLINE int vint4::operator[] (int i) const {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 OIIO_FORCEINLINE int& vint4::operator[] (int i) {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
-}
-
-OIIO_FORCEINLINE void vint4::setcomp (int i, int val) {
-    OIIO_DASSERT(i<elements);
-    m_val[i] = val;
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
@@ -4186,10 +4248,10 @@ OIIO_FORCEINLINE void vint4::load (int a, int b, int c, int d) {
     int values[4] = { a, b, c, d };
     m_simd = vld1q_s32 (values);
 #else
-    m_val[0] = a;
-    m_val[1] = b;
-    m_val[2] = c;
-    m_val[3] = d;
+    setcomp(0, a);
+    setcomp(1, b);
+    setcomp(2, c);
+    setcomp(3, d);
 #endif
 }
 
@@ -4241,9 +4303,9 @@ OIIO_FORCEINLINE void vint4::load (const int *values, int n)
     }
 #else
     for (int i = 0; i < n; ++i)
-        m_val[i] = values[i];
+        setcomp(i, values[i]);
     for (int i = n; i < elements; ++i)
-        m_val[i] = 0;
+        setcomp(i, 0);
 #endif
 }
 
@@ -4324,7 +4386,7 @@ OIIO_FORCEINLINE void vint4::store (int *values) const {
 #elif OIIO_SIMD_NEON
     vst1q_s32(values, m_simd);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -4391,7 +4453,7 @@ vint4::gather_mask (const vbool_t& mask, const value_t *baseptr, const vint_t& v
 #if OIIO_SIMD_AVX >= 2
     m_simd = _mm_mask_i32gather_epi32 (m_simd, baseptr, vindex, _mm_cvtps_epi32(mask), scale);
 #else
-    SIMD_DO (if (mask[i]) m_val[i] = *(const value_t *)((const char *)baseptr + vindex[i]*scale));
+    SIMD_DO (if (mask[i]) setcomp(i, *(const value_t *)((const char *)baseptr + vindex[i]*scale)));
 #endif
 }
 
@@ -4403,7 +4465,7 @@ vint4::scatter (value_t *baseptr, const vint_t& vindex) const
     // FIXME: disable because it benchmarks slower than the dumb way
     _mm_i32scatter_epi32 (baseptr, vindex, m_simd, scale);
 #else
-    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = comp(i));
 #endif
 }
 
@@ -4416,7 +4478,7 @@ vint4::scatter_mask (const vbool_t& mask, value_t *baseptr,
     // FIXME: disable because it benchmarks slower than the dumb way
     _mm_mask_i32scatter_epi32 (baseptr, mask.bitmask(), vindex, m_simd, scale);
 #else
-    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = comp(i));
 #endif
 }
 
@@ -4734,10 +4796,10 @@ OIIO_FORCEINLINE void vint4::store (int *values, int n) const {
         store (values);
     else
         for (int i = 0; i < n; ++i)
-            values[i] = m_val[i];
+            values[i] = comp(i);
 #else
     for (int i = 0; i < n; ++i)
-        values[i] = m_val[i];
+        values[i] = comp(i);
 #endif
 }
 
@@ -4759,7 +4821,7 @@ OIIO_FORCEINLINE void vint4::store (unsigned short *values) const {
     _mm_storel_pd ((double *)values, _mm_castsi128_pd(result));
     // At this point, values[] should hold A,B,C,D
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -4779,7 +4841,7 @@ OIIO_FORCEINLINE void vint4::store (unsigned char *values) const {
     uint8x16_t val8 = vcombine_u8(vqmovun_s16(val16), vdup_n_u8(0));
     vst1q_lane_u32((uint32_t*)values, vreinterpretq_u32_u8(val8), 0);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -4845,7 +4907,10 @@ OIIO_FORCEINLINE vint4 bitcast_to_int (const vbool4& x)
 #if OIIO_SIMD_SSE
     return _mm_castps_si128 (x.simd());
 #else
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
     return *(vint4 *)&x;
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
@@ -5053,17 +5118,20 @@ OIIO_FORCEINLINE vint8& vint8::operator=(const vint8& other) {
 
 OIIO_FORCEINLINE int vint8::operator[] (int i) const {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 OIIO_FORCEINLINE int& vint8::operator[] (int i) {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
-}
-
-OIIO_FORCEINLINE void vint8::setcomp (int i, int val) {
-    OIIO_DASSERT(i<elements);
-    m_val[i] = val;
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
@@ -5087,14 +5155,14 @@ OIIO_FORCEINLINE void vint8::load (int a, int b, int c, int d,
     m_4[0].load(a, b, c, d);
     m_4[1].load(e, f, g, h);
 #else
-    m_val[0] = a;
-    m_val[1] = b;
-    m_val[2] = c;
-    m_val[3] = d;
-    m_val[4] = e;
-    m_val[5] = f;
-    m_val[6] = g;
-    m_val[7] = h;
+    setcomp(0, a);
+    setcomp(1, b);
+    setcomp(2, c);
+    setcomp(3, d);
+    setcomp(4, e);
+    setcomp(5, f);
+    setcomp(6, g);
+    setcomp(7, h);
 #endif
 }
 
@@ -5132,9 +5200,9 @@ OIIO_FORCEINLINE void vint8::load (const int *values, int n)
     }
 #else
     for (int i = 0; i < n; ++i)
-        m_val[i] = values[i];
+        setcomp(i, values[i]);
     for (int i = n; i < elements; ++i)
-        m_val[i] = 0;
+        setcomp(i, 0);
 #endif
 }
 
@@ -5212,7 +5280,7 @@ OIIO_FORCEINLINE void vint8::store (int *values) const {
     m_4[0].store(values);
     m_4[1].store(values+4);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -5279,7 +5347,7 @@ vint8::gather_mask (const vbool_t& mask, const value_t *baseptr, const vint_t& v
 #if OIIO_SIMD_AVX >= 2
     m_simd = _mm256_mask_i32gather_epi32 (m_simd, baseptr, vindex, _mm256_cvtps_epi32(mask), scale);
 #else
-    SIMD_DO (if (mask[i]) m_val[i] = *(const value_t *)((const char *)baseptr + vindex[i]*scale));
+    SIMD_DO (if (mask[i]) setcomp(i, *(const value_t *)((const char *)baseptr + vindex[i]*scale)));
 #endif
 }
 
@@ -5290,7 +5358,7 @@ vint8::scatter (value_t *baseptr, const vint_t& vindex) const
 #if OIIO_SIMD_AVX >= 512 && OIIO_AVX512VL_ENABLED
     _mm256_i32scatter_epi32 (baseptr, vindex, m_simd, scale);
 #else
-    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = comp(i));
 #endif
 }
 
@@ -5302,7 +5370,7 @@ vint8::scatter_mask (const vbool_t& mask, value_t *baseptr,
 #if OIIO_SIMD_AVX >= 512 && OIIO_AVX512VL_ENABLED
     _mm256_mask_i32scatter_epi32 (baseptr, mask.bitmask(), vindex, m_simd, scale);
 #else
-    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = comp(i));
 #endif
 }
 
@@ -5603,7 +5671,7 @@ OIIO_FORCEINLINE void vint8::store (int *values, int n) const {
     }
 #else
     for (int i = 0; i < n; ++i)
-        values[i] = m_val[i];
+        values[i] = comp(i);
 #endif
 }
 
@@ -5617,7 +5685,7 @@ OIIO_FORCEINLINE void vint8::store (unsigned short *values) const {
     lo().store (values);
     hi().store (values+4);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -5629,7 +5697,7 @@ OIIO_FORCEINLINE void vint8::store (unsigned char *values) const {
     lo().store (values);
     hi().store (values+4);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -5686,7 +5754,10 @@ OIIO_FORCEINLINE vint8 bitcast_to_int (const vbool8& x)
 #if OIIO_SIMD_AVX
     return _mm256_castps_si256 (x.simd());
 #else
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
     return *(vint8 *)&x;
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
@@ -5883,17 +5954,20 @@ OIIO_FORCEINLINE vint16& vint16::operator=(const vint16& other) {
 
 OIIO_FORCEINLINE int vint16::operator[] (int i) const {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 OIIO_FORCEINLINE int& vint16::operator[] (int i) {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
-}
-
-OIIO_FORCEINLINE void vint16::setcomp (int i, int val) {
-    OIIO_DASSERT(i<elements);
-    m_val[i] = val;
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
@@ -5915,22 +5989,22 @@ OIIO_FORCEINLINE void vint16::load (int v0, int v1, int v2, int v3,
     m_simd = _mm512_setr_epi32 (v0, v1, v2, v3, v4, v5, v6, v7,
                                 v8, v9, v10, v11, v12, v13, v14, v15);
 #else
-    m_val[ 0] = v0;
-    m_val[ 1] = v1;
-    m_val[ 2] = v2;
-    m_val[ 3] = v3;
-    m_val[ 4] = v4;
-    m_val[ 5] = v5;
-    m_val[ 6] = v6;
-    m_val[ 7] = v7;
-    m_val[ 8] = v8;
-    m_val[ 9] = v9;
-    m_val[10] = v10;
-    m_val[11] = v11;
-    m_val[12] = v12;
-    m_val[13] = v13;
-    m_val[14] = v14;
-    m_val[15] = v15;
+    setcomp( 0, v0);
+    setcomp( 1, v1);
+    setcomp( 2, v2);
+    setcomp( 3, v3);
+    setcomp( 4, v4);
+    setcomp( 5, v5);
+    setcomp( 6, v6);
+    setcomp( 7, v7);
+    setcomp( 8, v8);
+    setcomp( 9, v9);
+    setcomp(10, v10);
+    setcomp(11, v11);
+    setcomp(12, v12);
+    setcomp(13, v13);
+    setcomp(14, v14);
+    setcomp(15, v15);
 #endif
 }
 
@@ -6412,7 +6486,7 @@ OIIO_FORCEINLINE void vint16::store (unsigned short *values) const {
     lo().store (values);
     hi().store (values+8);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -6424,7 +6498,7 @@ OIIO_FORCEINLINE void vint16::store (unsigned char *values) const {
     lo().store (values);
     hi().store (values+8);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -6483,17 +6557,17 @@ OIIO_FORCEINLINE int vint16::x () const {
 #if OIIO_SIMD_AVX >= 512
     return _mm_cvtsi128_si32(_mm512_castsi512_si128(m_simd));
 #else
-    return m_val[0];
+    return comp(0);
 #endif
 }
 
-OIIO_FORCEINLINE int vint16::y () const { return m_val[1]; }
-OIIO_FORCEINLINE int vint16::z () const { return m_val[2]; }
-OIIO_FORCEINLINE int vint16::w () const { return m_val[3]; }
-OIIO_FORCEINLINE void vint16::set_x (int val) { m_val[0] = val; }
-OIIO_FORCEINLINE void vint16::set_y (int val) { m_val[1] = val; }
-OIIO_FORCEINLINE void vint16::set_z (int val) { m_val[2] = val; }
-OIIO_FORCEINLINE void vint16::set_w (int val) { m_val[3] = val; }
+OIIO_FORCEINLINE int vint16::y () const { return comp(1); }
+OIIO_FORCEINLINE int vint16::z () const { return comp(2); }
+OIIO_FORCEINLINE int vint16::w () const { return comp(3); }
+OIIO_FORCEINLINE void vint16::set_x (int val) { setcomp(0, val); }
+OIIO_FORCEINLINE void vint16::set_y (int val) { setcomp(1, val); }
+OIIO_FORCEINLINE void vint16::set_z (int val) { setcomp(2, val); }
+OIIO_FORCEINLINE void vint16::set_w (int val) { setcomp(3, val); }
 
 
 OIIO_FORCEINLINE vint16 bitcast_to_int (const vbool16& x)
@@ -6709,12 +6783,20 @@ OIIO_FORCEINLINE void vfloat4::clear () {
 
 OIIO_FORCEINLINE float& vfloat4::operator[] (int i) {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 OIIO_FORCEINLINE float vfloat4::operator[] (int i) const {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
@@ -6735,10 +6817,10 @@ OIIO_FORCEINLINE void vfloat4::load (float a, float b, float c, float d) {
     float values[4] = { a, b, c, d };
     m_simd = vld1q_f32 (values);
 #else
-    m_val[0] = a;
-    m_val[1] = b;
-    m_val[2] = c;
-    m_val[3] = d;
+    setcomp(0, a);
+    setcomp(1, b);
+    setcomp(2, c);
+    setcomp(3, d);
 #endif
 }
 
@@ -6800,9 +6882,9 @@ OIIO_FORCEINLINE void vfloat4::load (const float *values, int n) {
     }
 #else
     for (int i = 0; i < n; ++i)
-        m_val[i] = values[i];
+        setcomp(i, values[i]);
     for (int i = n; i < paddedelements; ++i)
-        m_val[i] = 0;
+        setcomp(i, 0);
 #endif
 }
 
@@ -6893,10 +6975,10 @@ vfloat4::load_pairs(const float* lo, const float* hi)
 #if OIIO_SIMD_SSE
     m_simd = _mm_loadh_pi(_mm_loadl_pi(Zero(), (__m64*)lo), (__m64*)hi);
 #else
-    m_val[0] = lo[0];
-    m_val[1] = lo[1];
-    m_val[2] = hi[0];
-    m_val[3] = hi[1];
+    setcomp(0, lo[0]);
+    setcomp(1, lo[1]);
+    setcomp(2, hi[0]);
+    setcomp(3, hi[1]);
 #endif
 }
 
@@ -6909,7 +6991,7 @@ OIIO_FORCEINLINE void vfloat4::store (float *values) const {
 #elif OIIO_SIMD_NEON
     vst1q_f32 (values, m_simd);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -6930,9 +7012,9 @@ OIIO_FORCEINLINE void vfloat4::store (float *values, int n) const {
         _mm_store_sd ((double*)values, _mm_castps_pd(m_simd));
         break;
     case 3:
-        values[0] = m_val[0];
-        values[1] = m_val[1];
-        values[2] = m_val[2];
+        values[0] = comp(0);
+        values[1] = comp(1);
+        values[2] = comp(2);
         // This looks wasteful, but benchmarks show that it's the
         // fastest way to store 3 values, in benchmarks was faster than
         // this, below:
@@ -6966,7 +7048,7 @@ OIIO_FORCEINLINE void vfloat4::store (float *values, int n) const {
     }
 #else
     for (int i = 0; i < n; ++i)
-        values[i] = m_val[i];
+        values[i] = comp(i);
 #endif
 }
 
@@ -6980,7 +7062,7 @@ OIIO_FORCEINLINE void vfloat4::store (half *values) const {
     uint16x4_t u16 = vreinterpret_u16_f16(f16);
     vst1_u16((unsigned short*)values, u16);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 #endif
@@ -7048,7 +7130,7 @@ vfloat4::gather_mask (const vbool_t& mask, const value_t *baseptr, const vint_t&
 #if OIIO_SIMD_AVX >= 2
     m_simd = _mm_mask_i32gather_ps (m_simd, baseptr, vindex, mask, scale);
 #else
-    SIMD_DO (if (mask[i]) m_val[i] = *(const value_t *)((const char *)baseptr + vindex[i]*scale));
+    SIMD_DO (if (mask[i]) setcomp(i, *(const value_t *)((const char *)baseptr + vindex[i]*scale)));
 #endif
 }
 
@@ -7060,7 +7142,7 @@ vfloat4::scatter (value_t *baseptr, const vint_t& vindex) const
     // FIXME: disable because it benchmarks slower than the dumb way
     _mm_i32scatter_ps (baseptr, vindex, m_simd, scale);
 #else
-    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = comp(i));
 #endif
 }
 
@@ -7073,7 +7155,7 @@ vfloat4::scatter_mask (const vbool_t& mask, value_t *baseptr,
     // FIXME: disable because it benchmarks slower than the dumb way
     _mm_mask_i32scatter_ps (baseptr, mask.bitmask(), vindex, m_simd, scale);
 #else
-    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = comp(i));
 #endif
 }
 
@@ -7094,7 +7176,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator+= (const vfloat4& a) {
 #elif OIIO_SIMD_NEON
     m_simd = vaddq_f32 (m_simd, a.m_simd);
 #else
-    SIMD_DO (m_val[i] += a[i]);
+    SIMD_DO (comp(i) += a[i]);
 #endif
     return *this;
     }
@@ -7105,7 +7187,7 @@ OIIO_FORCEINLINE vfloat4 vfloat4::operator- () const {
 #elif OIIO_SIMD_NEON
     return vsubq_f32 (Zero(), m_simd);
 #else
-    SIMD_RETURN (vfloat4, -m_val[i]);
+    SIMD_RETURN (vfloat4, -comp(i));
 #endif
 }
 
@@ -7125,7 +7207,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator-= (const vfloat4& a) {
 #elif OIIO_SIMD_NEON
     m_simd = vsubq_f32 (m_simd, a.m_simd);
 #else
-    SIMD_DO (m_val[i] -= a[i]);
+    SIMD_DO (comp(i) -= a[i]);
 #endif
     return *this;
 }
@@ -7160,7 +7242,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator*= (const vfloat4& a) {
 #elif OIIO_SIMD_NEON
     m_simd = vmulq_f32 (m_simd, a.m_simd);
 #else
-    SIMD_DO (m_val[i] *= a[i]);
+    SIMD_DO (comp(i) *= a[i]);
 #endif
     return *this;
 }
@@ -7171,7 +7253,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator*= (float val) {
 #elif OIIO_SIMD_NEON
     m_simd = vmulq_n_f32 (m_simd, val);
 #else
-    SIMD_DO (m_val[i] *= val);
+    SIMD_DO (comp(i) *= val);
 #endif
     return *this;
 }
@@ -7192,7 +7274,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator/= (const vfloat4& a) {
 #elif OIIO_SIMD_NEON && defined(__aarch64__)
     m_simd = vdivq_f32 (m_simd, a.m_simd);
 #else
-    SIMD_DO (m_val[i] /= a[i]);
+    SIMD_DO (comp(i) /= a[i]);
 #endif
     return *this;
 }
@@ -7203,7 +7285,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator/= (float val) {
 #elif OIIO_SIMD_NEON && defined(__aarch64__)
     m_simd = vdivq_f32 (m_simd, vfloat4(val));
 #else
-    SIMD_DO (m_val[i] /= val);
+    SIMD_DO (comp(i) /= val);
 #endif
     return *this;
 }
@@ -7413,7 +7495,10 @@ OIIO_FORCEINLINE vint4 bitcast_to_int (const vfloat4& x)
 #elif OIIO_SIMD_NEON
     return vreinterpretq_s32_f32 (x.simd());
 #else
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
     return *(vint4 *)&x;
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
@@ -7424,7 +7509,10 @@ OIIO_FORCEINLINE vfloat4 bitcast_to_float (const vint4& x)
 #elif OIIO_SIMD_NEON
     return vreinterpretq_f32_s32 (x.simd());
 #else
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
     return *(vfloat4 *)&x;
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
@@ -8116,7 +8204,7 @@ OIIO_FORCEINLINE void vfloat3::store (float *values, int n) const {
 
 #if defined(_HALF_H_) || defined(IMATH_HALF_H_)
 OIIO_FORCEINLINE void vfloat3::store (half *values) const {
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 }
 #endif
 
@@ -8329,10 +8417,10 @@ OIIO_FORCEINLINE matrix44 matrix44::transposed () const {
                      T.m_row[0], T.m_row[1], T.m_row[2], T.m_row[3]);
     return T;
 #else
-    return matrix44(m_vals[0][0], m_vals[1][0], m_vals[2][0], m_vals[3][0],
-                    m_vals[0][1], m_vals[1][1], m_vals[2][1], m_vals[3][1],
-                    m_vals[0][2], m_vals[1][2], m_vals[2][2], m_vals[3][2],
-                    m_vals[0][3], m_vals[1][3], m_vals[2][3], m_vals[3][3]);
+    return matrix44(m_row[0][0], m_row[1][0], m_row[2][0], m_row[3][0],
+                    m_row[0][1], m_row[1][1], m_row[2][1], m_row[3][1],
+                    m_row[0][2], m_row[1][2], m_row[2][2], m_row[3][2],
+                    m_row[0][3], m_row[1][3], m_row[2][3], m_row[3][3]);
 #endif
 }
 
@@ -8344,10 +8432,10 @@ OIIO_FORCEINLINE vfloat3 matrix44::transformp (const vfloat3 &V) const {
     return vfloat3 (R.xyz0());
 #else
     value_t a, b, c, w;
-    a = V[0] * m_vals[0][0] + V[1] * m_vals[1][0] + V[2] * m_vals[2][0] + m_vals[3][0];
-    b = V[0] * m_vals[0][1] + V[1] * m_vals[1][1] + V[2] * m_vals[2][1] + m_vals[3][1];
-    c = V[0] * m_vals[0][2] + V[1] * m_vals[1][2] + V[2] * m_vals[2][2] + m_vals[3][2];
-    w = V[0] * m_vals[0][3] + V[1] * m_vals[1][3] + V[2] * m_vals[2][3] + m_vals[3][3];
+    a = V[0] * m_row[0][0] + V[1] * m_row[1][0] + V[2] * m_row[2][0] + m_row[3][0];
+    b = V[0] * m_row[0][1] + V[1] * m_row[1][1] + V[2] * m_row[2][1] + m_row[3][1];
+    c = V[0] * m_row[0][2] + V[1] * m_row[1][2] + V[2] * m_row[2][2] + m_row[3][2];
+    w = V[0] * m_row[0][3] + V[1] * m_row[1][3] + V[2] * m_row[2][3] + m_row[3][3];
     return vfloat3(a / w, b / w, c / w);
 #endif
 }
@@ -8359,9 +8447,9 @@ OIIO_FORCEINLINE vfloat3 matrix44::transformv (const vfloat3 &V) const {
     return vfloat3 (R.xyz0());
 #else
     value_t a, b, c;
-    a = V[0] * m_vals[0][0] + V[1] * m_vals[1][0] + V[2] * m_vals[2][0];
-    b = V[0] * m_vals[0][1] + V[1] * m_vals[1][1] + V[2] * m_vals[2][1];
-    c = V[0] * m_vals[0][2] + V[1] * m_vals[1][2] + V[2] * m_vals[2][2];
+    a = V[0] * m_row[0][0] + V[1] * m_row[1][0] + V[2] * m_row[2][0];
+    b = V[0] * m_row[0][1] + V[1] * m_row[1][1] + V[2] * m_row[2][1];
+    c = V[0] * m_row[0][2] + V[1] * m_row[1][2] + V[2] * m_row[2][2];
     return vfloat3(a, b, c);
 #endif
 }
@@ -8374,9 +8462,9 @@ OIIO_FORCEINLINE vfloat3 matrix44::transformvT (const vfloat3 &V) const {
     return vfloat3 (R.xyz0());
 #else
     value_t a, b, c;
-    a = V[0] * m_vals[0][0] + V[1] * m_vals[0][1] + V[2] * m_vals[0][2];
-    b = V[0] * m_vals[1][0] + V[1] * m_vals[1][1] + V[2] * m_vals[1][2];
-    c = V[0] * m_vals[2][0] + V[1] * m_vals[2][1] + V[2] * m_vals[2][2];
+    a = V[0] * m_row[0][0] + V[1] * m_row[0][1] + V[2] * m_row[0][2];
+    b = V[0] * m_row[1][0] + V[1] * m_row[1][1] + V[2] * m_row[1][2];
+    c = V[0] * m_row[2][0] + V[1] * m_row[2][1] + V[2] * m_row[2][2];
     return vfloat3(a, b, c);
 #endif
 }
@@ -8604,12 +8692,20 @@ OIIO_FORCEINLINE vfloat3 transformvT (M44fParam M, const vfloat3 &V)
 
 OIIO_FORCEINLINE float& vfloat8::operator[] (int i) {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 OIIO_FORCEINLINE float vfloat8::operator[] (int i) const {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
@@ -8707,14 +8803,14 @@ OIIO_FORCEINLINE void vfloat8::load (float a, float b, float c, float d,
     m_4[0].load(a, b, c, d);
     m_4[1].load(e, f, g, h);
 #else
-    m_val[0] = a;
-    m_val[1] = b;
-    m_val[2] = c;
-    m_val[3] = d;
-    m_val[4] = e;
-    m_val[5] = f;
-    m_val[6] = g;
-    m_val[7] = h;
+    setcomp(0, a);
+    setcomp(1, b);
+    setcomp(2, c);
+    setcomp(3, d);
+    setcomp(4, e);
+    setcomp(5, f);
+    setcomp(6, g);
+    setcomp(7, h);
 #endif
 }
 
@@ -8754,9 +8850,9 @@ OIIO_FORCEINLINE void vfloat8::load (const float *values, int n) {
     }
 #else
     for (int i = 0; i < n; ++i)
-        m_val[i] = values[i];
+        setcomp(i, values[i]);
     for (int i = n; i < paddedelements; ++i)
-        m_val[i] = 0;
+        setcomp(i, 0);
 #endif
 }
 
@@ -8836,7 +8932,7 @@ OIIO_FORCEINLINE void vfloat8::store (float *values) const {
     m_4[0].store(values);
     m_4[1].store(values+4);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 
@@ -8857,7 +8953,7 @@ OIIO_FORCEINLINE void vfloat8::store (float *values, int n) const {
     }
 #else
     for (int i = 0; i < n; ++i)
-        values[i] = m_val[i];
+        values[i] = comp(i);
 #endif
 }
 
@@ -8870,7 +8966,7 @@ OIIO_FORCEINLINE void vfloat8::store (half *values) const {
     m_4[0].store(values);
     m_4[1].store(values+4);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = comp(i));
 #endif
 }
 #endif
@@ -8938,7 +9034,7 @@ vfloat8::gather_mask (const vbool_t& mask, const value_t *baseptr, const vint_t&
 #if OIIO_SIMD_AVX >= 2
     m_simd = _mm256_mask_i32gather_ps (m_simd, baseptr, vindex, mask, scale);
 #else
-    SIMD_DO (if (mask[i]) m_val[i] = *(const value_t *)((const char *)baseptr + vindex[i]*scale));
+    SIMD_DO (if (mask[i]) setcomp(i, *(const value_t *)((const char *)baseptr + vindex[i]*scale)));
 #endif
 }
 
@@ -8949,7 +9045,7 @@ vfloat8::scatter (value_t *baseptr, const vint_t& vindex) const
 #if OIIO_SIMD_AVX >= 512 && OIIO_AVX512VL_ENABLED
     _mm256_i32scatter_ps (baseptr, vindex, m_simd, scale);
 #else
-    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = comp(i));
 #endif
 }
 
@@ -8961,7 +9057,7 @@ vfloat8::scatter_mask (const vbool_t& mask, value_t *baseptr,
 #if OIIO_SIMD_AVX >= 512 && OIIO_AVX512VL_ENABLED
     _mm256_mask_i32scatter_ps (baseptr, mask.bitmask(), vindex, m_simd, scale);
 #else
-    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = comp(i));
 #endif
 }
 
@@ -9157,7 +9253,10 @@ OIIO_FORCEINLINE vint8 bitcast_to_int (const vfloat8& x)
 #if OIIO_SIMD_AVX
     return _mm256_castps_si256 (x.simd());
 #else
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
     return *(vint8 *)&x;
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
@@ -9166,7 +9265,10 @@ OIIO_FORCEINLINE vfloat8 bitcast_to_float (const vint8& x)
 #if OIIO_SIMD_AVX
     return _mm256_castsi256_ps (x.simd());
 #else
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
     return *(vfloat8 *)&x;
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
@@ -9482,12 +9584,20 @@ OIIO_FORCEINLINE vfloat8 nmsub (const simd::vfloat8& a, const simd::vfloat8& b,
 
 OIIO_FORCEINLINE float& vfloat16::operator[] (int i) {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 OIIO_FORCEINLINE float vfloat16::operator[] (int i) const {
     OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wmaybe-uninitialized")
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wuninitialized")
+    return *(data() + i);
+    OIIO_PRAGMA_WARNING_POP
 }
 
 
@@ -9603,22 +9713,22 @@ OIIO_FORCEINLINE void vfloat16::load (float v0, float v1, float v2, float v3,
     m_simd = _mm512_setr_ps (v0, v1, v2, v3, v4, v5, v6, v7,
                              v8, v9, v10, v11, v12, v13, v14, v15);
 #else
-    m_val[ 0] = v0;
-    m_val[ 1] = v1;
-    m_val[ 2] = v2;
-    m_val[ 3] = v3;
-    m_val[ 4] = v4;
-    m_val[ 5] = v5;
-    m_val[ 6] = v6;
-    m_val[ 7] = v7;
-    m_val[ 8] = v8;
-    m_val[ 9] = v9;
-    m_val[10] = v10;
-    m_val[11] = v11;
-    m_val[12] = v12;
-    m_val[13] = v13;
-    m_val[14] = v14;
-    m_val[15] = v15;
+    setcomp( 0, v0);
+    setcomp( 1, v1);
+    setcomp( 2, v2);
+    setcomp( 3, v3);
+    setcomp( 4, v4);
+    setcomp( 5, v5);
+    setcomp( 6, v6);
+    setcomp( 7, v7);
+    setcomp( 8, v8);
+    setcomp( 9, v9);
+    setcomp(10, v10);
+    setcomp(11, v11);
+    setcomp(12, v12);
+    setcomp(13, v13);
+    setcomp(14, v14);
+    setcomp(15, v15);
 #endif
 }
 
@@ -10012,17 +10122,17 @@ OIIO_FORCEINLINE float vfloat16::x () const {
 #if OIIO_SIMD_AVX >= 512
     return _mm_cvtss_f32(_mm512_castps512_ps128(m_simd));
 #else
-    return m_val[0];
+    return comp(0);
 #endif
 }
 
-OIIO_FORCEINLINE float vfloat16::y () const { return m_val[1]; }
-OIIO_FORCEINLINE float vfloat16::z () const { return m_val[2]; }
-OIIO_FORCEINLINE float vfloat16::w () const { return m_val[3]; }
-OIIO_FORCEINLINE void vfloat16::set_x (float val) { m_val[0] = val; }
-OIIO_FORCEINLINE void vfloat16::set_y (float val) { m_val[1] = val; }
-OIIO_FORCEINLINE void vfloat16::set_z (float val) { m_val[2] = val; }
-OIIO_FORCEINLINE void vfloat16::set_w (float val) { m_val[3] = val; }
+OIIO_FORCEINLINE float vfloat16::y () const { return comp(1); }
+OIIO_FORCEINLINE float vfloat16::z () const { return comp(2); }
+OIIO_FORCEINLINE float vfloat16::w () const { return comp(3); }
+OIIO_FORCEINLINE void vfloat16::set_x (float val) { setcomp(0, val); }
+OIIO_FORCEINLINE void vfloat16::set_y (float val) { setcomp(1, val); }
+OIIO_FORCEINLINE void vfloat16::set_z (float val) { setcomp(2, val); }
+OIIO_FORCEINLINE void vfloat16::set_w (float val) { setcomp(3, val); }
 
 
 OIIO_FORCEINLINE vint16 bitcast_to_int (const vfloat16& x)
@@ -10030,7 +10140,10 @@ OIIO_FORCEINLINE vint16 bitcast_to_int (const vfloat16& x)
 #if OIIO_SIMD_AVX >= 512
     return _mm512_castps_si512 (x.simd());
 #else
-    return *(vint16 *)&x;
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
+    return *(const vint16 *)&x;
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
@@ -10039,7 +10152,10 @@ OIIO_FORCEINLINE vfloat16 bitcast_to_float (const vint16& x)
 #if OIIO_SIMD_AVX >= 512
     return _mm512_castsi512_ps (x.simd());
 #else
-    return *(vfloat16 *)&x;
+    OIIO_PRAGMA_WARNING_PUSH
+    OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
+    return *(const vfloat16 *)&x;
+    OIIO_PRAGMA_WARNING_POP
 #endif
 }
 
@@ -10349,4 +10465,5 @@ template<> struct is_trivially_copyable<OIIO::simd::vint16> : std::true_type {};
 #undef SIMD_CONSTRUCT
 #undef SIMD_CONSTRUCT_PAD
 #undef SIMD_RETURN
+#undef SIMD_RETURN_PAD
 #undef SIMD_RETURN_REDUCE

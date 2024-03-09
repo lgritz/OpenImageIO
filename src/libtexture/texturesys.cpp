@@ -2677,8 +2677,11 @@ TextureSystemImpl::sample_bicubic(
         static const OIIO_SIMD4_ALIGN int iota[4]   = { 0, 1, 2, 3 };
         static const OIIO_SIMD4_ALIGN int iota_1[4] = { -1, 0, 1, 2 };
         simd::vint4 stex, ttex;  // Texel coords for each row and column
-        stex                = sint + (*(vint4*)iota_1);
-        ttex                = tint + (*(vint4*)iota_1);
+        OIIO_PRAGMA_WARNING_PUSH
+        OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
+        stex = sint + (*(vint4*)iota_1);
+        ttex = tint + (*(vint4*)iota_1);
+        OIIO_PRAGMA_WARNING_POP
         simd::vbool4 svalid = swrap_func_simd(stex, spec_x_simd,
                                               spec_width_simd);
         simd::vbool4 tvalid = twrap_func_simd(ttex, spec_y_simd,
@@ -2715,10 +2718,13 @@ TextureSystemImpl::sample_bicubic(
         if (s_onetile & t_onetile) {
             // If we thought it was one tile, realize that it isn't unless
             // it's ascending.
+            OIIO_PRAGMA_WARNING_PUSH
+            OIIO_GCC_ONLY_PRAGMA(GCC diagnostic ignored "-Wstrict-aliasing")
             s_onetile &= all(stex
                              == (simd::shuffle<0>(stex) + (*(vint4*)iota)));
             t_onetile &= all(ttex
                              == (simd::shuffle<0>(ttex) + (*(vint4*)iota)));
+            OIIO_PRAGMA_WARNING_POP
         }
         bool onetile = (s_onetile & t_onetile);
         if (onetile & allvalid) {
