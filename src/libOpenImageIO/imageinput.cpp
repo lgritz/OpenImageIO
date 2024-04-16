@@ -30,27 +30,6 @@ using namespace pvt;
 // store an error message per thread, for a specific ImageInput
 static thread_local tsl::robin_map<const ImageInput*, std::string>
     input_error_messages;
-
-// Helper class that, for any instance thereof, reveals whether any statics in
-// the same compilation unit have been initialized or destroyed. If the
-// statics are still alive, it looks like true, but it will look like false if
-// evaluated before file-scope statics are initialized or after they are
-// destroyed.
-class LiveStaticSentry {
-public:
-    LiveStaticSentry()
-        : m_alive(1)
-    {
-    }
-    ~LiveStaticSentry() { m_alive = 0; }
-    // int operator()() const { return m_alive; }
-    operator bool() const { return m_alive; }
-    bool alive() const { return m_alive; }
-
-private:
-    int m_alive = 0;
-};
-
 static LiveStaticSentry statics_alive;
 
 

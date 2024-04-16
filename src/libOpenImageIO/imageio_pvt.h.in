@@ -193,6 +193,30 @@ bluenoise_4chan_ptr(int x, int y, int z, int ch = 0, int seed = 0)
 
 
 
+// Helper class that, for any instance thereof, reveals whether any statics in
+// the same compilation unit have been initialized or destroyed. If the
+// statics are still alive, it looks like true, but it will look like false if
+// evaluated before file-scope statics are initialized or after they are
+// destroyed.
+class LiveStaticSentry {
+public:
+    LiveStaticSentry() { m_alive = 1; }
+    ~LiveStaticSentry() { m_alive = 0; }
+    operator bool() const { return alive(); }
+    bool alive() const
+    {
+        int a = m_alive;
+        // if (!a)
+        //     print("LiveStaticSentry::alive() called after static destruction\n");
+        return a;
+    }
+
+private:
+    atomic_int m_alive { 0 };
+};
+
+
+
 struct print_info_options {
     bool verbose            = false;
     bool filenameprefix     = false;
