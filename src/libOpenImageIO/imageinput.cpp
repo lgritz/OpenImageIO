@@ -31,17 +31,27 @@ using namespace pvt;
 static thread_local tsl::robin_map<const ImageInput*, std::string>
     input_error_messages;
 
-class LiveSentry {
+// Helper class that, for any instance thereof, reveals whether any statics in
+// the same compilation unit have been initialized or destroyed. If the
+// statics are still alive, it looks like true, but it will look like false if
+// evaluated before file-scope statics are initialized or after they are
+// destroyed.
+class LiveStaticSentry {
 public:
-    LiveSentry() : m_state(1) {}
-    ~LiveSentry() { m_state = 0; }
-    int operator()() const { return m_state; }
+    LiveStaticSentry()
+        : m_alive(1)
+    {
+    }
+    ~LiveStaticSentry() { m_alive = 0; }
+    // int operator()() const { return m_alive; }
+    operator bool() const { return m_alive; }
+    bool alive() const { return m_alive; }
 
 private:
-    int m_state = 0;
+    int m_alive = 0;
 };
 
-static LiveSentry statics_alive;
+static LiveStaticSentry statics_alive;
 
 
 
@@ -101,7 +111,7 @@ ImageInput::~ImageInput()
     // Erase any leftover errors from this thread
     // TODO: can we clear other threads' errors?
     // TODO: potentially unsafe due to the static destruction order fiasco
-    if (statics_alive())
+    if (statics_alive)
         input_error_messages.erase(this);
 }
 
@@ -1110,6 +1120,8 @@ ImageInput::send_to_client(const char* /*format*/, ...)
 void
 ImageInput::append_error(string_view message) const
 {
+    if (!statics_alive)
+        return;
     if (message.size() && message.back() == '\n')
         message.remove_suffix(1);
     std::string& err_str = input_error_messages[this];
@@ -1128,6 +1140,8 @@ ImageInput::append_error(string_view message) const
 bool
 ImageInput::has_error() const
 {
+    if (!statics_alive)
+        return false;
     auto iter = input_error_messages.find(this);
     if (iter == input_error_messages.end())
         return false;
@@ -1139,6 +1153,8 @@ ImageInput::has_error() const
 std::string
 ImageInput::geterror(bool clear) const
 {
+    if (!statics_alive)
+        return {};
     std::string e;
     auto iter = input_error_messages.find(this);
     if (iter != input_error_messages.end()) {
