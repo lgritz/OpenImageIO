@@ -86,7 +86,7 @@ ImageInput::~ImageInput()
     // Erase any leftover errors from this thread
     // TODO: can we clear other threads' errors?
     // TODO: potentially unsafe due to the static destruction order fiasco
-    // input_error_messages.erase(this);
+    input_error_messages.erase(this);
 }
 
 
