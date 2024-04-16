@@ -26,9 +26,24 @@ OIIO_NAMESPACE_BEGIN
 using namespace pvt;
 
 
+
 // store an error message per thread, for a specific ImageInput
 static thread_local tsl::robin_map<const ImageInput*, std::string>
     input_error_messages;
+
+class LiveSentry {
+public:
+    LiveSentry() : m_state(1) {}
+    ~LiveSentry() { m_state = 0; }
+    int operator()() const { return m_state; }
+
+private:
+    int m_state = 0;
+};
+
+static LiveSentry statics_alive;
+
+
 
 class ImageInput::Impl {
 public:
@@ -86,7 +101,8 @@ ImageInput::~ImageInput()
     // Erase any leftover errors from this thread
     // TODO: can we clear other threads' errors?
     // TODO: potentially unsafe due to the static destruction order fiasco
-    input_error_messages.erase(this);
+    if (statics_alive())
+        input_error_messages.erase(this);
 }
 
 
