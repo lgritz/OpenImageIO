@@ -191,6 +191,97 @@ oiio_bufinfo::oiio_bufinfo(const py::buffer_info& pybuf, int nchans, int width,
 
 
 
+// Convert an array of T values (described by type) into either a simple
+// Python object (if it's an int, float, or string and a SCALAR) or a
+// Python tuple.
+template<typename T>
+inline py::object
+C_to_val_or_tuple(const T* vals, TypeDesc type, int nvalues = 1)
+{
+    OIIO_DASSERT(vals && nvalues);
+    size_t n = type.numelements() * type.aggregate * nvalues;
+    if (n == 1 && !type.arraylen)
+        return typename PyTypeForCType<T>::type(vals[0]);
+    else
+        return C_to_tuple(cspan<T>(vals, n));
+}
+
+
+
+// TRANSFERS ownership of the data pointer!
+// N.B. There is some evidence that this doesn't work properly with
+// non-float arrays. Maybe a limitation of pybind11?
+template<class T>
+inline py::array_t<T>
+make_numpy_array(T* data, int dims, size_t chans, size_t width, size_t height,
+                 size_t depth = 1)
+{
+    const size_t size = chans * width * height * depth;
+    T* mem            = data ? data : new T[size];
+
+    // Create a Python object that will free the allocated memory when
+    // destroyed:
+    py::capsule free_when_done(mem, [](void* f) {
+        delete[] (reinterpret_cast<T*>(f));
+    });
+
+    std::vector<size_t> shape, strides;
+    if (dims == 4) {  // volumetric
+        shape.assign({ depth, height, width, chans });
+        strides.assign({ height * width * chans * sizeof(T),
+                         width * chans * sizeof(T), chans * sizeof(T),
+                         sizeof(T) });
+    } else if (dims == 3 && depth == 1) {  // 2D+channels
+        shape.assign({ height, width, chans });
+        strides.assign(
+            { width * chans * sizeof(T), chans * sizeof(T), sizeof(T) });
+    } else if (dims == 2 && depth == 1
+               && height == 1) {  // 1D (scanline) + channels
+        shape.assign({ width, chans });
+        strides.assign({ chans * sizeof(T), sizeof(T) });
+    } else {  // punt -- make it a 1D array
+        shape.assign({ size });
+        strides.assign({ sizeof(T) });
+    }
+    return py::array_t<T>(shape, strides, mem, free_when_done);
+}
+
+
+
+py::object
+make_numpy_array(TypeDesc format, void* data, int dims, size_t chans,
+                 size_t width, size_t height, size_t depth)
+{
+    if (format == TypeDesc::FLOAT)
+        return make_numpy_array((float*)data, dims, chans, width, height,
+                                depth);
+    if (format == TypeDesc::UINT8)
+        return make_numpy_array((unsigned char*)data, dims, chans, width,
+                                height, depth);
+    if (format == TypeDesc::UINT16)
+        return make_numpy_array((unsigned short*)data, dims, chans, width,
+                                height, depth);
+    if (format == TypeDesc::INT8)
+        return make_numpy_array((char*)data, dims, chans, width, height, depth);
+    if (format == TypeDesc::INT16)
+        return make_numpy_array((short*)data, dims, chans, width, height,
+                                depth);
+    if (format == TypeDesc::DOUBLE)
+        return make_numpy_array((double*)data, dims, chans, width, height,
+                                depth);
+    if (format == TypeDesc::HALF)
+        return make_numpy_array((half*)data, dims, chans, width, height, depth);
+    if (format == TypeDesc::UINT)
+        return make_numpy_array((unsigned int*)data, dims, chans, width, height,
+                                depth);
+    if (format == TypeDesc::INT)
+        return make_numpy_array((int*)data, dims, chans, width, height, depth);
+    delete[] (char*)data;
+    return py::none();
+}
+
+ 
+
 py::object
 make_pyobject(const void* data, TypeDesc type, int nvalues,
               py::object defaultvalue)
