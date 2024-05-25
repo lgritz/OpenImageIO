@@ -135,6 +135,11 @@ option (OIIO_THREAD_ALLOW_DCLP "OIIO threads may use DCLP for speed" ON)
 set (TEX_BATCH_SIZE "" CACHE STRING "Force TextureSystem SIMD batch size (e.g. 16)")
 option (OIIO_TEX_IMPLEMENT_VARYINGREF "Implement the deprecated batch texture functions taking VaryingRef params" ON)
 
+set_option (OIIO_SPAN_SIZE_IS_UNSIGNED "Force span<>::size() to be unsigned (for 3.0 preparation)" OFF)
+if (OIIO_SPAN_SIZE_IS_UNSIGNED)
+    add_compile_definitions (OIIO_SPAN_SIZE_IS_UNSIGNED=1)
+endif ()
+
 # Set the default namespace
 set (${PROJ_NAME}_NAMESPACE ${PROJECT_NAME} CACHE STRING
      "Customized outer namespace base name (version will be added)")
