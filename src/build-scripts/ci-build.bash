@@ -25,11 +25,6 @@ if [[ -n "$CODECOV" ]] ; then
     OIIO_CMAKE_FLAGS="$OIIO_CMAKE_FLAGS -DCODECOV=${CODECOV}"
 fi
 
-# On GHA, we can reduce build time with "unity" builds.
-if [[ ${GITHUB_ACTIONS} == true ]] ; then
-    OIIO_CMAKE_FLAGS+=" -DCMAKE_UNITY_BUILD=${CMAKE_UNITY_BUILD:=ON} -DCMAKE_UNITY_BUILD_MODE=${CMAKE_UNITY_BUILD_MODE:=BATCH}"
-fi
-
 # pushd $OIIO_BUILD_DIR
 cmake -S $OIIO_SRC_DIR -B $OIIO_BUILD_DIR -G "$CMAKE_GENERATOR" \
         -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" \

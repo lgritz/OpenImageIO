@@ -284,6 +284,14 @@ endif ()
 
 
 ###########################################################################
+# Options for unity build
+set_option (CMAKE_UNITY_BUILD "Enable unity build" OFF)
+set_cache (CMAKE_UNITY_BUILD_MODE "BATCH" "Unity build mode (BATCH or GROUP)")
+set_cache (CMAKE_UNITY_BUILD_BATCH_SIZE 8 "Unity batch mode size")
+set_cache (UNITY_SMALL_BATCH_SIZE 4 "Unity batch mode size for expensive files")
+
+
+###########################################################################
 # Option to force use of libc++ (the LLVM project's alternate C++ standard
 # library). Currently this only has an effect if using clang as the
 # compiler. Maybe it would also work for g++? Investigate.
