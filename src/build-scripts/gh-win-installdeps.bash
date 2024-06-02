@@ -54,11 +54,11 @@ echo "---------------"
 
 time vcpkg install boost:x64-windows-release
 # time vcpkg install boost-container:x64-windows-release
-# time vcpkg install boost-filesystem:x64-windows-release
+time vcpkg install boost-filesystem:x64-windows-release
 # time vcpkg install boost-math:x64-windows-release
 # time vcpkg install boost-stacktrace:x64-windows-release
 # time vcpkg install boost-system:x64-windows-release
-# time vcpkg install boost-thread:x64-windows-release
+time vcpkg install boost-thread:x64-windows-release
 
 #vcpkg install libdeflate:x64-windows-release
 #vcpkg install zlib:x64-windows-release
@@ -91,6 +91,8 @@ export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH:$VCPKG_INSTALLATION_ROOT/installed/
 # 
 echo "All VCPkg installs:"
 vcpkg list
+echo "$VCPKG_INSTALLATION_ROOT/installed/x64-windows"
+ls "$VCPKG_INSTALLATION_ROOT/installed/x64-windows"
 #
 ########################################################################
 
