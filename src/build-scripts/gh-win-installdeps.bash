@@ -86,13 +86,19 @@ vcpkg install libjpeg-turbo:x64-windows-release
 # # export PATH="$PATH:$DEP_DIR/bin:$VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin"
 # export PATH="$DEP_DIR/lib:$DEP_DIR/bin:$PATH:$VCPKG_INSTALLATION_ROOT/installed/x64-windows/lib"
 export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH:$VCPKG_INSTALLATION_ROOT/installed/x64-windows"
-export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH:$VCPKG_INSTALLATION_ROOT/installed/x64-windows/Release"
+export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH:$VCPKG_INSTALLATION_ROOT/installed/x64-windows-release"
 # export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$VCPKG_INSTALLATION_ROOT/installed/x64-windows/lib:$DEP_DIR/lib:$DEP_DIR/bin"
 # 
 echo "All VCPkg installs:"
 vcpkg list
+echo "$VCPKG_INSTALLATION_ROOT"
+ls "$VCPKG_INSTALLATION_ROOT"
+echo "$VCPKG_INSTALLATION_ROOT/installed"
+ls "$VCPKG_INSTALLATION_ROOT/installed/"
 echo "$VCPKG_INSTALLATION_ROOT/installed/x64-windows"
 ls "$VCPKG_INSTALLATION_ROOT/installed/x64-windows"
+echo "$VCPKG_INSTALLATION_ROOT/installed/x64-windows-release"
+ls "$VCPKG_INSTALLATION_ROOT/installed/x64-windows-release"
 #
 ########################################################################
 
