@@ -50,7 +50,7 @@ echo "---------------"
 # vcpkg update
 # 
 
-time vcpkg install 7zip:x64-windows-release
+# time vcpkg install 7zip:x64-windows-release
 
 time vcpkg install boost:x64-windows-release
 # time vcpkg install boost-container:x64-windows-release

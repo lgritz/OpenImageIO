@@ -585,22 +585,22 @@ jobs:
       - name: Dependencies
         shell: bash
         run: src/build-scripts/gh-win-installdeps.bash
-      - name: install-boost
-        uses: MarkusJx/install-boost@v2.4.4
-        id: install-boost
-        with:
-            # REQUIRED: Specify the required boost version
-            # A list of supported versions can be found here:
-            # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
-            boost_version: 1.84.0
-            # OPTIONAL: Specify a custon install location
-            # boost_install_dir: C:\some_directory
-            # OPTIONAL: Specify a platform version
-            platform_version: 2019
-            # OPTIONAL: Specify a toolset
-            toolset: msvc
-            # NOTE: If a boost version matching all requirements cannot be found,
-            # this build step will fail
+      #- name: install-boost
+      #  uses: MarkusJx/install-boost@v2.4.4
+      #  id: install-boost
+      #  with:
+      #      # REQUIRED: Specify the required boost version
+      #      # A list of supported versions can be found here:
+      #      # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
+      #      boost_version: 1.84.0
+      #      # OPTIONAL: Specify a custon install location
+      #      # boost_install_dir: C:\some_directory
+      #      # OPTIONAL: Specify a platform version
+      #      platform_version: 2019
+      #      # OPTIONAL: Specify a toolset
+      #      toolset: msvc
+      #      # NOTE: If a boost version matching all requirements cannot be found,
+      #      # this build step will fail
       - name: Build
         shell: bash
         run: src/build-scripts/ci-build.bash
