@@ -50,28 +50,29 @@ echo "---------------"
 # vcpkg update
 # 
 
-time vcpkg install 7zip:x64-windows
+time vcpkg install 7zip:x64-windows-release
 
-# time vcpkg install boost-container:x64-windows
-# time vcpkg install boost-filesystem:x64-windows
-# time vcpkg install boost-math:x64-windows
-# time vcpkg install boost-stacktrace:x64-windows
-# time vcpkg install boost-system:x64-windows
-# time vcpkg install boost-thread:x64-windows
+time vcpkg install boost:x64-windows-release
+# time vcpkg install boost-container:x64-windows-release
+# time vcpkg install boost-filesystem:x64-windows-release
+# time vcpkg install boost-math:x64-windows-release
+# time vcpkg install boost-stacktrace:x64-windows-release
+# time vcpkg install boost-system:x64-windows-release
+# time vcpkg install boost-thread:x64-windows-release
 
-#vcpkg install libdeflate:x64-windows
-#vcpkg install zlib:x64-windows
-vcpkg install tiff:x64-windows
-# vcpkg install libpng:x64-windows
-# vcpkg install giflib:x64-windows
-vcpkg install freetype:x64-windows
-# # vcpkg install openexr:x64-windows
-vcpkg install libjpeg-turbo:x64-windows
+#vcpkg install libdeflate:x64-windows-release
+#vcpkg install zlib:x64-windows-release
+vcpkg install tiff:x64-windows-release
+# vcpkg install libpng:x64-windows-release
+# vcpkg install giflib:x64-windows-release
+vcpkg install freetype:x64-windows-release
+# # vcpkg install openexr:x64-windows-release
+vcpkg install libjpeg-turbo:x64-windows-release
 # 
-# vcpkg install libraw:x64-windows
-# vcpkg install openjpeg:x64-windows
-# # vcpkg install ffmpeg:x64-windows   # takes FOREVER!
-# # vcpkg install webp:x64-windows  # No such vcpkg package?a
+# vcpkg install libraw:x64-windows-release
+# vcpkg install openjpeg:x64-windows-release
+# # vcpkg install ffmpeg:x64-windows-release   # takes FOREVER!
+# # vcpkg install webp:x64-windows-release  # No such vcpkg package?a
 # 
 # #echo "$VCPKG_INSTALLATION_ROOT"
 # #ls "$VCPKG_INSTALLATION_ROOT"
@@ -85,6 +86,7 @@ vcpkg install libjpeg-turbo:x64-windows
 # # export PATH="$PATH:$DEP_DIR/bin:$VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin"
 # export PATH="$DEP_DIR/lib:$DEP_DIR/bin:$PATH:$VCPKG_INSTALLATION_ROOT/installed/x64-windows/lib"
 export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH:$VCPKG_INSTALLATION_ROOT/installed/x64-windows"
+export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH:$VCPKG_INSTALLATION_ROOT/installed/x64-windows/Release"
 # export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$VCPKG_INSTALLATION_ROOT/installed/x64-windows/lib:$DEP_DIR/lib:$DEP_DIR/bin"
 # 
 echo "All VCPkg installs:"
