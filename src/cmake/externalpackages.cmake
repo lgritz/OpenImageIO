@@ -231,7 +231,7 @@ checked_find_package (Robinmap REQUIRED
 # fmtlib
 option (OIIO_INTERNALIZE_FMT "Copy fmt headers into <install>/include/OpenImageIO/detail/fmt" ON)
 checked_find_package (fmt REQUIRED
-                      VERSION_MIN 7.0
+                      VERSION_MIN 8.0
                       VERSION_MAX 10.99
                       BUILD_LOCAL missing
                      )
