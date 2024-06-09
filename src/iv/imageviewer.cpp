@@ -111,12 +111,10 @@ ImageViewer::ImageViewer(bool use_ocio, const std::string& image_color_space,
     , m_fullscreen(false)
     , m_default_gamma(1)
     , m_darkPalette(false)
-#ifdef HAS_OCIO_2
     , m_useOCIO(use_ocio)
     , m_ocioColourSpace(image_color_space)
     , m_ocioDisplay(display)
     , m_ocioView(view)
-#endif  // HAS_OCIO_2
 {
     readSettings(false);
 
@@ -139,7 +137,7 @@ ImageViewer::ImageViewer(bool use_ocio, const std::string& image_color_space,
     slideDuration_ms = 5000;
     slide_loop       = true;
 
-#ifdef HAS_OCIO_2
+#ifdef USE_OCIO
     glwin = new IvGL_OCIO(this, *this);
 #else
     glwin = new IvGL(this, *this);
@@ -462,7 +460,7 @@ ImageViewer::createActions()
             SLOT(setSlideShowDuration(int)));
 }
 
-#ifdef HAS_OCIO_2
+#ifdef USE_OCIO
 
 void
 ImageViewer::createOCIOMenus(QMenu* parent)
@@ -606,7 +604,7 @@ ImageViewer::ocioDisplayViewAction()
     }
 }
 
-#endif  // HAS_OCIO_2
+#endif  // USE_OCIO
 
 void
 ImageViewer::createMenus()
@@ -694,7 +692,7 @@ ImageViewer::createMenus()
     viewMenu->addMenu(channelMenu);
     viewMenu->addMenu(colormodeMenu);
 
-#ifdef HAS_OCIO_2
+#ifdef USE_OCIO
     createOCIOMenus(viewMenu);
 #endif
 
@@ -1044,7 +1042,7 @@ void
 ImageViewer::moveToNewWindow()
 {
     if (m_images.size()) {
-#ifdef HAS_OCIO_2
+#ifdef USE_OCIO
         ImageViewer* imageViewer = new ImageViewer(m_useOCIO, m_ocioColourSpace,
                                                    m_ocioDisplay, m_ocioView);
 #else

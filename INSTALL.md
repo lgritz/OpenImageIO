@@ -66,8 +66,8 @@ NEW or CHANGED MINIMUM dependencies since the last major release are **bold**.
      * DCMTK >= 3.6.1 (tested through 3.6.8)
  * If you want support for WebP images:
      * WebP >= 0.6.1 (tested through 1.4)
- * If you want support for OpenColorIO color transformations:
-     * OpenColorIO >= 1.1 (tested through 2.3; 2.0+ is recommended)
+ * If you want support for OpenColorIO color management:
+     * OpenColorIO >= 2.0 (tested through 2.3; 2.2+ is recommended)
  * If you want support for Ptex:
      * Ptex >= 2.3.1 (probably works for older; tested through 2.4.2)
  * If you want to be able to do font rendering into images:

@@ -148,10 +148,26 @@ jobs:
             simd: "avx2,f16c"
             fmt_ver: 10.1.1
             pybind11_ver: v2.10.0
-          - desc: oldest/hobbled gcc9.3/C++17 py3.7 exr-3.1 no-sse no-ocio
-            # Oldest versions of the dependencies that we can muster, and various
-            # things disabled (no SSE, OCIO, or OpenCV, don't embed plugins).
+          - desc: oldest gcc9.3/C++17 py3.7 exr-3.1
+            # Oldest versions of the dependencies that we support.
             nametag: linux-oldest
+            runner: ubuntu-latest
+            container: aswf/ci-osl:2021
+            vfxyear: 2021
+            cxx_std: 17
+            fmt_ver: 7.0.1
+            openexr_ver: v3.1.0
+            pybind11_ver: v2.4.2
+            python_ver: 3.7
+            setenvs: export  CMAKE_VERSION=3.15.5
+                             PTEX_VERSION=v2.3.2
+                             WEBP_VERSION=v1.0.0
+            depcmds: sudo rm -rf /usr/local/include/OpenEXR
+          - desc: hobbled gcc9.3/C++17 py3.7 exr-3.1 no-sse no-ocio
+            # Use the oldest supported versions of required dependencies, and
+            # disable most optional dependencies and features (no SSE, OCIO,
+            # or OpenCV, don't embed plugins).
+            nametag: linux-disabled
             runner: ubuntu-latest
             container: aswf/ci-osl:2021
             vfxyear: 2021

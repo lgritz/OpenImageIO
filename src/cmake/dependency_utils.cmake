@@ -18,6 +18,7 @@ set_cache (${PROJECT_NAME}_BUILD_LOCAL_DEPS ""
 set_cache (${PROJECT_NAME}_LOCAL_DEPS_ROOT "${PROJECT_BINARY_DIR}/deps"
            "Directory were we do local builds of dependencies")
 list (APPEND CMAKE_PREFIX_PATH ${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/dist)
+include_directories(BEFORE ${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/include)
 
 # Build type for locally built dependencies. Default to the same build type
 # as the current project.

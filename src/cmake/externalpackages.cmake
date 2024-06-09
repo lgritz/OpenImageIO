@@ -126,11 +126,13 @@ checked_find_package (Freetype
                       DEFINITIONS USE_FREETYPE=1 )
 
 checked_find_package (OpenColorIO
-                      VERSION_MIN 1.1
+                      VERSION_MIN 2.0
                       VERSION_MAX 2.9
+                      RECOMMEND_MIN 2.2
+                      RECOMMEND_MIN_REASON "for built-in OCIO configs"
                       NO_FP_RANGE_CHECK
                       DEFINITIONS  USE_OCIO=1 USE_OPENCOLORIO=1
-                      )
+                     )
 if (OpenColorIO_FOUND)
     option (OIIO_DISABLE_BUILTIN_OCIO_CONFIGS
            "For deveoper debugging/testing ONLY! Disable OCIO 2.2 builtin configs." OFF)

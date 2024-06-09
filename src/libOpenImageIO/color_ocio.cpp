@@ -26,9 +26,6 @@
 
 #ifdef USE_OCIO
 #    include <OpenColorIO/OpenColorIO.h>
-#    if OCIO_VERSION_HEX >= MAKE_OCIO_VERSION_HEX(2, 0, 0)
-#        define OCIO_v2 1
-#    endif
 #    if OCIO_VERSION_HEX >= MAKE_OCIO_VERSION_HEX(2, 2, 0) \
         && !defined(OIIO_DISABLE_BUILTIN_OCIO_CONFIGS)
 #        define OCIO_HAS_BUILTIN_CONFIGS 1
@@ -1110,7 +1107,7 @@ std::vector<std::string>
 ColorConfig::getAliases(string_view color_space) const
 {
     std::vector<std::string> result;
-#if OCIO_VERSION_HEX >= MAKE_OCIO_VERSION_HEX(2, 0, 0)
+#ifdef USE_OCIO
     auto config = getImpl()->config_;
     if (config) {
         auto cs = config->getColorSpace(c_str(color_space));
@@ -1306,13 +1303,8 @@ ColorConfig::getDisplayViewColorSpaceName(const std::string& display,
 {
 #ifdef USE_OCIO
     if (getImpl()->config_ && !disable_ocio)
-#    if OCIO_VERSION_HEX >= MAKE_OCIO_VERSION_HEX(2, 0, 0)
         return getImpl()->config_->getDisplayViewColorSpaceName(display.c_str(),
                                                                 view.c_str());
-#    else
-        return getImpl()->config_->getDisplayColorSpaceName(display.c_str(),
-                                                            view.c_str());
-#    endif
 #endif
     return nullptr;
 }
@@ -1325,13 +1317,8 @@ ColorConfig::getDisplayViewLooks(const std::string& display,
 {
 #ifdef USE_OCIO
     if (getImpl()->config_ && !disable_ocio)
-#    if OCIO_VERSION_HEX >= MAKE_OCIO_VERSION_HEX(2, 0, 0)
         return getImpl()->config_->getDisplayViewLooks(display.c_str(),
                                                        view.c_str());
-#    else
-        return getImpl()->config_->getDisplayLooks(display.c_str(),
-                                                   view.c_str());
-#    endif
 #endif
     return nullptr;
 }
@@ -1435,7 +1422,6 @@ ColorConfig::equivalent(string_view color_space1,
 
 #ifdef USE_OCIO
 
-#    if OCIO_VERSION_HEX >= 0x02000000
 inline OCIO::BitDepth
 ocio_bitdepth(TypeDesc type)
 {
@@ -1453,7 +1439,6 @@ ocio_bitdepth(TypeDesc type)
         return OCIO::BIT_DEPTH_F32;
     return OCIO::BIT_DEPTH_UNKNOWN;
 }
-#    endif
 
 
 // Custom ColorProcessor that wraps an OpenColorIO Processor.
@@ -1461,9 +1446,7 @@ class ColorProcessor_OCIO final : public ColorProcessor {
 public:
     ColorProcessor_OCIO(OCIO::ConstProcessorRcPtr p)
         : m_p(p)
-#    if OCIO_VERSION_HEX >= 0x02000000
         , m_cpuproc(p->getDefaultCPUProcessor())
-#    endif
     {
     }
     ~ColorProcessor_OCIO() override {}
@@ -1477,23 +1460,15 @@ public:
                stride_t chanstride, stride_t xstride,
                stride_t ystride) const override
     {
-#    if OCIO_VERSION_HEX >= 0x02000000
         OCIO::PackedImageDesc pid(data, width, height, channels,
                                   OCIO::BIT_DEPTH_F32,  // For now, only float
                                   chanstride, xstride, ystride);
         m_cpuproc->apply(pid);
-#    else
-        OCIO::PackedImageDesc pid(data, width, height, channels, chanstride,
-                                  xstride, ystride);
-        m_p->apply(pid);
-#    endif
     }
 
 private:
     OCIO::ConstProcessorRcPtr m_p;
-#    if OCIO_VERSION_HEX >= 0x02000000
     OCIO::ConstCPUProcessorRcPtr m_cpuproc;
-#    endif
 };
 #endif
 
@@ -2021,23 +1996,12 @@ ColorConfig::createDisplayTransform(ustring display, ustring view,
     // transformation.
     if (getImpl()->config_ && !disable_ocio) {
         OCIO::ConstConfigRcPtr config = getImpl()->config_;
-#    ifdef OCIO_v2
-        auto transform = OCIO::DisplayViewTransform::Create();
+        auto transform                = OCIO::DisplayViewTransform::Create();
         transform->setSrc(inputColorSpace.c_str());
         if (looks.size()) {
             getImpl()->error(
                 "createDisplayTransform: looks overrides are not allowed in OpenColorIO v2");
         }
-#    else
-        auto transform = OCIO::DisplayTransform::Create();
-        transform->setInputColorSpaceName(inputColorSpace.c_str());
-        if (looks.size()) {
-            transform->setLooksOverride(looks.c_str());
-            transform->setLooksOverrideEnabled(true);
-        } else {
-            transform->setLooksOverrideEnabled(false);
-        }
-#    endif
         OCIO::TransformDirection dir = inverse ? OCIO::TRANSFORM_DIR_INVERSE
                                                : OCIO::TRANSFORM_DIR_FORWARD;
         transform->setDisplay(display.c_str());
@@ -2167,7 +2131,7 @@ ColorConfig::createMatrixTransform(M44fParam M, bool inverse) const
 string_view
 ColorConfig::getColorSpaceFromFilepath(string_view str) const
 {
-#if defined(USE_OCIO) && (OCIO_VERSION_HEX >= MAKE_OCIO_VERSION_HEX(2, 1, 0))
+#if OCIO_VERSION_HEX >= MAKE_OCIO_VERSION_HEX(2, 1, 0)
     if (getImpl() && getImpl()->config_) {
         std::string s(str);
         string_view r = getImpl()->config_->getColorSpaceFromFilepath(
@@ -2185,7 +2149,7 @@ ColorConfig::getColorSpaceFromFilepath(string_view str) const
 string_view
 ColorConfig::parseColorSpaceFromString(string_view str) const
 {
-#if defined(USE_OCIO) && (OCIO_VERSION_HEX < MAKE_OCIO_VERSION_HEX(2, 1, 0))
+#if defined(USE_OCIO) && OCIO_VERSION_HEX < MAKE_OCIO_VERSION_HEX(2, 1, 0)
     if (getImpl() && getImpl()->config_)
         return getImpl()->config_->parseColorSpaceFromString(str.c_str());
 #endif

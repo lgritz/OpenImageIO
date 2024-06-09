@@ -244,12 +244,10 @@ public:
     void rawcolor(bool val) { m_rawcolor = val; }
     bool rawcolor() const { return m_rawcolor; }
 
-#ifdef HAS_OCIO_2
     bool useOCIO() { return m_useOCIO; }
     const std::string& ocioColorSpace() { return m_ocioColourSpace; }
     const std::string& ocioDisplay() { return m_ocioDisplay; }
     const std::string& ocioView() { return m_ocioView; }
-#endif  // HAS_OCIO_2
 
 private slots:
     void open();                ///< Dialog to open new image from file
@@ -310,11 +308,11 @@ private slots:
     void showPixelviewWindow();  ///< View closeup pixel view
     void editPreferences();      ///< Edit viewer preferences
 
-#ifdef HAS_OCIO_2
+#ifdef USE_OCIO
     void useOCIOAction(bool checked);
     void ocioColorSpaceAction();
     void ocioDisplayViewAction();
-#endif  // HAS_OCIO_2
+#endif  // USE_OCIO
 
 private:
     void createActions();
@@ -427,24 +425,22 @@ private:
     friend class IvPreferenceWindow;
     friend bool image_progress_callback(void* opaque, float done);
 
-#ifdef HAS_OCIO_2
     friend class IvGL_OCIO;
 
     void createOCIOMenus(QMenu* parent);
 
-    QMenu* ocioColorSpacesMenu;
-    QMenu* ocioDisplaysMenu;
-    QMenu* ocioOptimizationMenu;
+    QMenu* ocioColorSpacesMenu  = nullptr;
+    QMenu* ocioDisplaysMenu     = nullptr;
+    QMenu* ocioOptimizationMenu = nullptr;
 
-    QActionGroup* ocioColorSpacesGroup;
-    QActionGroup* ocioDisplayViewsGroup;
-    QActionGroup* ocioOptimizationGroup;
+    QActionGroup* ocioColorSpacesGroup  = nullptr;
+    QActionGroup* ocioDisplayViewsGroup = nullptr;
+    QActionGroup* ocioOptimizationGroup = nullptr;
 
-    bool m_useOCIO;
+    bool m_useOCIO = false;
     std::string m_ocioColourSpace;
     std::string m_ocioDisplay;
     std::string m_ocioView;
-#endif  // HAS_OCIO_2
 };
 
 
