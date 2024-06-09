@@ -18,7 +18,7 @@ if [[ "$USE_SIMD" != "" ]] ; then
 fi
 
 if [[ -n "$FMT_VERSION" ]] ; then
-    OIIO_CMAKE_FLAGS="$OIIO_CMAKE_FLAGS -DBUILD_FMT_VERSION=$FMT_VERSION"
+    OIIO_CMAKE_FLAGS="$OIIO_CMAKE_FLAGS -Dfmt_BUILD_VERSION=$FMT_VERSION"
 fi
 
 if [[ -n "$CODECOV" ]] ; then
