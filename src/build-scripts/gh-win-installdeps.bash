@@ -27,16 +27,25 @@ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DEP_DIR/lib:$VCPKG_INSTALLATION_ROOT/i
 
 echo "Python versions available (ls -l /c/hostedtoolcache/windows/Python):"
 ls -l /c/hostedtoolcache/windows/Python
+ls -l /c/hostedtoolcache/windows/Python/*
 
 if [[ "$PYTHON_VERSION" == "3.7" ]] ; then
-    export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH;/c/hostedtoolcache/windows/Python/3.7.9/x64"
-    export Python_EXECUTABLE="/c/hostedtoolcache/windows/Python/3.7.9/x64/python.exe"
-    export PYTHONPATH=$OpenImageIO_ROOT/lib/python${PYTHON_VERSION}/site-packages
+    export FULL_PYTHON_VER="3.7.9"
 elif [[ "$PYTHON_VERSION" == "3.9" ]] ; then
-    export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH;/c/hostedtoolcache/windows/Python/3.9.13/x64"
-    export Python_EXECUTABLE="/c/hostedtoolcache/windows/Python/3.9.13/x64/python3.exe"
-    export PYTHONPATH=$OpenImageIO_ROOT/lib/python${PYTHON_VERSION}/site-packages
+    export FULL_PYTHON_VER="3.9.13"
+elif [[ "$PYTHON_VERSION" == "3.10" ]] ; then
+    export FULL_PYTHON_VER="3.10.11"
+elif [[ "$PYTHON_VERSION" == "3.11" ]] ; then
+    export FULL_PYTHON_VER="3.11.9"
+elif [[ "$PYTHON_VERSION" == "3.12" ]] ; then
+    export FULL_PYTHON_VER="3.12.3"
 fi
+export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH:/c/hostedtoolcache/windows/Python/$FULL_PYTHON_VER/x64"
+export Python_EXECUTABLE="/c/hostedtoolcache/windows/Python/$FULL_PYTHON_VER/x64/python3.exe"
+export PYTHONPATH=$OpenImageIO_ROOT/lib/python${PYTHON_VERSION}/site-packages
+echo "PYTHONPATH=$PATH:$OpenImageIO_ROOT/bin"
+ls $PYTHONPATH
+
 pip install numpy
 
 
