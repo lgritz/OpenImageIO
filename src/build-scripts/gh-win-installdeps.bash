@@ -42,9 +42,7 @@ elif [[ "$PYTHON_VERSION" == "3.12" ]] ; then
 fi
 export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH:/c/hostedtoolcache/windows/Python/$FULL_PYTHON_VER/x64"
 export Python_EXECUTABLE="/c/hostedtoolcache/windows/Python/$FULL_PYTHON_VER/x64/python3.exe"
-export PYTHONPATH=$OpenImageIO_ROOT/lib/python${PYTHON_VERSION}/site-packages
-echo "PYTHONPATH=$PATH:$OpenImageIO_ROOT/bin"
-ls $PYTHONPATH
+# export PYTHONPATH=$OpenImageIO_ROOT/lib/python${PYTHON_VERSION}/site-packages
 
 pip install numpy
 
