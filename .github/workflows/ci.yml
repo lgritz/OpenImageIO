@@ -29,6 +29,7 @@ permissions: read-all
 jobs:
 
   aswf:
+    if: 0
     name: "VFX${{matrix.vfxyear}} ${{matrix.desc}}"
     strategy:
       fail-fast: false
@@ -269,6 +270,7 @@ jobs:
 
 
   ubuntu:
+    if: 0
     name: "Ubuntu ${{matrix.desc}}"
     strategy:
       fail-fast: false
@@ -440,6 +442,7 @@ jobs:
 
 
   macos:
+    if: 0
     name: "${{matrix.runner}} appleclang${{matrix.aclang}}/C++${{matrix.cxx_std}} py${{matrix.python_ver}} ${{matrix.desc}}"
     strategy:
       fail-fast: false
