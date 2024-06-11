@@ -529,6 +529,7 @@ jobs:
         include:
           - desc: windows-2019
             runner: windows-2019
+            nametag: win-2019
             vsver: 2019
             generator: "Visual Studio 16 2019"
             # openexr_ver: v3.2.4
@@ -536,7 +537,8 @@ jobs:
             # simd: sse4.2
           - desc: windows-2022
             runner: windows-2022
-            vsver: 2022
+            nametag: linux-latest-releases
+            vsver: win-2022
             generator: "Visual Studio 17 2022"
             # openexr_ver: v3.2.4
             python_ver: "3.12"
@@ -553,6 +555,17 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Setup Nuget.exe
         uses: nuget/setup-nuget@a21f25cd3998bf370fde17e3f1b4c12c175172f9 # v2.0.0
+      - name: Prepare ccache timestamp
+        id: ccache_cache_keys
+        run: echo "date=`date -u +'%Y-%m-%dT%H:%M:%SZ'`" >> $GITHUB_OUTPUT
+      - name: ccache
+        id: ccache
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: /c/Users/runneradmin/.ccache
+          key: ${{github.job}}-${{matrix.nametag}}-${{ steps.ccache_cache_keys.outputs.date }}
+          restore-keys: ${{github.job}}-
+          save-always: true
       - name: Build setup
         shell: bash
         run: |
