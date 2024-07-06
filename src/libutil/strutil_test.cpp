@@ -12,6 +12,8 @@
 #include <OpenImageIO/unittest.h>
 #include <OpenImageIO/ustring.h>
 
+#include "stringrep.h"
+
 using namespace OIIO;
 
 
@@ -1724,6 +1726,23 @@ test_eval_as_bool()
 
 
 
+void
+test_string_rep(const std::string& str)
+{
+    using OIIO::pvt::as_internal_string_rep;
+    print("testing string_rep correctness '{}'\n", str);
+    print("String '{}' is {}\n", str,
+          as_internal_string_rep(str).is_large() ? "large" : "small");
+    print("  size={} cap={} data='{}'\n", str.size(), str.capacity(),
+          str.data());
+    print("  sizeof(std::string) = {}\n", sizeof(std::string));
+    OIIO_CHECK_EQUAL(str.data(), as_internal_string_rep(str).data());
+    OIIO_CHECK_EQUAL(str.size(), as_internal_string_rep(str).size());
+    OIIO_CHECK_EQUAL(str.capacity(), as_internal_string_rep(str).capacity());
+}
+
+
+
 int
 main(int /*argc*/, char* /*argv*/[])
 {
@@ -1760,6 +1779,8 @@ main(int /*argc*/, char* /*argv*/[])
     test_edit_distance();
     test_base64_encode();
     test_eval_as_bool();
+    test_string_rep("foo");  // hopefully small
+    test_string_rep("0123456789012345678901234567890123456789");  // large
 
     Strutil::debug("debug message\n");
 

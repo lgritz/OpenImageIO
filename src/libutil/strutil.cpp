@@ -36,6 +36,8 @@ OIIO_PRAGMA_WARNING_POP
 #include <OpenImageIO/thread.h>
 #include <OpenImageIO/ustring.h>
 
+#include "stringrep.h"
+
 
 // We use the public domain stb implementation of vsnprintf because
 // not all platforms support a locale-independent version of vsnprintf.
@@ -1896,6 +1898,15 @@ Strutil::eval_as_bool(string_view value)
                  || Strutil::iequals(value, "no")
                  || Strutil::iequals(value, "off"));
     }
+}
+
+
+
+bool
+Strutil::is_heap_string(const std::string& str)
+{
+    // const auto rep = reinterpret_cast<const OIIO::pvt::string_rep*>(&str);
+    return OIIO::pvt::as_internal_string_rep(str).is_large();
 }
 
 OIIO_NAMESPACE_END

@@ -410,6 +410,10 @@ strhash64(string_view s)
 }
 
 
+/// Does the string `s` use any heap space? Takes into consideration whether
+/// this implementation is using the "short string optimization".
+bool OIIO_UTIL_API is_heap_string(const std::string& str);
+
 
 /// Case-insensitive comparison of strings.  For speed, this always uses a
 /// static locale that doesn't require a mutex. Caveat: the case-sensivive
