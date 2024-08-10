@@ -24,31 +24,29 @@ typedef spin_rw_write_lock ustring_write_lock_t;
 
 // Explanation of ustring hash non-collision guarantees:
 //
-// The gist is that the ustring::strhash(str) function is modified to
-// strip out the MSB from Strutil::strhash.  The rep entry is filed in
-// the ustring table based on this hash.  So effectively, the computed
-// hash is 63 bits, not 64.
+// The gist is that the ustring::strhash(str) function is modified to always
+// set the MSB of the value returned by Strutil::strhash.  The rep entry is
+// filed in the ustring table based on this hash.  So effectively, the
+// computed hash is 63 bits, not 64.
 //
-// But rep->hashed field consists of the lower 63 bits being the computed
-// hash, and the MSB indicates whether this is the 2nd (or more) entry in
+// But rep->hashed has its MSB cleared if this is the 2nd (or more) entry in
 // the table that had the same 63 bit hash.
 //
-// ustring::hash() then is modified as follows: If the MSB is 0, the
-// computed hash is the hash. If the MSB is 1, though, we DON'T use that
-// hash, and instead we use the pointer to the unique characters, but
-// with the MSB set (that's an invalid address by itself). Note that the
-// computed hashes never have MSB set, and the char*+MSB always have MSB
-// set, so therefore ustring::hash() will never have the same value for
-// two different ustrings.
+// ustring::hash() then is modified as follows: If the MSB is 1, the computed
+// hash is the hash. If the MSB is 0, though, we DON'T use that hash, and
+// instead we use the pointer to the unique characters (whose MSB will always
+// be 0 in all known architectures). Note that the computed hashes always have
+// MSB 1, and the char*'s MSB always is 0, so therefore ustring::hash() will
+// never have the same value for two different ustrings.
 //
-// But -- please note! -- that ustring::strhash(str) and
-// ustring(str).hash() will only match (and also be the same value on
-// every execution) if the ustring is the first to receive that hash,
-// which should be approximately always. Probably always, in practice.
+// But -- please note! -- that ustring::strhash(str) and ustring(str).hash()
+// will only match (and also be the same value on every execution) if the
+// ustring is the first to receive that hash, which should be approximately
+// always. Probably always, in practice.
 //
 // But in the very improbable case of a hash collision, one of them (the
-// second to be turned into a ustring) will be using the alternate hash
-// based on the character address, which is both not the same as
+// second to be turned into a ustring) will be using the alternate hash based
+// on the character address, which is both not the same as
 // ustring::strhash(chars), nor is it expected to be the same constant on
 // every program execution.
 
@@ -62,6 +60,7 @@ namespace {
 atomic_ll total_ustring_hash_collisions(0);
 }
 
+OIIO_UTIL_API ustring::hash_t ustring_debug_hash_mask(-1ULL);
 
 // #define USTRING_TRACK_NUM_LOOKUPS
 
@@ -103,11 +102,12 @@ template<unsigned BASE_CAPACITY, unsigned POOL_SIZE> struct TableRepMap {
     }
 #endif
 
+    // Lookup string with known hash
     const char* lookup(string_view str, uint64_t hash)
     {
-        if (OIIO_UNLIKELY(hash & ustring::duplicate_bit)) {
-            // duplicate bit is set -- the hash is related to the chars!
-            return OIIO::bitcast<const char*>(hash & ustring::hash_mask);
+        if (OIIO_UNLIKELY((hash & ustring::unique_hash_bit) == 0)) {
+            // if MSB is cleared, the "hash" is the chars address
+            return OIIO::bitcast<const char*>(hash);
         }
         ustring_read_lock_t lock(mutex);
 #ifdef USTRING_TRACK_NUM_LOOKUPS
@@ -131,13 +131,13 @@ template<unsigned BASE_CAPACITY, unsigned POOL_SIZE> struct TableRepMap {
     }
 
     // Look up based on hash only. Return nullptr if not found. Note that if
-    // the hash is not unique, this will return the first entry that matches
-    // the hash.
+    // there are two strings with the same hash in the table, this will find
+    // the first one added.
     const char* lookup(uint64_t hash)
     {
-        if (OIIO_UNLIKELY(hash & ustring::duplicate_bit)) {
-            // duplicate bit is set -- the hash is related to the chars!
-            return OIIO::bitcast<const char*>(hash & ustring::hash_mask);
+        if (OIIO_UNLIKELY((hash & ustring::unique_hash_bit) == 0)) {
+            // if MSB is cleared, the "hash" is the chars address
+            return OIIO::bitcast<const char*>(hash);
         }
         ustring_read_lock_t lock(mutex);
 #ifdef USTRING_TRACK_NUM_LOOKUPS
@@ -161,7 +161,8 @@ template<unsigned BASE_CAPACITY, unsigned POOL_SIZE> struct TableRepMap {
 
     const char* insert(string_view str, uint64_t hash)
     {
-        OIIO_ASSERT((hash & ustring::duplicate_bit) == 0);  // can't happen?
+        OIIO_DASSERT(hash == 0 || (hash & ustring::unique_hash_bit));
+        // ^^ either empty string, or should be a first/unique hash
         ustring_write_lock_t lock(mutex);
         size_t pos = hash & mask, dist = 0;
         bool duplicate_hash = false;
@@ -186,11 +187,11 @@ template<unsigned BASE_CAPACITY, unsigned POOL_SIZE> struct TableRepMap {
 
         // If we encountered another ustring with the same hash (if one
         // exists, it would have hashed to the same address so we would have
-        // seen it), set the duplicate bit in the rep's hashed field.
+        // seen it), clear the unique_hash_bit bit in the rep's hashed field.
         if (duplicate_hash) {
             ++total_ustring_hash_collisions;
 #if PREVENT_HASH_COLLISIONS
-            rep->hashed |= ustring::duplicate_bit;
+            rep->hashed &= ~(ustring::unique_hash_bit);
 #endif
 #if !defined(NDEBUG)
             print("DUPLICATE ustring '{}' hash {:x} c_str {:p} strhash {:x}\n",
@@ -203,10 +204,10 @@ template<unsigned BASE_CAPACITY, unsigned POOL_SIZE> struct TableRepMap {
         ++num_entries;
         if (2 * num_entries > mask)
             grow();  // maintain 0.5 load factor
-        // ensure low bit clear
+        // ensure address low bit clear, just to test our alignment assumptions
         OIIO_DASSERT((size_t(rep->c_str()) & 1) == 0);
-        // ensure low bit clear
-        OIIO_DASSERT((size_t(rep->c_str()) & ustring::duplicate_bit) == 0);
+        // ensure unique bit of pointers clear
+        OIIO_DASSERT((size_t(rep->c_str()) & ustring::unique_hash_bit) == 0);
         return rep->c_str();  // rep is now in the table
     }
 
@@ -511,6 +512,12 @@ ustring::make_unique(string_view strref)
         strref = string_view("", 0);
 
     hash_t hash = ustring::strhash(strref);
+
+#if !defined(NDEBUG) || defined(OIIO_CI) || defined(OIIO_CODE_COVERAGE)
+    // Use the debugging mask, but only for debug compiles, or during CI or
+    // testing code coverage.
+    hash &= ustring_debug_hash_mask;
+#endif
 
     // Check the ustring table to see if this string already exists.  If so,
     // construct from its canonical representation.

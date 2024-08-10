@@ -150,6 +150,7 @@ test_ustring()
 
     // from_hash
     OIIO_CHECK_EQUAL(ustring::from_hash(foo.hash()), foo);
+    OIIO_ASSERT(empty.hash() == 0);
     OIIO_CHECK_EQUAL(empty.hash(), 0);
     OIIO_CHECK_EQUAL(ustring().hash(), 0);
 
@@ -320,7 +321,7 @@ verify_no_collisions()
         ustring u = ustring::fmtformat("{}", i);
         print("{}: {:016x} uh {:016x} sh {:016x} (addr {:p}){}\n", u, u.hash(),
               ustring::strhash(u.c_str()), Strutil::strhash(u.c_str()),
-              u.c_str(), u.has_unique_hash() ? "" : " DUP");
+              u.c_str(), u.hash_is_unique() ? "" : " DUP");
     }
 }
 

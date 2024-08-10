@@ -313,24 +313,22 @@ public:
         return rep()->length;
     }
 
-    /// ustring::strhash() uses Strutil::strhash but clears the MSB.
+    /// ustring::strhash() uses Strutil::strhash but always sets the MSB.
     static OIIO_HOSTDEVICE constexpr hash_t strhash(string_view str)
     {
-        return Strutil::strhash(str) & hash_mask;
+        auto h = Strutil::strhash(str);
+        return h ? (h | unique_hash_bit) : 0;
+        // The logic above is to guarantee that empty strings hash to 0 and
+        // don't have the unique_hash_bit set.
     }
 
-    /// Return a hashed version of the string. To guarantee unique hashes,
-    /// we check if the "duplicate bit" of the hash is set. If not, then
-    /// we just return the hash which we know is unique. But if that bit
-    /// is set, we utilize the unique character address.
+    /// Return a hashed version of the string.
     hash_t hash() const noexcept
     {
         if (!m_chars)
             return 0;
         hash_t h = rep()->hashed;
-        return OIIO_LIKELY((h & duplicate_bit) == 0)
-                   ? h
-                   : hash_t(m_chars) | duplicate_bit;
+        return OIIO_LIKELY(h & unique_hash_bit || h == 0) ? h : hash_t(m_chars);
     }
 
     /// Return a hashed version of the string
@@ -766,8 +764,6 @@ public:
     // if you know the rep, the chars are at (char *)(rep+1), and if you
     // know the chars, the rep is at ((TableRep *)chars - 1).
     struct TableRep {
-        // hashed has the MSB set if and only if this is the second or
-        // greater ustring to have the same hash.
         hash_t hashed;    // precomputed Hash value
         std::string str;  // String representation
         size_t length;    // Length of the string; must be right before cap
@@ -776,24 +772,18 @@ public:
         TableRep(string_view strref, hash_t hash);
         ~TableRep();
         const char* c_str() const noexcept { return (const char*)(this + 1); }
-        constexpr bool unique_hash() const
-        {
-            return (hashed & duplicate_bit) == 0;
-        }
+        // unique_hash_bit is a 1 in the MSB. If hashed has that bit set, the
+        // hash is the true unique hash of the chars and therefore this table
+        // entry is the first string to get that hash. But if hashed's MSB is
+        // 0, it means that the table rep is at least the second string that
+        // had the same hash.
+        static constexpr hash_t unique_hash_bit = hash_t(1) << 63;
+        bool hash_is_unique() const { return (hashed & unique_hash_bit); }
+        bool hash_is_duplicate() const { return !(hashed & unique_hash_bit); }
     };
 
-    // duplicate_bit is a 1 in the MSB, which if set indicates a hash that
-    // is a duplicate.
-    static constexpr hash_t duplicate_bit = hash_t(1) << 63;
-    // hash_mask is what you `&` with hashed to get the real hash (clearing
-    // the duplicate bit).
-#if 1
-    static constexpr hash_t hash_mask = ~duplicate_bit;
-#else
-    // Alternate to force lots of hash collisions for testing purposes:
-    static constexpr hash_t hash_mask = ~duplicate_bit & 0xffff;
-#endif
-    bool has_unique_hash() const { return rep()->unique_hash(); }
+    static constexpr hash_t unique_hash_bit = TableRep::unique_hash_bit;
+    bool hash_is_unique() const { return rep()->hash_is_unique(); }
 
 private:
     static std::string empty_std_string;
