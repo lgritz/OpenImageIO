@@ -45,9 +45,10 @@ private:
     Imath::Color3f m_bg;               ///< Background color
     int m_next_scanline;
     bool m_keep_unassociated_alpha;  ///< Do not convert unassociated alpha
-    bool m_srgb   = false;           ///< It's an sRGB image (not gamma)
-    bool m_err    = false;
-    float m_gamma = 1.0f;
+    bool m_srgb       = false;       ///< It's an sRGB image (not gamma)
+    bool m_alpha_srgb = false;       ///< Alpha is encoded as sRGB (incorrect)
+    bool m_err        = false;
+    float m_gamma     = 1.0f;
     std::unique_ptr<ImageSpec> m_config;  // Saved copy of configuration spec
 
     /// Reset everything to initial state
@@ -61,6 +62,7 @@ private:
         m_next_scanline           = 0;
         m_keep_unassociated_alpha = false;
         m_srgb                    = false;
+        m_alpha_srgb              = false;
         m_err                     = false;
         m_gamma                   = 1.0;
         m_config.reset();
@@ -89,7 +91,8 @@ private:
 
     template<class T>
     static void associateAlpha(T* data, int size, int channels,
-                               int alpha_channel, bool srgb, float gamma);
+                               int alpha_channel, bool srgb, float gamma,
+                               bool alpha_srgb);
 };
 
 
@@ -188,6 +191,7 @@ PNGInput::open(const std::string& name, ImageSpec& newspec,
     // Check 'config' for any special requests
     if (config.get_int_attribute("oiio:UnassociatedAlpha", 0) == 1)
         m_keep_unassociated_alpha = true;
+    m_alpha_srgb = config.get_int_attribute("png:alpha_srgb", 0);
     ioproxy_retrieve_from_config(config);
     m_config.reset(new ImageSpec(config));  // save config spec
     return open(name, newspec);
@@ -224,7 +228,7 @@ PNGInput::close()
 template<class T>
 void
 PNGInput::associateAlpha(T* data, int size, int channels, int alpha_channel,
-                         bool srgb, float gamma)
+                         bool srgb, float gamma, bool alpha_srgb)
 {
     // We need to transform to linear space, associate the alpha, and then
     // transform back.
@@ -233,6 +237,8 @@ PNGInput::associateAlpha(T* data, int size, int channels, int alpha_channel,
             DataArrayProxy<T, float> val(data);
             float alpha = val[alpha_channel];
             if (alpha != 1.0f) {
+                if (alpha_srgb)
+                    alpha = sRGB_to_linear(alpha);
                 for (int c = 0; c < channels; c++) {
                     if (c != alpha_channel) {
                         float f = sRGB_to_linear(val[c]);
@@ -323,10 +329,10 @@ PNGInput::read_native_scanline(int subimage, int miplevel, int y, int /*z*/,
         if (m_spec.format == TypeDesc::UINT16)
             associateAlpha((unsigned short*)data, m_spec.width,
                            m_spec.nchannels, m_spec.alpha_channel, m_srgb,
-                           m_gamma);
+                           m_gamma, m_alpha_srgb);
         else
             associateAlpha((unsigned char*)data, m_spec.width, m_spec.nchannels,
-                           m_spec.alpha_channel, m_srgb, m_gamma);
+                           m_spec.alpha_channel, m_srgb, m_gamma, m_alpha_srgb);
     }
 
     return true;

@@ -1723,6 +1723,11 @@ attributes are supported:
    * - Input Configuration Attribute
      - Type
      - Meaning
+   * - ``png:alpha_srgb``
+     - int
+     - If nonzero, will assume that the alpha channel is in sRGB space
+       (versus linear space). This is technically incorrect, but sometimes
+       PNG files are this way.
    * - ``oiio:UnassociatedAlpha``
      - int
      - If nonzero, will leave alpha unassociated (versus the default of
@@ -1732,6 +1737,12 @@ attributes are supported:
      - ptr
      - Pointer to a ``Filesystem::IOProxy`` that will handle the I/O, for
        example by reading from memory rather than the file system.
+   * - ``oiio:UnassociatedAlpha``
+     - int
+     - If nonzero, indicates that the data being passed is already in
+       unassociated form (non-premultiplied colors) and should stay that way
+       for output rather than being assumed to be associated and get automatic
+       un-association to store in the file as PNG requires.
 
 **Configuration settings for PNG output**
 
