@@ -821,9 +821,10 @@ TIFFInput::seek_subimage(int subimage, int miplevel)
         m_is_byte_swapped = TIFFIsByteSwapped(m_tif);
         m_subimage        = 0;
     }
-
     m_next_scanline = 0;  // next scanline we'll read
     if (subimage == m_subimage || TIFFSetDirectory(m_tif, subimage)) {
+        print("TIFF cur directory {} of {}\n", TIFFCurrentDirectory(m_tif),
+              TIFFNumberOfDirectories(m_tif));
         m_subimage = subimage;
         readspec(read_meta);
 
@@ -1353,6 +1354,31 @@ TIFFInput::readspec(bool read_meta)
             m_spec.attribute("ImageDescription", desc);
         else
             m_spec.erase_attribute("ImageDescription");
+    }
+
+    {
+        int number_of_sub_IFDs = 0;
+        void* ptr = nullptr;
+        if (TIFFGetField(m_tif, TIFFTAG_SUBIFD, &number_of_sub_IFDs, &ptr)
+            && number_of_sub_IFDs) {
+            print("Number of IFDs: {}\n", number_of_sub_IFDs);
+            toff_t* sub_IFDs_offsets = OIIO_ALLOCA(toff_t, number_of_sub_IFDs);
+            memcpy(sub_IFDs_offsets, ptr, number_of_sub_IFDs * sizeof(toff_t));
+            for (int i = 0; i < number_of_sub_IFDs; ++i) {
+                if (!TIFFSetSubDirectory(m_tif, sub_IFDs_offsets[i]))
+                    continue;
+                TIFFReadDirectory(m_tif);
+                uint32_t width, height, depth;
+                uint16_t chans;
+                TIFFGetField(m_tif, TIFFTAG_IMAGEWIDTH, &width);
+                TIFFGetField(m_tif, TIFFTAG_IMAGELENGTH, &height);
+                TIFFGetFieldDefaulted(m_tif, TIFFTAG_IMAGEDEPTH, &depth);
+                TIFFGetFieldDefaulted(m_tif, TIFFTAG_SAMPLESPERPIXEL, &chans);
+                print("  subifd 0 (offset {}): {}x{} {}chan\n",
+                      sub_IFDs_offsets[i], width, height, chans);
+            }
+        }
+        TIFFSetDirectory(m_tif, m_subimage);
     }
 
     // Squash some problematic texture metadata if we suspect it's wrong

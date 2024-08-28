@@ -419,6 +419,7 @@ RawInput::open_raw(bool unpack, const std::string& name,
         return false;
     }
 
+    // print("RAW found {} images\n", m_processor->imgdata.raw_count);
     OIIO_ASSERT(!m_unpacked);
     if (unpack) {
         if ((ret = m_processor->unpack()) != LIBRAW_SUCCESS) {
