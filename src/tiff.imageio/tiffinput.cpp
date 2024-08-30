@@ -178,6 +178,13 @@ private:
     std::vector<uint32_t> m_rgbadata;         ///< Sometimes we punt
     std::vector<ImageSpec> m_subimage_specs;  ///< Cached subimage specs
 
+    struct IFDrec {
+        uint64_t offset = 0;
+        int width, height, depth, chans;
+        int samplesperpixel;
+        int subfiletype;
+    };
+
     // Reset everything to initial state
     void init()
     {
@@ -213,8 +220,20 @@ private:
     // metadata and should not be cleared or rewritten.
     void readspec(bool read_meta = true);
 
-    // Figure out all the photometric-related aspects of the header
-    void readspec_photometric();
+    // The various readspec_foo finds the tags for classes of metadata and
+    // sets the corresponding items in m_spec.
+    void readspec_res(bool clearspec = false);  // res, chans, full, tilesize
+    void readspec_sampleformat();               // format and related things
+    void readspec_photometric();                // photometric-related things
+    void readspec_planarconfig_compression_rowsperstrip();
+    void readspec_extrasamples();    // alpha info, etc.
+    void readspec_resunit_aspect();  // density/resolution, unit, aspect ratio
+    void readspec_icc();             // ICC profile, if present
+    void readspec_exififd();         // Exif in a separate sub-IFD, if present
+    void readspec_iptc();            // IPTC metadata, if present
+    void readspec_xmp();             // XMP, if present
+
+    std::vector<IFDrec> readspec_discover_subifds();
 
     // Convert planar separate to contiguous data format
     void separate_to_contig(int nplanes, int nvals,
@@ -347,15 +366,16 @@ private:
     }
 
     // Get an int tiff tag field and put it into extra_params
-    void get_int_attribute(string_view name, int tag)
+    int get_int_attribute(string_view name, int tag, int defaultval = 0)
     {
         int i = 0;
         if (safe_tiffgetfield(name, tag, TypeUnknown, &i))
             m_spec.attribute(name, i);
+        return i;
     }
 
-    // Get an int tiff tag field and put it into extra_params
-    void get_short_attribute(string_view name, int tag)
+    // Get a ushort tiff tag field and put it into extra_params as an int
+    void get_ushort_attribute(string_view name, int tag)
     {
         // Make room for two shorts, in case the tag is not the type we
         // expect, and libtiff writes a long instead.
@@ -379,7 +399,7 @@ private:
         if (tifftype == TIFF_ASCII)
             get_string_attribute(oiioname, tifftag);
         else if (tifftype == TIFF_SHORT)
-            get_short_attribute(oiioname, tifftag);
+            get_ushort_attribute(oiioname, tifftag);
         else if (tifftype == TIFF_LONG)
             get_int_attribute(oiioname, tifftag);
         else if (tifftype == TIFF_RATIONAL || tifftype == TIFF_SRATIONAL
@@ -823,8 +843,6 @@ TIFFInput::seek_subimage(int subimage, int miplevel)
     }
     m_next_scanline = 0;  // next scanline we'll read
     if (subimage == m_subimage || TIFFSetDirectory(m_tif, subimage)) {
-        print("TIFF cur directory {} of {}\n", TIFFCurrentDirectory(m_tif),
-              TIFFNumberOfDirectories(m_tif));
         m_subimage = subimage;
         readspec(read_meta);
 
@@ -928,24 +946,242 @@ TIFFInput::spec_dimensions(int subimage, int miplevel)
 void
 TIFFInput::readspec(bool read_meta)
 {
+    readspec_res(read_meta);
+    readspec_sampleformat();
+
+    // Use the table for all the obvious things that can be mindlessly
+    // shoved into the image spec.
+    if (read_meta) {
+        for (const auto& tag : tag_table("TIFF"))
+            find_tag(tag.tifftag, tag.tifftype, tag.name);
+        for (const auto& tag : tag_table("Exif"))
+            find_tag(tag.tifftag, tag.tifftype, tag.name);
+    }
+
+    // Now we need to get fields "by hand" for anything else that is less
+    // straightforward...
+
+    readspec_photometric();  // MUST come before planarconfig and extrasamples
+    readspec_planarconfig_compression_rowsperstrip();
+    readspec_extrasamples();
+
+    // Do we care about fillorder?  No, the TIFF spec says, "We
+    // recommend that FillOrder=2 (lsb-to-msb) be used only in
+    // special-purpose applications".  So OIIO will assume msb-to-lsb
+    // convention until somebody finds a TIFF file in the wild that
+    // breaks this assumption.
+
+    // N.B. we currently ignore the following TIFF fields:
+    // GrayResponseCurve GrayResponseUnit
+    // MaxSampleValue MinSampleValue
+    // NewSubfileType SubfileType(deprecated)
+    // Colorimetry fields
+
+    // If we've been instructed to skip reading metadata, because it is
+    // assumed to be identical to what we already have in m_spec,
+    // skip everything following.
+    if (read_meta) {
+        readspec_resunit_aspect();
+        get_matrix_attribute("worldtocamera",
+                             TIFFTAG_PIXAR_MATRIX_WORLDTOCAMERA);
+        get_matrix_attribute("worldtoscreen",
+                             TIFFTAG_PIXAR_MATRIX_WORLDTOSCREEN);
+
+        get_int_attribute("tiff:subfiletype", TIFFTAG_SUBFILETYPE);
+        // Note: subfiletype should be read for the main IFD
+        // FIXME -- should subfiletype be "conventionized" and used for all
+        // plugins uniformly?
+
+        // Special names for shadow maps
+        char* s = NULL;
+        TIFFGetField(m_tif, TIFFTAG_PIXAR_TEXTUREFORMAT, &s);
+        if (s)
+            m_emulate_mipmap = true;
+        if (s && !strcmp(s, "Shadow")) {
+            for (int c = 0; c < m_spec.nchannels; ++c)
+                m_spec.channelnames[c] = "z";
+        }
+
+#if 1
+        readspec_icc();
+        readspec_exififd();
+        readspec_iptc();
+        readspec_xmp();
+#endif
+    }
+
+    //
+    // Above this is reading strictly from the main IFD.
+    //
+
+    //
+    // Is this a DNG file that has extra sub-IFDs hanging off of it, and
+    // it's one of those that contains the full-res pixels we want?
+    // If so, re-position to that IFD to read the following metadata.
+    //
+    uint8_t dngversion_bytes[4] = { 0, 0, 0, 0 };
+    TIFFGetField(m_tif, TIFFTAG_DNGVERSION, &dngversion_bytes);
+    if (1 /*safe_tiffgetfield("dng:version", TIFFTAG_DNGVERSION,
+                          TypeDesc(TypeDesc::UINT8, 4), &dngversion_bytes)*/) {
+        print("dngversion {:d} {:d} {:d} {:d}\n", dngversion_bytes[0],
+              dngversion_bytes[1], dngversion_bytes[2], dngversion_bytes[3]);
+    }
+    int subfiletype;
+    TIFFGetField(m_tif, TIFFTAG_SUBFILETYPE, &subfiletype);
+    print("    subfiletype {}\n", subfiletype);
+    bool read_from_subifd = (dngversion_bytes[0] && subfiletype != 0);
+    if (read_from_subifd) {
+        std::vector<TIFFInput::IFDrec> subifds;
+        subifds           = readspec_discover_subifds();
+        int biggestwidth  = m_spec.width;
+        int biggestsubifd = -1;
+        for (size_t i = 0; i < subifds.size(); ++i) {
+            if (subifds[i].width > biggestwidth && subifds[i].chans == 3
+                && subifds[i].subfiletype == 0) {
+                biggestwidth  = subifds[i].width;
+                biggestsubifd = i;
+            }
+        }
+        if (biggestsubifd >= 0) {
+            // We've identified a sub-IFD that appears to be a better
+            // choice of image than the main one (it's higher resolution,
+            // and the main IFD is marked as a reduced resolution image).
+            // Position to that sub-IFD and re-read some key attributes.
+            print("Identified better sub-ifd {}\n", biggestsubifd);
+            if (TIFFSetSubDirectory(m_tif, subifds[biggestsubifd].offset)) {
+                readspec_res(false);
+                readspec_sampleformat();
+                readspec_photometric();  // MUST be before planarconfig
+                readspec_planarconfig_compression_rowsperstrip();
+                readspec_extrasamples();
+                print("Reread subdir, now {}x{} {}chan {}\n", m_spec.width,
+                      m_spec.height, m_spec.nchannels, m_spec.format);
+            }
+        }
+    }
+
+    //
+    // Below this is not reading anything else from the TIFF file, just
+    // doing cleanup.
+    //
+
+    // If Software and IPTC:OriginatingProgram are identical, kill the latter
+    if (m_spec.get_string_attribute("Software")
+        == m_spec.get_string_attribute("IPTC:OriginatingProgram"))
+        m_spec.erase_attribute("IPTC:OriginatingProgram");
+
+    std::string desc = m_spec.get_string_attribute("ImageDescription");
+    // If ImageDescription and IPTC:Caption are identical, kill the latter
+    if (desc == m_spec.get_string_attribute("IPTC:Caption"))
+        m_spec.erase_attribute("IPTC:Caption");
+
+    // Because TIFF doesn't support arbitrary metadata, we look for certain
+    // hints in the ImageDescription and turn them into metadata, also
+    // removing them from the ImageDescrption.
+    bool updatedDesc = false;
+    auto cc = Strutil::excise_string_after_head(desc, "oiio:ConstantColor=");
+    if (cc.size()) {
+        m_spec.attribute("oiio:ConstantColor", cc);
+        updatedDesc = true;
+    }
+    auto ac = Strutil::excise_string_after_head(desc, "oiio:AverageColor=");
+    if (ac.size()) {
+        m_spec.attribute("oiio:AverageColor", ac);
+        updatedDesc = true;
+    }
+    std::string sha = Strutil::excise_string_after_head(desc, "oiio:SHA-1=");
+    if (sha.empty())  // back compatibility with OIIO < 1.5
+        sha = Strutil::excise_string_after_head(desc, "SHA-1=");
+    if (sha.size()) {
+        m_spec.attribute("oiio:SHA-1", sha);
+        updatedDesc = true;
+    }
+    std::string handed = Strutil::excise_string_after_head(desc,
+                                                           "oiio:handed=");
+    if (handed.size() && (handed == "left" || handed == "right")) {
+        m_spec.attribute("handed", handed);
+        updatedDesc = true;
+    }
+
+    if (updatedDesc) {
+        string_view d(desc);
+        Strutil::skip_whitespace(d);  // erase if it's only whitespace
+        if (d.size())
+            m_spec.attribute("ImageDescription", desc);
+        else
+            m_spec.erase_attribute("ImageDescription");
+    }
+
+    // Squash some problematic texture metadata if we suspect it's wrong
+    pvt::check_texture_metadata_sanity(m_spec);
+
+    if (m_testopenconfig)  // open-with-config debugging
+        m_spec.attribute("oiio:DebugOpenConfig!", 42);
+}
+
+
+
+std::vector<TIFFInput::IFDrec>
+TIFFInput::readspec_discover_subifds()
+{
+    std::vector<IFDrec> ifds;
+    int number_of_sub_IFDs = 0;
+    void* ptr              = nullptr;
+    if (TIFFGetField(m_tif, TIFFTAG_SUBIFD, &number_of_sub_IFDs, &ptr)
+        && number_of_sub_IFDs) {
+        print("Number of IFDs: {}\n", number_of_sub_IFDs);
+        ifds.resize(number_of_sub_IFDs);
+        toff_t* sub_IFDs_offsets = OIIO_ALLOCA(toff_t, number_of_sub_IFDs);
+        memcpy(sub_IFDs_offsets, ptr, number_of_sub_IFDs * sizeof(toff_t));
+        for (int i = 0; i < number_of_sub_IFDs; ++i) {
+            if (!TIFFSetSubDirectory(m_tif, sub_IFDs_offsets[i]))
+                continue;
+            uint32_t width, height, depth;
+            uint16_t chans;
+            TIFFGetField(m_tif, TIFFTAG_IMAGEWIDTH, &width);
+            TIFFGetField(m_tif, TIFFTAG_IMAGELENGTH, &height);
+            TIFFGetFieldDefaulted(m_tif, TIFFTAG_IMAGEDEPTH, &depth);
+            TIFFGetFieldDefaulted(m_tif, TIFFTAG_SAMPLESPERPIXEL, &chans);
+            print("  subifd {} (offset {}): {}x{} {}chan\n", i,
+                  sub_IFDs_offsets[i], width, height, chans);
+            uint8_t dngversion_bytes[4] = { 0, 0, 0, 0 };
+            TIFFGetField(m_tif, TIFFTAG_DNGVERSION, &dngversion_bytes);
+            int subfiletype;
+            TIFFGetField(m_tif, TIFFTAG_SUBFILETYPE, &subfiletype);
+            print("    subfiletype {}\n", subfiletype);
+            ifds[i].offset      = sub_IFDs_offsets[i];
+            ifds[i].width       = width;
+            ifds[i].height      = height;
+            ifds[i].depth       = depth;
+            ifds[i].chans       = chans;
+            ifds[i].subfiletype = subfiletype;
+        }
+        // Go back to the main IFD (subimage)
+        TIFFSetDirectory(m_tif, m_subimage);
+    }
+    return ifds;
+}
+
+
+
+void
+TIFFInput::readspec_res(bool clear_spec)
+{
     uint32_t width = 0, height = 0, depth = 0;
     TIFFGetField(m_tif, TIFFTAG_IMAGEWIDTH, &width);
     TIFFGetField(m_tif, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetFieldDefaulted(m_tif, TIFFTAG_IMAGEDEPTH, &depth);
     TIFFGetFieldDefaulted(m_tif, TIFFTAG_SAMPLESPERPIXEL, &m_inputchannels);
 
-    if (read_meta) {
-        // clear the whole m_spec and start fresh
+    if (clear_spec)
         m_spec = ImageSpec((int)width, (int)height, (int)m_inputchannels);
-    } else {
-        // assume m_spec is valid, except for things that might differ
-        // between MIP levels
-        m_spec.width     = (int)width;
-        m_spec.height    = (int)height;
-        m_spec.depth     = (int)depth;
-        m_spec.nchannels = (int)m_inputchannels;
-    }
 
+    m_spec.width     = (int)width;
+    m_spec.height    = (int)height;
+    m_spec.depth     = (int)depth;
+    m_spec.nchannels = (int)m_inputchannels;
+
+    // Set x, y, z
     float xpos = 0, ypos = 0;
     TIFFGetField(m_tif, TIFFTAG_XPOSITION, &xpos);
     TIFFGetField(m_tif, TIFFTAG_YPOSITION, &ypos);
@@ -984,26 +1220,29 @@ TIFFInput::readspec(bool read_meta)
     }
     m_spec.z = 0;
 
+    // Set full resolution
     // Start by assuming the "full" (aka display) window is the same as the
     // data window. That's what we'll stick to if there is no further
     // information in the file. But if the file has tags for the "full"
     // size, assume a display window with origin (0,0) and those dimensions.
     // (Unfortunately, there are no TIFF tags for "full" origin.)
-    m_spec.full_x      = m_spec.x;
-    m_spec.full_y      = m_spec.y;
-    m_spec.full_z      = m_spec.z;
-    m_spec.full_width  = m_spec.width;
-    m_spec.full_height = m_spec.height;
-    m_spec.full_depth  = m_spec.depth;
-    if (TIFFGetField(m_tif, TIFFTAG_PIXAR_IMAGEFULLWIDTH, &width) == 1
-        && TIFFGetField(m_tif, TIFFTAG_PIXAR_IMAGEFULLLENGTH, &height) == 1
-        && width > 0 && height > 0) {
-        m_spec.full_width  = width;
-        m_spec.full_height = height;
+    m_spec.full_x       = m_spec.x;
+    m_spec.full_y       = m_spec.y;
+    m_spec.full_z       = m_spec.z;
+    m_spec.full_width   = m_spec.width;
+    m_spec.full_height  = m_spec.height;
+    m_spec.full_depth   = m_spec.depth;
+    uint32_t full_width = 0, full_height = 0;
+    if (TIFFGetField(m_tif, TIFFTAG_PIXAR_IMAGEFULLWIDTH, &full_width) == 1
+        && TIFFGetField(m_tif, TIFFTAG_PIXAR_IMAGEFULLLENGTH, &full_height) == 1
+        && full_width > 0 && full_height > 0) {
+        m_spec.full_width  = int(full_width);
+        m_spec.full_height = int(full_height);
         m_spec.full_x      = 0;
         m_spec.full_y      = 0;
     }
 
+    // Tile size
     if (TIFFIsTiled(m_tif)) {
         TIFFGetField(m_tif, TIFFTAG_TILEWIDTH, &m_spec.tile_width);
         TIFFGetField(m_tif, TIFFTAG_TILELENGTH, &m_spec.tile_height);
@@ -1013,7 +1252,13 @@ TIFFInput::readspec(bool read_meta)
         m_spec.tile_height = 0;
         m_spec.tile_depth  = 0;
     }
+}
 
+
+
+void
+TIFFInput::readspec_sampleformat()
+{
     m_bitspersample = 8;
     TIFFGetField(m_tif, TIFFTAG_BITSPERSAMPLE, &m_bitspersample);
     m_spec.attribute("oiio:BitsPerSample", (int)m_bitspersample);
@@ -1069,323 +1314,6 @@ TIFFInput::readspec(bool read_meta)
         break;
     default: m_spec.set_format(TypeDesc::UNKNOWN); break;
     }
-
-    // Use the table for all the obvious things that can be mindlessly
-    // shoved into the image spec.
-    if (read_meta) {
-        for (const auto& tag : tag_table("TIFF"))
-            find_tag(tag.tifftag, tag.tifftype, tag.name);
-        for (const auto& tag : tag_table("Exif"))
-            find_tag(tag.tifftag, tag.tifftype, tag.name);
-    }
-
-    // Now we need to get fields "by hand" for anything else that is less
-    // straightforward...
-
-    m_compression = 0;
-    TIFFGetFieldDefaulted(m_tif, TIFFTAG_COMPRESSION, &m_compression);
-    m_spec.attribute("tiff:Compression", (int)m_compression);
-
-    m_photometric = (m_spec.nchannels == 1 ? PHOTOMETRIC_MINISBLACK
-                                           : PHOTOMETRIC_RGB);
-    TIFFGetField(m_tif, TIFFTAG_PHOTOMETRIC, &m_photometric);
-    m_spec.attribute("tiff:PhotometricInterpretation", (int)m_photometric);
-
-    readspec_photometric();
-
-    TIFFGetFieldDefaulted(m_tif, TIFFTAG_PLANARCONFIG, &m_planarconfig);
-    m_separate = (m_planarconfig == PLANARCONFIG_SEPARATE
-                  && m_spec.nchannels > 1
-                  && m_photometric != PHOTOMETRIC_PALETTE);
-    m_spec.attribute("tiff:PlanarConfiguration", (int)m_planarconfig);
-    if (m_planarconfig == PLANARCONFIG_SEPARATE)
-        m_spec.attribute("planarconfig", "separate");
-    else
-        m_spec.attribute("planarconfig", "contig");
-
-    if (const char* compressname = tiff_compression_name(m_compression))
-        m_spec.attribute("compression", compressname);
-    m_predictor = PREDICTOR_NONE;
-    if (!safe_tiffgetfield("Predictor", TIFFTAG_PREDICTOR, TypeUInt16,
-                           &m_predictor))
-        m_predictor = PREDICTOR_NONE;
-
-    m_rowsperstrip = -1;
-    if (!m_spec.tile_width) {
-        TIFFGetField(m_tif, TIFFTAG_ROWSPERSTRIP, &m_rowsperstrip);
-        if (m_rowsperstrip > 0)
-            m_spec.attribute("tiff:RowsPerStrip", m_rowsperstrip);
-    }
-
-    // The libtiff docs say that only uncompressed images, or those with
-    // rowsperstrip==1, support random access to scanlines.
-    m_no_random_access = (m_compression != COMPRESSION_NONE
-                          && m_rowsperstrip != 1);
-
-    // Do we care about fillorder?  No, the TIFF spec says, "We
-    // recommend that FillOrder=2 (lsb-to-msb) be used only in
-    // special-purpose applications".  So OIIO will assume msb-to-lsb
-    // convention until somebody finds a TIFF file in the wild that
-    // breaks this assumption.
-
-    unsigned short* sampleinfo  = NULL;
-    unsigned short extrasamples = 0;
-    TIFFGetField(m_tif, TIFFTAG_EXTRASAMPLES, &extrasamples, &sampleinfo);
-    // std::cerr << "Extra samples = " << extrasamples << "\n";
-    bool alpha_is_unassociated = false;  // basic assumption
-    if (extrasamples) {
-        // If the TIFF ExtraSamples tag was specified, use that to figure
-        // out the meaning of alpha.
-        int colorchannels = 3;
-        if (m_photometric == PHOTOMETRIC_MINISWHITE
-            || m_photometric == PHOTOMETRIC_MINISBLACK
-            || m_photometric == PHOTOMETRIC_PALETTE
-            || m_photometric == PHOTOMETRIC_MASK)
-            colorchannels = 1;
-        for (int i = 0, c = colorchannels;
-             i < extrasamples && c < m_inputchannels; ++i, ++c) {
-            // std::cerr << "   extra " << i << " " << sampleinfo[i] << "\n";
-            if (sampleinfo[i] == EXTRASAMPLE_ASSOCALPHA) {
-                // This is the alpha channel, associated as usual
-                m_spec.alpha_channel = c;
-            } else if (sampleinfo[i] == EXTRASAMPLE_UNASSALPHA) {
-                // This is the alpha channel, but color is unassociated
-                m_spec.alpha_channel  = c;
-                alpha_is_unassociated = true;
-                if (m_keep_unassociated_alpha)
-                    m_spec.attribute("oiio:UnassociatedAlpha", 1);
-            } else {
-                OIIO_DASSERT(sampleinfo[i] == EXTRASAMPLE_UNSPECIFIED);
-                // This extra channel is not alpha at all.  Undo any
-                // assumptions we previously made about this channel.
-                if (m_spec.alpha_channel == c) {
-                    m_spec.channelnames[c] = Strutil::fmt::format("channel{}",
-                                                                  c);
-                    m_spec.alpha_channel   = -1;
-                }
-            }
-        }
-        if (m_photometric == PHOTOMETRIC_SEPARATED)
-            m_spec.alpha_channel = -1;  // ignore alpha in CMYK
-        if (m_spec.alpha_channel >= 0
-            && m_spec.alpha_channel < m_spec.nchannels) {
-            while (m_spec.channelnames.size() < size_t(m_spec.nchannels))
-                m_spec.channelnames.push_back(
-                    Strutil::fmt::format("channel{}", m_spec.nchannels));
-            m_spec.channelnames[m_spec.alpha_channel] = "A";
-            // Special case: "R","A" should really be named "Y","A", since
-            // the first channel is luminance, not red.
-            if (m_spec.nchannels == 2 && m_spec.alpha_channel == 1)
-                m_spec.channelnames[0] = "Y";
-        }
-    }
-    if (alpha_is_unassociated)
-        m_spec.attribute("tiff:UnassociatedAlpha", 1);
-    // Will we need to do alpha conversions?
-    m_convert_alpha = (m_spec.alpha_channel >= 0 && alpha_is_unassociated
-                       && !m_keep_unassociated_alpha);
-
-    // N.B. we currently ignore the following TIFF fields:
-    // GrayResponseCurve GrayResponseUnit
-    // MaxSampleValue MinSampleValue
-    // NewSubfileType SubfileType(deprecated)
-    // Colorimetry fields
-
-    // If we've been instructed to skip reading metadata, because it is
-    // assumed to be identical to what we already have in m_spec,
-    // skip everything following.
-    if (!read_meta)
-        return;
-
-    short resunit = -1;
-    TIFFGetField(m_tif, TIFFTAG_RESOLUTIONUNIT, &resunit);
-    switch (resunit) {
-    case RESUNIT_NONE: m_spec.attribute("ResolutionUnit", "none"); break;
-    case RESUNIT_INCH: m_spec.attribute("ResolutionUnit", "in"); break;
-    case RESUNIT_CENTIMETER: m_spec.attribute("ResolutionUnit", "cm"); break;
-    }
-    float xdensity = m_spec.get_float_attribute("XResolution", 0.0f);
-    float ydensity = m_spec.get_float_attribute("YResolution", 0.0f);
-    if (xdensity && ydensity)
-        m_spec.attribute("PixelAspectRatio", ydensity / xdensity);
-
-    get_matrix_attribute("worldtocamera", TIFFTAG_PIXAR_MATRIX_WORLDTOCAMERA);
-    get_matrix_attribute("worldtoscreen", TIFFTAG_PIXAR_MATRIX_WORLDTOSCREEN);
-    get_int_attribute("tiff:subfiletype", TIFFTAG_SUBFILETYPE);
-    // FIXME -- should subfiletype be "conventionized" and used for all
-    // plugins uniformly?
-
-    // Special names for shadow maps
-    char* s = NULL;
-    TIFFGetField(m_tif, TIFFTAG_PIXAR_TEXTUREFORMAT, &s);
-    if (s)
-        m_emulate_mipmap = true;
-    if (s && !strcmp(s, "Shadow")) {
-        for (int c = 0; c < m_spec.nchannels; ++c)
-            m_spec.channelnames[c] = "z";
-    }
-
-    /// read color profile
-    unsigned int icc_datasize = 0;
-    uint8_t* icc_buf          = NULL;
-    TIFFGetField(m_tif, TIFFTAG_ICCPROFILE, &icc_datasize, &icc_buf);
-    if (icc_datasize && icc_buf) {
-        m_spec.attribute(ICC_PROFILE_ATTR,
-                         TypeDesc(TypeDesc::UINT8, icc_datasize), icc_buf);
-        std::string errormsg;
-        decode_icc_profile(cspan<uint8_t>(icc_buf, icc_datasize), m_spec,
-                           errormsg);
-    }
-
-    // Search for an EXIF IFD in the TIFF file, and if found, rummage
-    // around for Exif fields.
-    toff_t exifoffset = 0;
-    if (TIFFGetField(m_tif, TIFFTAG_EXIFIFD, &exifoffset)) {
-        if (TIFFReadEXIFDirectory(m_tif, exifoffset)) {
-            for (const auto& tag : tag_table("Exif"))
-                find_tag(tag.tifftag, tag.tifftype, tag.name);
-            // Look for a Makernote
-            auto makerfield = find_field(EXIF_MAKERNOTE, TIFF_UNDEFINED);
-            // std::unique_ptr<uint32_t[]> buf (new uint32_t[]);
-            if (makerfield) {
-                // bool ok = TIFFGetField (m_tif, tag, dest, &ptr);
-                unsigned int mn_datasize = 0;
-                unsigned char* mn_buf    = NULL;
-                TIFFGetField(m_tif, EXIF_MAKERNOTE, &mn_datasize, &mn_buf);
-            }
-            // Exif spec says that anything other than 0xffff==uncalibrated
-            // should be interpreted to be sRGB.
-            if (m_spec.get_int_attribute("Exif:ColorSpace") != 0xffff)
-                m_spec.attribute("oiio:ColorSpace", "sRGB");
-        }
-        // TIFFReadEXIFDirectory seems to do something to the internal state
-        // that requires a TIFFSetDirectory to set things straight again.
-        TIFFSetDirectory(m_tif, m_subimage);
-    }
-
-    // Search for IPTC metadata in IIM form -- but older versions of
-    // libtiff botch the size, so ignore it for very old libtiff.
-    int iptcsize         = 0;
-    const char* iptcdata = nullptr;
-    TypeDesc iptctype    = tiffgetfieldtype(TIFFTAG_RICHTIFFIPTC);
-    if (TIFFGetField(m_tif, TIFFTAG_RICHTIFFIPTC, &iptcsize, &iptcdata)
-        && iptcsize > 0) {
-        std::vector<char> iptc;
-        if (iptctype.size() == 4) {
-            // Some TIFF files in the wild inexplicably think their IPTC
-            // data are stored as longs, and we have to undo any byte
-            // swapping that may have occurred.
-            iptcsize *= 4;
-            iptc.assign(iptcdata, iptcdata + iptcsize);
-            if (TIFFIsByteSwapped(m_tif))
-                TIFFSwabArrayOfLong((uint32_t*)&iptc[0], iptcsize / 4);
-        } else {
-            iptc.assign(iptcdata, iptcdata + iptcsize);
-        }
-        decode_iptc_iim(&iptc[0], iptcsize, m_spec);
-    }
-
-    // Search for an XML packet containing XMP (IPTC, Exif, etc.)
-    int xmlsize         = 0;
-    const void* xmldata = NULL;
-    if (TIFFGetField(m_tif, TIFFTAG_XMLPACKET, &xmlsize, &xmldata)) {
-        // std::cerr << "Found XML data, size " << xmlsize << "\n";
-        if (xmldata && xmlsize) {
-            std::string xml((const char*)xmldata, xmlsize);
-            decode_xmp(xml, m_spec);
-        }
-    }
-
-#if 0
-    // Experimental -- look for photoshop data
-    int photoshopsize = 0;
-    const void *photoshopdata = NULL;
-    if (TIFFGetField (m_tif, TIFFTAG_PHOTOSHOP, &photoshopsize, &photoshopdata)) {
-        std::cerr << "Found PHOTOSHOP data, size " << photoshopsize << "\n";
-        if (photoshopdata && photoshopsize) {
-//            std::string photoshop ((const char *)photoshopdata, photoshopsize);
-//            std::cerr << "PHOTOSHOP:\n" << photoshop << "\n---\n";
-        }
-    }
-#endif
-
-    // If Software and IPTC:OriginatingProgram are identical, kill the latter
-    if (m_spec.get_string_attribute("Software")
-        == m_spec.get_string_attribute("IPTC:OriginatingProgram"))
-        m_spec.erase_attribute("IPTC:OriginatingProgram");
-
-    std::string desc = m_spec.get_string_attribute("ImageDescription");
-    // If ImageDescription and IPTC:Caption are identical, kill the latter
-    if (desc == m_spec.get_string_attribute("IPTC:Caption"))
-        m_spec.erase_attribute("IPTC:Caption");
-
-    // Because TIFF doesn't support arbitrary metadata, we look for certain
-    // hints in the ImageDescription and turn them into metadata, also
-    // removing them from the ImageDescrption.
-    bool updatedDesc = false;
-    auto cc = Strutil::excise_string_after_head(desc, "oiio:ConstantColor=");
-    if (cc.size()) {
-        m_spec.attribute("oiio:ConstantColor", cc);
-        updatedDesc = true;
-    }
-    auto ac = Strutil::excise_string_after_head(desc, "oiio:AverageColor=");
-    if (ac.size()) {
-        m_spec.attribute("oiio:AverageColor", ac);
-        updatedDesc = true;
-    }
-    std::string sha = Strutil::excise_string_after_head(desc, "oiio:SHA-1=");
-    if (sha.empty())  // back compatibility with OIIO < 1.5
-        sha = Strutil::excise_string_after_head(desc, "SHA-1=");
-    if (sha.size()) {
-        m_spec.attribute("oiio:SHA-1", sha);
-        updatedDesc = true;
-    }
-    std::string handed = Strutil::excise_string_after_head(desc,
-                                                           "oiio:handed=");
-    if (handed.size() && (handed == "left" || handed == "right")) {
-        m_spec.attribute("handed", handed);
-        updatedDesc = true;
-    }
-
-    if (updatedDesc) {
-        string_view d(desc);
-        Strutil::skip_whitespace(d);  // erase if it's only whitespace
-        if (d.size())
-            m_spec.attribute("ImageDescription", desc);
-        else
-            m_spec.erase_attribute("ImageDescription");
-    }
-
-    {
-        int number_of_sub_IFDs = 0;
-        void* ptr = nullptr;
-        if (TIFFGetField(m_tif, TIFFTAG_SUBIFD, &number_of_sub_IFDs, &ptr)
-            && number_of_sub_IFDs) {
-            print("Number of IFDs: {}\n", number_of_sub_IFDs);
-            toff_t* sub_IFDs_offsets = OIIO_ALLOCA(toff_t, number_of_sub_IFDs);
-            memcpy(sub_IFDs_offsets, ptr, number_of_sub_IFDs * sizeof(toff_t));
-            for (int i = 0; i < number_of_sub_IFDs; ++i) {
-                if (!TIFFSetSubDirectory(m_tif, sub_IFDs_offsets[i]))
-                    continue;
-                TIFFReadDirectory(m_tif);
-                uint32_t width, height, depth;
-                uint16_t chans;
-                TIFFGetField(m_tif, TIFFTAG_IMAGEWIDTH, &width);
-                TIFFGetField(m_tif, TIFFTAG_IMAGELENGTH, &height);
-                TIFFGetFieldDefaulted(m_tif, TIFFTAG_IMAGEDEPTH, &depth);
-                TIFFGetFieldDefaulted(m_tif, TIFFTAG_SAMPLESPERPIXEL, &chans);
-                print("  subifd 0 (offset {}): {}x{} {}chan\n",
-                      sub_IFDs_offsets[i], width, height, chans);
-            }
-        }
-        TIFFSetDirectory(m_tif, m_subimage);
-    }
-
-    // Squash some problematic texture metadata if we suspect it's wrong
-    pvt::check_texture_metadata_sanity(m_spec);
-
-    if (m_testopenconfig)  // open-with-config debugging
-        m_spec.attribute("oiio:DebugOpenConfig!", 42);
 }
 
 
@@ -1393,6 +1321,11 @@ TIFFInput::readspec(bool read_meta)
 void
 TIFFInput::readspec_photometric()
 {
+    m_photometric = (m_spec.nchannels == 1 ? PHOTOMETRIC_MINISBLACK
+                                           : PHOTOMETRIC_RGB);
+    TIFFGetField(m_tif, TIFFTAG_PHOTOMETRIC, &m_photometric);
+    m_spec.attribute("tiff:PhotometricInterpretation", (int)m_photometric);
+
     switch (m_photometric) {
     case PHOTOMETRIC_SEPARATED: {
         // Photometric "separated" is "usually CMYK".
@@ -1490,6 +1423,9 @@ TIFFInput::readspec_photometric()
         // allowed?  And if so, ever encountered in the wild?
         break;
     }
+    case 34892 :
+        m_spec.attribute("tiff:ColorSpace", "LinearRaw");  // DNG
+        break;
     }
 
     // For some PhotometricInterpretation modes that are both rare and hairy
@@ -1520,6 +1456,221 @@ TIFFInput::readspec_photometric()
     if (is_nonspectral && !m_use_rgba_interface) {
         m_spec.attribute("oiio:ColorSpace",
                          m_spec.get_string_attribute("tiff:ColorSpace"));
+    }
+}
+
+
+
+void
+TIFFInput::readspec_planarconfig_compression_rowsperstrip()
+{
+    TIFFGetFieldDefaulted(m_tif, TIFFTAG_PLANARCONFIG, &m_planarconfig);
+    m_separate = (m_planarconfig == PLANARCONFIG_SEPARATE
+                  && m_spec.nchannels > 1
+                  && m_photometric != PHOTOMETRIC_PALETTE);
+    m_spec.attribute("tiff:PlanarConfiguration", (int)m_planarconfig);
+    if (m_planarconfig == PLANARCONFIG_SEPARATE)
+        m_spec.attribute("planarconfig", "separate");
+    else
+        m_spec.attribute("planarconfig", "contig");
+
+    m_compression = 0;
+    TIFFGetFieldDefaulted(m_tif, TIFFTAG_COMPRESSION, &m_compression);
+    m_spec.attribute("tiff:Compression", (int)m_compression);
+
+    if (const char* compressname = tiff_compression_name(m_compression))
+        m_spec.attribute("compression", compressname);
+    m_predictor = PREDICTOR_NONE;
+    if (!safe_tiffgetfield("Predictor", TIFFTAG_PREDICTOR, TypeUInt16,
+                           &m_predictor))
+        m_predictor = PREDICTOR_NONE;
+
+    m_rowsperstrip = -1;
+    if (!m_spec.tile_width) {
+        TIFFGetField(m_tif, TIFFTAG_ROWSPERSTRIP, &m_rowsperstrip);
+        if (m_rowsperstrip > 0)
+            m_spec.attribute("tiff:RowsPerStrip", m_rowsperstrip);
+    }
+
+    // The libtiff docs say that only uncompressed images, or those with
+    // rowsperstrip==1, support random access to scanlines.
+    m_no_random_access = (m_compression != COMPRESSION_NONE
+                          && m_rowsperstrip != 1);
+}
+
+
+
+void
+TIFFInput::readspec_extrasamples()
+{
+    unsigned short* sampleinfo  = NULL;
+    unsigned short extrasamples = 0;
+    TIFFGetField(m_tif, TIFFTAG_EXTRASAMPLES, &extrasamples, &sampleinfo);
+    // std::cerr << "Extra samples = " << extrasamples << "\n";
+    bool alpha_is_unassociated = false;  // basic assumption
+    if (extrasamples) {
+        // If the TIFF ExtraSamples tag was specified, use that to figure
+        // out the meaning of alpha.
+        int colorchannels = 3;
+        if (m_photometric == PHOTOMETRIC_MINISWHITE
+            || m_photometric == PHOTOMETRIC_MINISBLACK
+            || m_photometric == PHOTOMETRIC_PALETTE
+            || m_photometric == PHOTOMETRIC_MASK)
+            colorchannels = 1;
+        for (int i = 0, c = colorchannels;
+             i < extrasamples && c < m_inputchannels; ++i, ++c) {
+            // std::cerr << "   extra " << i << " " << sampleinfo[i] << "\n";
+            if (sampleinfo[i] == EXTRASAMPLE_ASSOCALPHA) {
+                // This is the alpha channel, associated as usual
+                m_spec.alpha_channel = c;
+            } else if (sampleinfo[i] == EXTRASAMPLE_UNASSALPHA) {
+                // This is the alpha channel, but color is unassociated
+                m_spec.alpha_channel  = c;
+                alpha_is_unassociated = true;
+                if (m_keep_unassociated_alpha)
+                    m_spec.attribute("oiio:UnassociatedAlpha", 1);
+            } else {
+                OIIO_DASSERT(sampleinfo[i] == EXTRASAMPLE_UNSPECIFIED);
+                // This extra channel is not alpha at all.  Undo any
+                // assumptions we previously made about this channel.
+                if (m_spec.alpha_channel == c) {
+                    m_spec.channelnames[c] = Strutil::fmt::format("channel{}",
+                                                                  c);
+                    m_spec.alpha_channel   = -1;
+                }
+            }
+        }
+        if (m_photometric == PHOTOMETRIC_SEPARATED)
+            m_spec.alpha_channel = -1;  // ignore alpha in CMYK
+        if (m_spec.alpha_channel >= 0
+            && m_spec.alpha_channel < m_spec.nchannels) {
+            while (m_spec.channelnames.size() < size_t(m_spec.nchannels))
+                m_spec.channelnames.push_back(
+                    Strutil::fmt::format("channel{}", m_spec.nchannels));
+            m_spec.channelnames[m_spec.alpha_channel] = "A";
+            // Special case: "R","A" should really be named "Y","A", since
+            // the first channel is luminance, not red.
+            if (m_spec.nchannels == 2 && m_spec.alpha_channel == 1)
+                m_spec.channelnames[0] = "Y";
+        }
+    }
+    if (alpha_is_unassociated)
+        m_spec.attribute("tiff:UnassociatedAlpha", 1);
+    // Will we need to do alpha conversions?
+    m_convert_alpha = (m_spec.alpha_channel >= 0 && alpha_is_unassociated
+                       && !m_keep_unassociated_alpha);
+}
+
+
+
+void
+TIFFInput::readspec_resunit_aspect()
+{
+    short resunit = -1;
+    TIFFGetField(m_tif, TIFFTAG_RESOLUTIONUNIT, &resunit);
+    switch (resunit) {
+    case RESUNIT_NONE: m_spec.attribute("ResolutionUnit", "none"); break;
+    case RESUNIT_INCH: m_spec.attribute("ResolutionUnit", "in"); break;
+    case RESUNIT_CENTIMETER: m_spec.attribute("ResolutionUnit", "cm"); break;
+    }
+    float xdensity = m_spec.get_float_attribute("XResolution", 0.0f);
+    float ydensity = m_spec.get_float_attribute("YResolution", 0.0f);
+    if (xdensity && ydensity)
+        m_spec.attribute("PixelAspectRatio", ydensity / xdensity);
+}
+
+
+
+void
+TIFFInput::readspec_icc()
+{
+    /// read color profile
+    unsigned int icc_datasize = 0;
+    uint8_t* icc_buf          = NULL;
+    TIFFGetField(m_tif, TIFFTAG_ICCPROFILE, &icc_datasize, &icc_buf);
+    if (icc_datasize && icc_buf) {
+        m_spec.attribute(ICC_PROFILE_ATTR,
+                         TypeDesc(TypeDesc::UINT8, icc_datasize), icc_buf);
+        std::string errormsg;
+        decode_icc_profile(cspan<uint8_t>(icc_buf, icc_datasize), m_spec,
+                           errormsg);
+    }
+}
+
+
+
+void
+TIFFInput::readspec_exififd()
+{
+    // Search for an EXIF IFD in the TIFF file, and if found, rummage
+    // around for Exif fields.
+    toff_t exifoffset = 0;
+    if (TIFFGetField(m_tif, TIFFTAG_EXIFIFD, &exifoffset)) {
+        if (TIFFReadEXIFDirectory(m_tif, exifoffset)) {
+            for (const auto& tag : tag_table("Exif"))
+                find_tag(tag.tifftag, tag.tifftype, tag.name);
+            // Look for a Makernote
+            auto makerfield = find_field(EXIF_MAKERNOTE, TIFF_UNDEFINED);
+            // std::unique_ptr<uint32_t[]> buf (new uint32_t[]);
+            if (makerfield) {
+                // bool ok = TIFFGetField (m_tif, tag, dest, &ptr);
+                unsigned int mn_datasize = 0;
+                unsigned char* mn_buf    = NULL;
+                TIFFGetField(m_tif, EXIF_MAKERNOTE, &mn_datasize, &mn_buf);
+            }
+            // Exif spec says that anything other than 0xffff==uncalibrated
+            // should be interpreted to be sRGB.
+            if (m_spec.get_int_attribute("Exif:ColorSpace") != 0xffff)
+                m_spec.attribute("oiio:ColorSpace", "sRGB");
+        }
+        // TIFFReadEXIFDirectory seems to do something to the internal state
+        // that requires a TIFFSetDirectory to set things straight again.
+        TIFFSetDirectory(m_tif, m_subimage);
+    }
+}
+
+
+
+void
+TIFFInput::readspec_iptc()
+{
+    // Search for IPTC metadata in IIM form -- but older versions of
+    // libtiff botch the size, so ignore it for very old libtiff.
+    int iptcsize         = 0;
+    const char* iptcdata = nullptr;
+    TypeDesc iptctype    = tiffgetfieldtype(TIFFTAG_RICHTIFFIPTC);
+    if (TIFFGetField(m_tif, TIFFTAG_RICHTIFFIPTC, &iptcsize, &iptcdata)
+        && iptcsize > 0) {
+        std::vector<char> iptc;
+        if (iptctype.size() == 4) {
+            // Some TIFF files in the wild inexplicably think their IPTC
+            // data are stored as longs, and we have to undo any byte
+            // swapping that may have occurred.
+            iptcsize *= 4;
+            iptc.assign(iptcdata, iptcdata + iptcsize);
+            if (TIFFIsByteSwapped(m_tif))
+                TIFFSwabArrayOfLong((uint32_t*)&iptc[0], iptcsize / 4);
+        } else {
+            iptc.assign(iptcdata, iptcdata + iptcsize);
+        }
+        decode_iptc_iim(&iptc[0], iptcsize, m_spec);
+    }
+}
+
+
+
+void
+TIFFInput::readspec_xmp()
+{
+    // Search for an XML packet containing XMP (IPTC, Exif, etc.)
+    int xmlsize         = 0;
+    const void* xmldata = NULL;
+    if (TIFFGetField(m_tif, TIFFTAG_XMLPACKET, &xmlsize, &xmldata)) {
+        // std::cerr << "Found XML data, size " << xmlsize << "\n";
+        if (xmldata && xmlsize) {
+            std::string xml((const char*)xmldata, xmlsize);
+            decode_xmp(xml, m_spec);
+        }
     }
 }
 
