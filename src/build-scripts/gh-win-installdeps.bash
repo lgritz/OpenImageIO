@@ -93,6 +93,9 @@ export ZLIB_ROOT=$PWD/ext/dist
 src/build-scripts/build_libpng.bash
 export PNG_ROOT=$PWD/ext/dist
 
+src/build-scripts/build_libjpeg-turbo.bash
+# export PNG_ROOT=$PWD/ext/dist
+
 # We're currently getting libtiff from vcpkg
 src/build-scripts/build_libtiff.bash
 export TIFF_ROOT=$PWD/ext/dist
