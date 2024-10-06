@@ -63,6 +63,13 @@ about being deprecated will be removed in the final 3.0 release.
 * The versions of `createDisplayTransform()` that lack an `inverse` parameter
   now have deprecation warnings. Use the version that takes an `inverse` bool.
 
+## dassert.h
+
+* Poorly named `ASSERT`, `DASSERT`, and `ASSERTMSG` macros have been removed.
+  They were deprecated since 2.1, since they could easily clash with macros
+  from other projects. Please instead use the `OIIO_ASSERT`, `OIIO_DASSERT`,
+  and `OIIO_ASSERT_MSG` macros.
+
 ## errorhandler.h
 
 * All of the old methods that did printf-style formatting have been deprecated
@@ -225,4 +232,18 @@ about being deprecated will be removed in the final 3.0 release.
   Python bindings. Python scripts that wish to capture images from live
   cameras should use OpenCV or other capture APIs of choice and then
   pass the results to OIIO to construct an ImageBuf.
+* Static type names within the `TypeDesc` class (such as `TypeDesc.TypeFloat`)
+  have been removed after being considered deprecated since OIIO 1.8. Use the
+  names in the overall OpenImageIO namespace instead.
+* Older versions of `ImageBufAlgo.fit()` have been removed. Use the newer
+  function signatures.
+* Older versions of `ImageInput::read_native_deep_scanlines()` and
+  `read_native_deep_tiles()` have been removed. They had been deprecated
+  since OIIO 2.0.
 
+## maketx
+
+* The `--noresize` option has been removed. It was deprecated since OIIO 2.0,
+  when it became the default behavior.
+* The `--stats` option has been removed. It was deprecated since OIIO 1.6,
+  when it was renamed `--runstats`.
