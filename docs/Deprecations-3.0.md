@@ -218,7 +218,7 @@ about being deprecated will be removed in the final 3.0 release.
 ## ustring.h
 
 * Removed old `ustringHash` (which was just an alias for `std::hash<ustring>`,
-  which should be used instead.
+  which should be used instead).
 
 ## varyingref.h
 

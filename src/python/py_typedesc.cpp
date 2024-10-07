@@ -126,10 +126,9 @@ declare_typedesc(py::module& m)
 
         // Conversion to string
         .def("__str__", [](TypeDesc t) { return PY_STR(t.c_str()); })
-        .def("__repr__",
-             [](TypeDesc t) {
-                 return PY_STR("<TypeDesc '" + std::string(t.c_str()) + "'>");
-             });
+        .def("__repr__", [](TypeDesc t) {
+            return PY_STR("<TypeDesc '" + std::string(t.c_str()) + "'>");
+        });
 
     // Declare that a BASETYPE is implicitly convertible to a TypeDesc.
     // This keeps us from having to separately declare func(TypeDesc)
