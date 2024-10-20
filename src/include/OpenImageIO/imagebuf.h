@@ -460,7 +460,7 @@ public:
     ///             `IMAGECACHE`, if the ImageBuf was originally constructed
     ///             or reset with an ImageCache specified).
     /// @param  convert
-    ///             If set to a specific type (not`UNKNOWN`), the ImageBuf
+    ///             If set to a specific type (not `UNKNOWN`), the ImageBuf
     ///             memory will be allocated for that type specifically and
     ///             converted upon read.
     /// @param  progress_callback/progress_callback_data
