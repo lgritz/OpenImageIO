@@ -1243,7 +1243,7 @@ public:
     /// Z plane stride within the localpixels memory.
     stride_t z_stride() const;
 
-    /// Is the data layout "contiguous", i.e.,
+    /// Is this an in-memory buffer with the data layout "contiguous", i.e.,
     /// ```
     ///     pixel_stride == nchannels * pixeltype().size()
     ///     scanline_stride == pixel_stride * spec().width

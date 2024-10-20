@@ -419,8 +419,10 @@ test_read_channel_subset()
 
     // Now read it back using the "channel range" option.
     ImageBuf B("sixchans.tif");
+    print("1 sixchans read {}\n", B.pixels_read());
     B.read(0 /*subimage*/, 0 /*mip*/, 2 /*chbegin*/, 5 /*chend*/,
            true /*force*/, TypeDesc::FLOAT);
+    print("2 sixchans read {}\n", B.pixels_read());
     std::cout << " After reading channels [2,5), we have:\n";
     print(B);
     OIIO_CHECK_EQUAL(B.nativespec().nchannels, 6);

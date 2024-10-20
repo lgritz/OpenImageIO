@@ -316,7 +316,15 @@ ImageInput::read_scanlines(int subimage, int miplevel, int ybegin, int yend,
     imagesize_t native_scanline_bytes
         = clamped_mult64((imagesize_t)spec.width,
                          (imagesize_t)native_pixel_bytes);
+#if 1
     bool native        = (format == TypeDesc::UNKNOWN);
+#else
+    // perchanfile is true if the file has different per-channel formats
+    bool perchanfile = spec.channelformats.size();
+    // native is true if the user asking for data in the native format
+    bool native = format == TypeDesc::UNKNOWN
+                  || (format == spec.format && !perchanfile);
+#endif
     size_t pixel_bytes = native ? native_pixel_bytes : format.size() * nchans;
     if (native && xstride == AutoStride)
         xstride = pixel_bytes;

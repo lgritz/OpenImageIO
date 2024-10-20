@@ -317,6 +317,7 @@ public:
 
     void eval_contiguous()
     {
+        // FIXME! should the storage here also include APPBUFFER?
         m_contiguous = m_localpixels && m_storage == ImageBuf::LOCALBUFFER
                        && m_xstride == m_spec.nchannels * m_channel_stride
                        && m_ystride == m_xstride * m_spec.width
@@ -861,12 +862,21 @@ ImageBufImpl::reset(string_view filename, int subimage, int miplevel,
         m_configspec->attribute("oiio:ioproxy", TypeDesc::PTR, &m_rioproxy);
     }
     m_bufspan = {};
+#if 1    /* This forces a full read. Is that what we want? */
     if (m_name.length() > 0) {
         // filename non-empty means this ImageBuf refers to a file.
         read(subimage, miplevel);
         // FIXME: investigate if the above read is really necessary, or if
         // it can be eliminated and done fully lazily.
     }
+#else
+    if (m_name.length() > 0 /*&& m_imagecache*/) {
+        init_spec(m_name, subimage, miplevel, DoLock(true));
+        // For IC-backed file ImageBuf's, make sure we know that
+        // m_storage = ImageBuf::IMAGECACHE;
+        // read(subimage, miplevel);
+    }
+#endif
 }
 
 
@@ -1214,12 +1224,29 @@ ImageBufImpl::read(int subimage, int miplevel, int chbegin, int chend,
     if (do_lock)
         lock.lock();
 
-    if (!m_name.length())
+    // If this doesn't reference a file in any way, nothing to do here.
+    if (!m_name.length() || m_storage == ImageBuf::APPBUFFER)
         return true;
 
+#if 1
     if (m_pixels_valid && !force && subimage == m_current_subimage
         && miplevel == m_current_miplevel)
         return true;
+#else
+    // If it's a cached image of the same subimage/mip and we aren't being
+    // asked to force-read, no need to do anything.
+    if (m_storage == ImageBuf::IMAGECACHE && m_pixels_valid && !force
+        && subimage == m_current_subimage && miplevel == m_current_miplevel)
+        return true;
+
+    // If it's a local buffer from a file and we've already read the pixels
+    // into memory, we're done, provided that we aren't asking it to force
+    // a read with a different data type convrsion.
+    if (m_storage == ImageBuf::LOCALBUFFER && m_pixels_valid && m_pixels_read
+        && (convert == TypeUnknown || convert == m_spec.format)
+        && subimage == m_current_subimage && miplevel == m_current_miplevel)
+        return true;
+#endif
 
     if (!init_spec(m_name.string(), subimage, miplevel,
                    DoLock(false) /* we already hold the lock */)) {
