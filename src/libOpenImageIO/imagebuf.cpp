@@ -347,6 +347,7 @@ private:
     mutable mutex_t m_mutex;      ///< Thread safety for this ImageBuf
     mutable bool m_spec_valid;    ///< Is the spec valid
     mutable bool m_pixels_valid;  ///< Image is valid
+    mutable bool m_pixels_read;   ///< Is file already in the local pixels?
     bool m_readonly;              ///< The bufspan is read-only
     bool m_badfile;               ///< File not found
     float m_pixelaspect;          ///< Pixel aspect ratio of the image
@@ -421,6 +422,7 @@ ImageBufImpl::ImageBufImpl(string_view filename, int subimage, int miplevel,
     , m_localpixels(NULL)
     , m_spec_valid(false)
     , m_pixels_valid(false)
+    , m_pixels_read(false)
     , m_readonly(readonly)
     , m_badfile(false)
     , m_pixelaspect(1)
@@ -504,8 +506,9 @@ ImageBufImpl::ImageBufImpl(const ImageBufImpl& src)
 // NO -- copy ctr does not transfer proxy   , m_rioproxy(src.m_rioproxy)
 // NO -- copy ctr does not transfer proxy   , m_wioproxy(src.m_wioproxy)
 {
-    m_spec_valid   = src.m_spec_valid;
-    m_pixels_valid = src.m_pixels_valid;
+    m_spec_valid    = src.m_spec_valid;
+    m_pixels_valid  = src.m_pixels_valid;
+    m_pixels_read   = src.m_pixels_read;
     if (src.m_localpixels) {
         // Source had the image fully in memory (no cache)
         if (m_storage == ImageBuf::APPBUFFER) {
@@ -533,6 +536,7 @@ ImageBufImpl::ImageBufImpl(const ImageBufImpl& src)
         m_nmiplevels       = 0;
         m_spec.erase_attribute("oiio:subimages");
         m_nativespec.erase_attribute("oiio:subimages");
+        m_pixels_read = true;
     }
     if (src.m_configspec)
         m_configspec.reset(new ImageSpec(*src.m_configspec));
@@ -804,6 +808,7 @@ ImageBufImpl::clear()
     m_spec_valid     = false;
     m_pixels_valid   = false;
     m_badfile        = false;
+    m_pixels_read    = false;
     m_pixelaspect    = 1;
     m_xstride        = 0;
     m_ystride        = 0;
@@ -1004,7 +1009,8 @@ ImageBufImpl::realloc()
         m_deepdata.init(m_spec);
         m_storage = ImageBuf::LOCALBUFFER;
     }
-    m_readonly = false;
+    m_readonly    = false;
+    m_pixels_read = false;
     eval_contiguous();
 #if 0
     std::cerr << "ImageBuf " << m_name << " local allocation: " << m_allocated_size << "\n";
@@ -1138,6 +1144,7 @@ ImageBufImpl::init_spec(string_view filename, int subimage, int miplevel,
         m_badfile          = true;
         m_pixels_valid     = false;
         m_spec_valid       = false;
+        m_pixels_read      = false;
         m_nsubimages       = 0;
         m_nmiplevels       = 0;
         m_badfile          = false;
@@ -1241,6 +1248,7 @@ ImageBufImpl::read(int subimage, int miplevel, int chbegin, int chend,
         if (ok) {
             m_spec = m_nativespec;  // Deep images always use native data
             m_pixels_valid = true;
+            m_pixels_read  = true;
             m_storage      = ImageBuf::LOCALBUFFER;
         } else {
             error(input->geterror());
@@ -1348,6 +1356,7 @@ ImageBufImpl::read(int subimage, int miplevel, int chbegin, int chend,
             in->close();
             if (ok) {
                 m_pixels_valid = true;
+                m_pixels_read  = true;
             } else {
                 m_pixels_valid = false;
                 error(in->geterror());
@@ -1939,6 +1948,14 @@ bool
 ImageBuf::pixels_valid(void) const
 {
     return m_impl->m_pixels_valid;
+}
+
+
+
+bool
+ImageBuf::pixels_read(void) const
+{
+    return m_impl->m_pixels_read;
 }
 
 

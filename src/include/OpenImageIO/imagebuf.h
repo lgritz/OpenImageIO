@@ -1219,6 +1219,7 @@ public:
     bool contains_roi(const ROI& roi) const;
 
     bool pixels_valid(void) const;
+    bool pixels_read(void) const;
 
     /// The data type of the pixels stored in the buffer (equivalent to
     /// `spec().format`).
