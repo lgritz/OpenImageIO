@@ -302,6 +302,7 @@ ImageInput::read_scanlines(int subimage, int miplevel, int ybegin, int yend,
         // For scanline files, we also need one piece of metadata
         if (!spec.tile_width)
             rps = m_spec.get_int_attribute("tiff:RowsPerStrip", 64);
+        // FIXME: does the above search of metadata have a significant cost?
     }
     if (spec.image_bytes() < 1) {
         errorfmt("Invalid image size {} x {} ({} chans)", m_spec.width,
@@ -316,15 +317,7 @@ ImageInput::read_scanlines(int subimage, int miplevel, int ybegin, int yend,
     imagesize_t native_scanline_bytes
         = clamped_mult64((imagesize_t)spec.width,
                          (imagesize_t)native_pixel_bytes);
-#if 1
     bool native        = (format == TypeDesc::UNKNOWN);
-#else
-    // perchanfile is true if the file has different per-channel formats
-    bool perchanfile = spec.channelformats.size();
-    // native is true if the user asking for data in the native format
-    bool native = format == TypeDesc::UNKNOWN
-                  || (format == spec.format && !perchanfile);
-#endif
     size_t pixel_bytes = native ? native_pixel_bytes : format.size() * nchans;
     if (native && xstride == AutoStride)
         xstride = pixel_bytes;
@@ -338,7 +331,13 @@ ImageInput::read_scanlines(int subimage, int miplevel, int ybegin, int yend,
     bool contiguous                = (xstride == (stride_t)buffer_pixel_bytes
                        && ystride == (stride_t)buffer_scanline_bytes);
 
-    if (native && contiguous) {
+    // no_type_convert is true if asking for data in the native format
+    bool no_type_convert = (format == spec.format
+                            && spec.channelformats.empty());
+    // if (!native && no_type_convert && contiguous)
+    //     print("boo! native={} no_type_convert={} contiguous={}\n", native,
+    //           no_type_convert, contiguous);
+    if ((native || no_type_convert) && contiguous) {
         if (chbegin == 0 && chend == spec.nchannels)
             return read_native_scanlines(subimage, miplevel, ybegin, yend, z,
                                          data);
