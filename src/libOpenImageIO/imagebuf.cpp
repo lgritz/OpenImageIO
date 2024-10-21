@@ -863,7 +863,7 @@ ImageBufImpl::reset(string_view filename, int subimage, int miplevel,
     }
     m_bufspan = {};
     m_storage = ImageBuf::LOCALBUFFER;
-#if 1    /* This forces a full read. Is that what we want? */
+#if 0    /* This forces a full read. Is that what we want? */
     if (m_name.length() > 0) {
         // filename non-empty means this ImageBuf refers to a file.
         read(subimage, miplevel);
@@ -872,10 +872,13 @@ ImageBufImpl::reset(string_view filename, int subimage, int miplevel,
     }
 #else
     if (m_name.length() > 0 /*&& m_imagecache*/) {
-        init_spec(m_name, subimage, miplevel, DoLock(true));
-        // For IC-backed file ImageBuf's, make sure we know that
-        // m_storage = ImageBuf::IMAGECACHE;
-        // read(subimage, miplevel);
+        // For IC-backed file ImageBuf's, call read now. For other file-based
+        // images, just init the spec.
+        if (m_imagecache)
+            read(subimage, miplevel);
+        //     init_spec(m_name, subimage, miplevel, DoLock(true));
+        else
+            init_spec(m_name, subimage, miplevel, DoLock(true));
     }
 #endif
 }
@@ -1237,22 +1240,10 @@ ImageBufImpl::read(int subimage, int miplevel, int chbegin, int chend,
         && miplevel == m_current_miplevel)
         return true;
 #if 1
-    // If it's a cached image of the same subimage/mip and we aren't being
-    // asked to force-read, no need to do anything.
-    // if (m_storage == ImageBuf::IMAGECACHE && m_pixels_valid && !force
-    //     && subimage == m_current_subimage && miplevel == m_current_miplevel)
-    //     return true;
-
     // If it's a local buffer from a file and we've already read the pixels
     // into memory, we're done, provided that we aren't asking it to force
     // a read with a different data type conversion or different number of
     // channels.
-
-    // print(
-    //     "In read, storage={}, pvalid {}, pread {}, convert {} {}, submip match {}, chan {} {}\n",
-    //     int(m_storage), m_pixels_valid, m_pixels_read, convert, m_spec.format,
-    //     (subimage == m_current_subimage && miplevel == m_current_miplevel),
-    //     chend - chbegin, m_spec.nchannels);
     if (m_storage == ImageBuf::LOCALBUFFER && m_pixels_valid && m_pixels_read
         && (convert == TypeUnknown || convert == m_spec.format)
         && subimage == m_current_subimage && miplevel == m_current_miplevel
