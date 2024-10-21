@@ -225,7 +225,8 @@ static bool
 read_input(Oiiotool& ot, const std::string& filename, ImageBuf& img,
            int subimage = 0, int miplevel = 0)
 {
-    if (img.subimage() >= 0 && img.subimage() == subimage)
+    if (img.subimage() >= 0 && img.subimage() == subimage
+        && img.miplevel() == miplevel)
         return true;
 
     img.reset(filename, subimage, miplevel, nullptr, &ot.input_config);
