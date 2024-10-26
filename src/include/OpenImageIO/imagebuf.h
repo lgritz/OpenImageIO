@@ -922,7 +922,7 @@ public:
                     stride_t zstride = AutoStride) const
     {
         static_assert(!std::is_const_v<T>);
-        return get_pixels(roi, TypeDescFromC<T>::value(),
+        return get_pixels(roi, TypeDescFromC<T>::value,
                           as_writable_bytes(buffer), buffer.data(), xstride,
                           ystride, zstride);
     }
@@ -942,7 +942,7 @@ public:
                     stride_t zstride = AutoStride) const
     {
         static_assert(!std::is_const_v<T>);
-        return get_pixels(roi, TypeDescFromC<T>::value(),
+        return get_pixels(roi, TypeDescFromC<T>::value,
                           as_writable_bytes(buffer), buforigin, xstride,
                           ystride, zstride);
     }
@@ -995,7 +995,7 @@ public:
                     stride_t ystride = AutoStride,
                     stride_t zstride = AutoStride)
     {
-        return set_pixels(roi, TypeDescFromC<std::remove_const_t<T>>::value(),
+        return set_pixels(roi, TypeDescFromC<std::remove_const_t<T>>::value,
                           as_bytes(buffer), buffer.data(), xstride, ystride,
                           zstride);
     }
@@ -1014,7 +1014,7 @@ public:
                     stride_t ystride = AutoStride,
                     stride_t zstride = AutoStride)
     {
-        return set_pixels(roi, TypeDescFromC<std::remove_const_t<T>>::value(),
+        return set_pixels(roi, TypeDescFromC<std::remove_const_t<T>>::value,
                           as_bytes(buffer), buforigin, xstride, ystride,
                           zstride);
     }
@@ -1600,7 +1600,7 @@ public:
         {
             OIIO_DASSERT(dest.size() >= oiio_span_size_type(m_nchannels));
             convert_pixel_values(TypeDesc::BASETYPE(m_pixeltype), m_proxydata,
-                                 TypeDescFromC<T>::value(), dest.data(),
+                                 TypeDescFromC<T>::value, dest.data(),
                                  m_nchannels);
         }
 
@@ -1819,7 +1819,7 @@ public:
         {
             OIIO_DASSERT(src.size() >= oiio_span_size_type(m_nchannels));
             ensure_writable();
-            convert_pixel_values(TypeDescFromC<T>::value(), src.data(),
+            convert_pixel_values(TypeDescFromC<T>::value, src.data(),
                                  TypeDesc::BASETYPE(m_pixeltype), m_proxydata,
                                  m_nchannels);
         }

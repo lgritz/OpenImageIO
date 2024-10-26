@@ -1213,7 +1213,7 @@ template<typename T>
 static void
 test_simple_perpixel()
 {
-    TypeDesc td = TypeDescFromC<T>::value();
+    TypeDesc td = TypeDescFromC<T>::value;
     print("test_simple_perpixel {}\n", td);
     {
         print("  unary op\n");

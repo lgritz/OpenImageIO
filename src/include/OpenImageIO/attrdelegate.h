@@ -97,7 +97,7 @@ public:
     inline const T& operator=(const T& val)
     {
         if (!m_readonly)
-            const_cast<C*>(m_obj)->attribute(m_name, TypeDescFromC<T>::value(),
+            const_cast<C*>(m_obj)->attribute(m_name, TypeDescFromC<T>::value,
                                              &val);
         return val;
     }
@@ -133,7 +133,7 @@ public:
     inline T get(const T& defaultval = T()) const
     {
         T result;
-        if (!m_obj->getattribute(m_name, TypeDescFromC<T>::value(), &result))
+        if (!m_obj->getattribute(m_name, TypeDescFromC<T>::value, &result))
             result = defaultval;
         return result;
     }
@@ -157,8 +157,8 @@ public:
     inline T get_indexed(int index, const T& defaultval = T()) const
     {
         T result;
-        if (!m_obj->getattribute_indexed(m_name, index,
-                                         TypeDescFromC<T>::value(), &result))
+        if (!m_obj->getattribute_indexed(m_name, index, TypeDescFromC<T>::value,
+                                         &result))
             result = defaultval;
         return result;
     }
