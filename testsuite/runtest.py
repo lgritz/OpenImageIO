@@ -47,6 +47,8 @@ tmpdir = "."
 tmpdir = os.path.abspath (tmpdir)
 redirect = " >> out.txt "
 wrapper_cmd = ""
+echo_commands = 0
+time_commands = 0
 
 def make_relpath (path, start=os.curdir):
     "Wrapper around os.path.relpath which always uses '/' as the separator."
@@ -208,10 +210,17 @@ def text_diff (fromfile, tofile, diff_file=None):
     return 1
 
 
-def run_app(app, silent=False, concat=True):
-    command = app
+def run_app(app, silent=False, concat=True, failureok=False):
+    command = ""
+    if echo_commands :
+        command += "echo \# " + app + " " + redirect + ";\n"
+    if time_commands :
+        command += "/usr/bin/time "
+    command += app
     if not silent:
         command += redirect
+    if failureok :
+        command += " || true "
     if concat:
         command += " ;\n"
     return command
@@ -234,13 +243,14 @@ def info_command (file, extraargs="", safematch=False, hash=True,
         args += " --hash"
     cmd = (oiio_app(info_program) + args + " " + extraargs
             + " " + make_relpath(file,tmpdir))
-    if not silent :
-        cmd += redirect
-    if failureok :
-        cmd += " || true "
-    if concat:
-        cmd += " ;\n"
-    return cmd
+    return run_app(cmd, silent=silent, concat=concat, failureok=failureok)
+    # if not silent :
+    #     cmd += redirect
+    # if failureok :
+    #     cmd += " || true "
+    # if concat:
+    #     cmd += " ;\n"
+    # return cmd
 
 
 # Construct a command that will compare two images, appending output to
@@ -257,11 +267,12 @@ def diff_command (fileA, fileB, extraargs="", silent=False, concat=True) :
                + " -warnpercent " + str(failpercent)
                + " " + extraargs + " " + make_relpath(fileA,tmpdir)
                + " " + make_relpath(fileB,tmpdir))
-    if not silent :
-        command += redirect
-    if concat:
-        command += " ;\n"
-    return command
+    return run_app(command, silent=silent, concat=concat)
+    # if not silent :
+    #     command += redirect
+    # if concat:
+    #     command += " ;\n"
+    # return command
 
 
 # Construct a command that will create a texture, appending console
@@ -269,14 +280,11 @@ def diff_command (fileA, fileB, extraargs="", silent=False, concat=True) :
 def maketx_command (infile, outfile, extraargs="",
                     showinfo=False, showinfo_extra="",
                     silent=False, concat=True) :
-    command = (oiio_app("maketx")
-               + " " + make_relpath(infile,tmpdir)
-               + " " + extraargs
-               + " -o " + make_relpath(outfile,tmpdir))
-    if not silent :
-        command += redirect
-    if concat:
-        command += " ;\n"
+    command = run_app(oiio_app("maketx")
+                      + " " + make_relpath(infile,tmpdir)
+                      + " " + extraargs
+                      + " -o " + make_relpath(outfile,tmpdir),
+                      silent=silent, concat=concat)
     if showinfo:
         command += info_command (outfile, extraargs=showinfo_extra, safematch=1)
     return command
@@ -293,61 +301,41 @@ def rw_command (dir, filename, testwrite=True, use_oiiotool=False, extraargs="",
                 preargs="", idiffextraargs="", output_filename="",
                 safematch=False, printinfo=True) :
     fn = make_relpath (dir + "/" + filename, tmpdir)
+    cmd = ""
     if printinfo :
-        cmd = info_command (fn, safematch=safematch)
-    else :
-        cmd = ""
+        cmd += info_command (fn, safematch=safematch)
     if output_filename == "" :
         output_filename = filename
     if testwrite :
         if use_oiiotool :
-            cmd = (cmd + oiio_app("oiiotool") + preargs + " " + fn
-                   + " " + extraargs + " -o " + output_filename + redirect + ";\n")
+            cmd += run_app(oiio_app("oiiotool") + preargs + " " + fn
+                           + f" {extraargs} -o {output_filename}")
         else :
-            cmd = (cmd + oiio_app("iconvert") + preargs + " " + fn
-                   + " " + extraargs + " " + output_filename + redirect + ";\n")
-        cmd = (cmd + oiio_app("idiff") + " -a " + fn
-               + " -fail " + str(failthresh)
-               + " -failpercent " + str(failpercent)
-               + " -hardfail " + str(hardfail)
-               + " -allowfailures " + str(allowfailures)
-               + " -warn " + str(2*failthresh)
-               + " " + idiffextraargs + " " + output_filename + redirect + ";\n")
+            cmd += run_app(oiio_app("iconvert") + preargs + " " + fn
+                           + f" {extraargs} {output_filename}")
+        cmd += run_app(oiio_app("idiff") + " -a " + fn
+                       + f" -fail {failthresh} -failpercent {failpercent}"
+                       + f" -hardfail {hardfail} -allowfailures {allowfailures}"
+                       + f" -warn {2*failthresh} {idiffextraargs} {output_filename}")
     return cmd
 
 
 # Construct a command that will testtex
 def testtex_command (file, extraargs="", silent=False, concat=True) :
-    cmd = oiio_app("testtex") + " " + file + " " + extraargs + " "
-    if not silent :
-        cmd += redirect
-    if concat:
-        cmd += " ;\n"
-    return cmd
+    return run_app(oiio_app("testtex") + " " + file + " " + extraargs + " ",
+                     silent=silent, concat=concat)
 
 
 # Construct a command that will run iconvert and append its output to out.txt
 def iconvert (args, silent=False, concat=True, failureok=False) :
-    cmd = (oiio_app("iconvert") + " " + args)
-    if not silent :
-        cmd += redirect
-    if failureok :
-        cmd += " || true "
-    if concat:
-        cmd += " ;\n"
-    return cmd
+    return run_app(oiio_app("iconvert") + " " + args,
+                   silent=silent, concat=concat, failureok=failureok)
 
 
 # Construct a command that will run oiiotool and append its output to out.txt
 def oiiotool (args, silent=False, concat=True, failureok=False) :
-    cmd = (oiio_app("oiiotool") + " " + args)
-    if not silent :
-        cmd += redirect
-    if failureok :
-        cmd += " || true "
-    if concat:
-        cmd += " ;\n"
-    return cmd
+    return run_app(oiio_app("oiiotool") + " " + args,
+                   silent=silent, concat=concat, failureok=failureok)
 
 
 
