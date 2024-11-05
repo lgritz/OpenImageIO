@@ -555,7 +555,7 @@ macro (build_dependency_with_cmake pkgname)
             # Same build type as us
                 -DCMAKE_BUILD_TYPE=${${PROJECT_NAME}_DEPENDENCY_BUILD_TYPE}
             # Shhhh
-                -DCMAKE_MESSAGE_INDENT="        "
+                -DCMAKE_MESSAGE_INDENT=${CMAKE_MESSAGE_INDENT}
                 -DCMAKE_COMPILE_WARNING_AS_ERROR=OFF
                 ${_pkg_cmake_verbose}
             # Build args passed by caller
