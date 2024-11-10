@@ -567,6 +567,7 @@ macro (build_dependency_with_cmake pkgname)
     execute_process (COMMAND ${CMAKE_COMMAND}
                         --build ${${pkgname}_LOCAL_BUILD_DIR}
                         --config ${${PROJECT_NAME}_DEPENDENCY_BUILD_TYPE}
+                        -DCMAKE_MESSAGE_INDENT=${CMAKE_MESSAGE_INDENT}
                      ${pkg_quiet}
                     )
 
@@ -576,6 +577,7 @@ macro (build_dependency_with_cmake pkgname)
                             --build ${${pkgname}_LOCAL_BUILD_DIR}
                             --config ${${PROJECT_NAME}_DEPENDENCY_BUILD_TYPE}
                             --target install
+                            -DCMAKE_MESSAGE_INDENT=${CMAKE_MESSAGE_INDENT}
                          ${pkg_quiet}
                         )
         set (${pkgname}_ROOT ${${pkgname}_LOCAL_INSTALL_DIR})
