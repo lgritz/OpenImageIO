@@ -475,9 +475,9 @@ template<> struct is_simd<matrix44> : std::true_type {};
 // it more succinct to express per-element operations.
 
 #define SIMD_DO(x) for (int i = 0; i < elements; ++i) x
-#define SIMD_CONSTRUCT(x) for (int i = 0; i < elements; ++i) m_val[i] = (x)
-#define SIMD_CONSTRUCT_PAD(x) for (int i = 0; i < elements; ++i) m_val[i] = (x); \
-                              for (int i = elements; i < paddedelements; ++i) m_val[i] = 0
+#define SIMD_CONSTRUCT(x) for (int i = 0; i < elements; ++i) (*this)[i] = (x)
+#define SIMD_CONSTRUCT_PAD(x) for (int i = 0; i < elements; ++i) (*this)[i] = (x); \
+                              for (int i = elements; i < paddedelements; ++i) (*this)[i] = 0
 #define SIMD_RETURN(T,x) T r; for (int i = 0; i < r.elements; ++i) r[i] = (x); return r
 #define SIMD_RETURN_REDUCE(T,init,op) T r = init; for (int i = 0; i < v.elements; ++i) op; return r
 
@@ -867,7 +867,7 @@ public:
     int operator[] (int i) const;
 
     /// Component access (set).
-    void setcomp (int i, bool value);
+    void setcomp(int i, value_t value);
 
     /// Extract the lower precision vbool8
     vbool8 lo () const;
@@ -2088,7 +2088,7 @@ protected:
     // The actual data representation
     union {
         simd_t  m_simd;
-        value_t m_val[paddedelements];
+        // value_t m_val[paddedelements];
     };
 };
 
@@ -6638,13 +6638,13 @@ OIIO_FORCEINLINE void vfloat4::clear () {
 
 
 OIIO_FORCEINLINE float& vfloat4::operator[] (int i) {
-    OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_DASSERT(i >= 0 && i < elements);
+    return reinterpret_cast<value_t*>(this)[i];
 }
 
 OIIO_FORCEINLINE float vfloat4::operator[] (int i) const {
-    OIIO_DASSERT(i<elements);
-    return m_val[i];
+    OIIO_DASSERT(i >= 0 && i < elements);
+    return reinterpret_cast<const value_t*>(this)[i];
 }
 
 
@@ -6665,10 +6665,10 @@ OIIO_FORCEINLINE void vfloat4::load (float a, float b, float c, float d) {
     float values[4] = { a, b, c, d };
     m_simd = vld1q_f32 (values);
 #else
-    m_val[0] = a;
-    m_val[1] = b;
-    m_val[2] = c;
-    m_val[3] = d;
+    (*this)[0] = a;
+    (*this)[1] = b;
+    (*this)[2] = c;
+    (*this)[3] = d;
 #endif
 }
 
@@ -6730,9 +6730,9 @@ OIIO_FORCEINLINE void vfloat4::load (const float *values, int n) {
     }
 #else
     for (int i = 0; i < n; ++i)
-        m_val[i] = values[i];
+        (*this)[i] = values[i];
     for (int i = n; i < paddedelements; ++i)
-        m_val[i] = 0;
+        (*this)[i] = 0;
 #endif
 }
 
@@ -6823,10 +6823,10 @@ vfloat4::load_pairs(const float* lo, const float* hi)
 #if OIIO_SIMD_SSE
     m_simd = _mm_loadh_pi(_mm_loadl_pi(Zero(), (__m64*)lo), (__m64*)hi);
 #else
-    m_val[0] = lo[0];
-    m_val[1] = lo[1];
-    m_val[2] = hi[0];
-    m_val[3] = hi[1];
+    (*this)[0] = lo[0];
+    (*this)[1] = lo[1];
+    (*this)[2] = hi[0];
+    (*this)[3] = hi[1];
 #endif
 }
 
@@ -6839,7 +6839,7 @@ OIIO_FORCEINLINE void vfloat4::store (float *values) const {
 #elif OIIO_SIMD_NEON
     vst1q_f32 (values, m_simd);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = (*this)[i]);
 #endif
 }
 
@@ -6860,9 +6860,9 @@ OIIO_FORCEINLINE void vfloat4::store (float *values, int n) const {
         _mm_store_sd ((double*)values, _mm_castps_pd(m_simd));
         break;
     case 3:
-        values[0] = m_val[0];
-        values[1] = m_val[1];
-        values[2] = m_val[2];
+        values[0] = (*this)[0];
+        values[1] = (*this)[1];
+        values[2] = (*this)[2];
         // This looks wasteful, but benchmarks show that it's the
         // fastest way to store 3 values, in benchmarks was faster than
         // this, below:
@@ -6896,7 +6896,7 @@ OIIO_FORCEINLINE void vfloat4::store (float *values, int n) const {
     }
 #else
     for (int i = 0; i < n; ++i)
-        values[i] = m_val[i];
+        values[i] = (*this)[i];
 #endif
 }
 
@@ -6910,7 +6910,7 @@ OIIO_FORCEINLINE void vfloat4::store (half *values) const {
     uint16x4_t u16 = vreinterpret_u16_f16(f16);
     vst1_u16((unsigned short*)values, u16);
 #else
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = (*this)[i]);
 #endif
 }
 #endif
@@ -6978,7 +6978,7 @@ vfloat4::gather_mask (const vbool_t& mask, const value_t *baseptr, const vint_t&
 #if OIIO_SIMD_AVX >= 2
     m_simd = _mm_mask_i32gather_ps (m_simd, baseptr, vindex, mask, scale);
 #else
-    SIMD_DO (if (mask[i]) m_val[i] = *(const value_t *)((const char *)baseptr + vindex[i]*scale));
+    SIMD_DO (if (mask[i]) (*this)[i] = *(const value_t *)((const char *)baseptr + vindex[i]*scale));
 #endif
 }
 
@@ -6990,7 +6990,7 @@ vfloat4::scatter (value_t *baseptr, const vint_t& vindex) const
     // FIXME: disable because it benchmarks slower than the dumb way
     _mm_i32scatter_ps (baseptr, vindex, m_simd, scale);
 #else
-    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (*(value_t *)((char *)baseptr + vindex[i]*scale) = (*this)[i]);
 #endif
 }
 
@@ -7003,7 +7003,7 @@ vfloat4::scatter_mask (const vbool_t& mask, value_t *baseptr,
     // FIXME: disable because it benchmarks slower than the dumb way
     _mm_mask_i32scatter_ps (baseptr, mask.bitmask(), vindex, m_simd, scale);
 #else
-    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = m_val[i]);
+    SIMD_DO (if (mask[i]) *(value_t *)((char *)baseptr + vindex[i]*scale) = (*this)[i]);
 #endif
 }
 
@@ -7024,7 +7024,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator+= (const vfloat4& a) {
 #elif OIIO_SIMD_NEON
     m_simd = vaddq_f32 (m_simd, a.m_simd);
 #else
-    SIMD_DO (m_val[i] += a[i]);
+    SIMD_DO ((*this)[i] += a[i]);
 #endif
     return *this;
     }
@@ -7035,7 +7035,7 @@ OIIO_FORCEINLINE vfloat4 vfloat4::operator- () const {
 #elif OIIO_SIMD_NEON
     return vsubq_f32 (Zero(), m_simd);
 #else
-    SIMD_RETURN (vfloat4, -m_val[i]);
+    SIMD_RETURN (vfloat4, -(*this)[i]);
 #endif
 }
 
@@ -7055,7 +7055,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator-= (const vfloat4& a) {
 #elif OIIO_SIMD_NEON
     m_simd = vsubq_f32 (m_simd, a.m_simd);
 #else
-    SIMD_DO (m_val[i] -= a[i]);
+    SIMD_DO ((*this)[i] -= a[i]);
 #endif
     return *this;
 }
@@ -7090,7 +7090,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator*= (const vfloat4& a) {
 #elif OIIO_SIMD_NEON
     m_simd = vmulq_f32 (m_simd, a.m_simd);
 #else
-    SIMD_DO (m_val[i] *= a[i]);
+    SIMD_DO ((*this)[i] *= a[i]);
 #endif
     return *this;
 }
@@ -7101,7 +7101,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator*= (float val) {
 #elif OIIO_SIMD_NEON
     m_simd = vmulq_n_f32 (m_simd, val);
 #else
-    SIMD_DO (m_val[i] *= val);
+    SIMD_DO ((*this)[i] *= val);
 #endif
     return *this;
 }
@@ -7122,7 +7122,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator/= (const vfloat4& a) {
 #elif OIIO_SIMD_NEON && defined(__aarch64__)
     m_simd = vdivq_f32 (m_simd, a.m_simd);
 #else
-    SIMD_DO (m_val[i] /= a[i]);
+    SIMD_DO ((*this)[i] /= a[i]);
 #endif
     return *this;
 }
@@ -7133,7 +7133,7 @@ OIIO_FORCEINLINE const vfloat4 & vfloat4::operator/= (float val) {
 #elif OIIO_SIMD_NEON && defined(__aarch64__)
     m_simd = vdivq_f32 (m_simd, vfloat4(val));
 #else
-    SIMD_DO (m_val[i] /= val);
+    SIMD_DO ((*this)[i] /= val);
 #endif
     return *this;
 }
@@ -8046,7 +8046,7 @@ OIIO_FORCEINLINE void vfloat3::store (float *values, int n) const {
 
 #if defined(_HALF_H_) || defined(IMATH_HALF_H_)
 OIIO_FORCEINLINE void vfloat3::store (half *values) const {
-    SIMD_DO (values[i] = m_val[i]);
+    SIMD_DO (values[i] = (*this)[i]);
 }
 #endif
 
