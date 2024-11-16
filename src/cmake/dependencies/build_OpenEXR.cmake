@@ -10,14 +10,12 @@ set_cache (OpenEXR_GIT_TAG "v${OpenEXR_BUILD_VERSION}" "Git tag to checkout")
 set_if_not (LOCAL_BUILD_SHARED_LIBS_DEFAULT OFF)
 set_cache (OpenEXR_BUILD_SHARED_LIBS ${LOCAL_BUILD_SHARED_LIBS_DEFAULT}
            DOC "Should a local OpenEXR build, if necessary, build shared libraries" ADVANCED)
-# string (MAKE_C_IDENTIFIER ${OpenEXR_BUILD_VERSION} OpenEXR_VERSION_IDENT)
 
 
 ExternalProject_Add(OpenEXR
     PREFIX          ${CMAKE_CURRENT_BINARY_DIR}/OpenEXR
     GIT_REPOSITORY  ${OpenEXR_GIT_REPOSITORY}
     GIT_TAG         ${OpenEXR_GIT_TAG}
-    # DEPENDS         Imath
     CMAKE_ARGS
         -D BUILD_SHARED_LIBS=${Imath_BUILD_SHARED_LIBS}
         -D OPENEXR_FORCE_INTERNAL_DEFLATE=ON
@@ -44,15 +42,3 @@ ExternalProject_Add(OpenEXR
         # -D Iex_INTERNAL_NAMESPACE=${PROJ_NAMESPACE_V}_Iex_${OpenEXR_VERSION_IDENT}
         # -D OPENEXR_LIB_SUFFIX=_v${OpenEXR_VERSION_IDENT}_${PROJ_NAMESPACE_V}
     )
-
-
-# # Signal to caller that we need to find again at the installed location
-# set (OpenEXR_REFIND TRUE)
-# set (OpenEXR_REFIND_ARGS CONFIG)
-# set (OpenEXR_REFIND_VERSION ${OpenEXR_BUILD_VERSION})
-# 
-# if (OpenEXR_BUILD_SHARED_LIBS)
-#     install_local_dependency_libs (OpenEXR OpenEXR)
-#     install_local_dependency_libs (OpenEXR IlmThread)
-#     install_local_dependency_libs (OpenEXR Iex)
-# endif ()

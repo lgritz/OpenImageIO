@@ -14,7 +14,6 @@ set_if_not (LOCAL_BUILD_SHARED_LIBS_DEFAULT OFF)
 set_cache (ZLIB_BUILD_SHARED_LIBS ${LOCAL_BUILD_SHARED_LIBS_DEFAULT}
            DOC "Should execute a local ZLIB build, if necessary, build shared libraries" ADVANCED)
 
-# string (MAKE_C_IDENTIFIER ${ZLIB_BUILD_VERSION} ZLIB_VERSION_IDENT)
 
 ExternalProject_Add(ZLIB
     PREFIX          ${CMAKE_CURRENT_BINARY_DIR}/ZLIB

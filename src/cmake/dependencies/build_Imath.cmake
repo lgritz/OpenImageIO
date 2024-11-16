@@ -10,7 +10,6 @@ set_cache (Imath_GIT_TAG "v${Imath_BUILD_VERSION}" "Git tag to checkout")
 set_if_not (LOCAL_BUILD_SHARED_LIBS_DEFAULT OFF)
 set_cache (Imath_BUILD_SHARED_LIBS ${LOCAL_BUILD_SHARED_LIBS_DEFAULT}
            DOC "Should a local Imath build, if necessary, build shared libraries" ADVANCED)
-# string (MAKE_C_IDENTIFIER ${Imath_BUILD_VERSION} Imath_VERSION_IDENT)
 
 
 ExternalProject_Add(Imath
@@ -30,38 +29,3 @@ ExternalProject_Add(Imath
         -D IMATH_INSTALL_PKG_CONFIG=OFF
         -D IMATH_INSTALL_TOOLS=OFF
     )
-
-
-# string (MAKE_C_IDENTIFIER ${Imath_BUILD_VERSION} Imath_VERSION_IDENT)
-# 
-# build_dependency_with_cmake(Imath
-#     VERSION         ${Imath_BUILD_VERSION}
-#     GIT_REPOSITORY  ${Imath_GIT_REPOSITORY}
-#     GIT_TAG         ${Imath_GIT_TAG}
-#     CMAKE_ARGS
-#         -D BUILD_SHARED_LIBS=${Imath_BUILD_SHARED_LIBS}
-#         # Don't built unnecessary parts of Imath
-#         -D BUILD_TESTING=OFF
-#         -D IMATH_BUILD_EXAMPLES=OFF
-#         -D IMATH_BUILD_PYTHON=OFF
-#         -D IMATH_BUILD_TESTING=OFF
-#         -D IMATH_BUILD_TOOLS=OFF
-#         -D IMATH_INSTALL_DOCS=OFF
-#         -D IMATH_INSTALL_PKG_CONFIG=OFF
-#         -D IMATH_INSTALL_TOOLS=OFF
-#         # Give the library a custom name and symbol namespace so it can't
-#         # conflict with any others in the system or linked into the same app.
-#         # not needed -D IMATH_NAMESPACE_CUSTOM=1
-#         # not needed -D IMATH_INTERNAL_NAMESPACE=${PROJ_NAMESPACE_V}_Imath_${Imath_VERSION_IDENT}
-#         -D IMATH_LIB_SUFFIX=_v${Imath_VERSION_IDENT}_${PROJ_NAMESPACE_V}
-#     )
-# 
-# 
-# # Signal to caller that we need to find again at the installed location
-# set (Imath_REFIND TRUE)
-# set (Imath_REFIND_ARGS CONFIG)
-# set (Imath_REFIND_VERSION ${Imath_BUILD_VERSION})
-# 
-# if (Imath_BUILD_SHARED_LIBS)
-#     install_local_dependency_libs (Imath Imath)
-# endif ()
