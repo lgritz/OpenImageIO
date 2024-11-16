@@ -37,7 +37,9 @@ include (FindThreads)
 # Dependencies for required formats and features. These are so critical
 # that we will not complete the build if they are not found.
 
-checked_find_package (ZLIB REQUIRED)  # Needed by several packages
+# ZLIB needed by several packages
+checked_find_package (ZLIB REQUIRED
+    BUILD_LOCAL_VERSION 1.3.1)
 
 # Help set up this target for libtiff config file when using static libtiff
 if (NOT TARGET CMath::CMath)
@@ -49,17 +51,19 @@ if (NOT TARGET CMath::CMath)
     endif ()
 endif ()
 
-# IlmBase & OpenEXR
+# Imath
 checked_find_package (Imath REQUIRED
     VERSION_MIN 3.1
+    BUILD_LOCAL_VERSION 3.1.10
     PRINT IMATH_INCLUDES OPENEXR_INCLUDES Imath_VERSION
 )
 
+# OpenEXR
 checked_find_package (OpenEXR REQUIRED
     VERSION_MIN 3.1
+    BUILD_LOCAL_VERSION 3.2.4
     NO_FP_RANGE_CHECK
-    PRINT IMATH_INCLUDES OPENEXR_INCLUDES Imath_VERSION
-    )
+    PRINT IMATH_INCLUDES OPENEXR_INCLUDES Imath_VERSION)
 
 # Force Imath includes to be before everything else to ensure that we have
 # the right Imath/OpenEXR version, not some older version in the system

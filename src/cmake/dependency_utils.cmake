@@ -283,7 +283,7 @@ macro (checked_find_package pkgname)
         # noValueKeywords:
         "REQUIRED;CONFIG;PREFER_CONFIG;DEBUG;NO_RECORD_NOTFOUND;NO_FP_RANGE_CHECK"
         # singleValueKeywords:
-        "ENABLE;ISDEPOF;VERSION_MIN;VERSION_MAX;RECOMMEND_MIN;RECOMMEND_MIN_REASON;BUILD_LOCAL"
+        "ENABLE;ISDEPOF;VERSION_MIN;VERSION_MAX;RECOMMEND_MIN;RECOMMEND_MIN_REASON;BUILD_LOCAL;BUILD_LOCAL_VERSION"
         # multiValueKeywords:
         "DEFINITIONS;PRINT;DEPS;SETVARIABLES"
         # argsToParse:
@@ -312,7 +312,13 @@ macro (checked_find_package pkgname)
             OR ${PROJECT_NAME}_BUILD_MISSING_DEPS STREQUAL "all")
         set_if_not (_pkg_BUILD_LOCAL "missing")
     endif ()
-    set (${pkgname}_local_build_script "${PROJECT_SOURCE_DIR}/src/cmake/build_${pkgname}.cmake")
+    # set (${pkgname}_local_build_script "${PROJECT_SOURCE_DIR}/src/cmake/build_${pkgname}.cmake")
+    if (EXISTS "${PROJECT_SOURCE_DIR}/src/cmake/dependencies/build_${pkgname}.cmake")
+        set (${pkgname}_local_build_script "${PROJECT_SOURCE_DIR}/src/cmake/dependencies/build_${pkgname}.cmake")
+        set (${pkgname}_local_build_script_new TRUE)
+    elseif (EXISTS "${PROJECT_SOURCE_DIR}/src/cmake/build_${pkgname}.cmake")
+        set (${pkgname}_local_build_script "${PROJECT_SOURCE_DIR}/src/cmake/build_${pkgname}.cmake")
+    endif ()
     if (EXISTS ${${pkgname}_local_build_script})
         set (${pkgname}_local_build_script_exists TRUE)
     endif ()
@@ -410,7 +416,36 @@ macro (checked_find_package pkgname)
             AND EXISTS "${${pkgname}_local_build_script}")
             message (STATUS "${ColorMagenta}Building package ${pkgname} ${${pkgname}_VERSION} locally${ColorReset}")
             list(APPEND CMAKE_MESSAGE_INDENT "        ")
-            include("${${pkgname}_local_build_script}")
+            if (${pkgname}_local_build_script_new)
+                if (_pkg_BUILD_LOCAL_VERSION)
+                    set (${pkgname}_build_version_args
+                         "-D${pkgname}_BUILD_VERSION=${_pkg_BUILD_LOCAL_VERSION}")
+                else ()
+                    unset (${pkgname}_build_version_args)
+                endif ()
+                message (STATUS "${ColorBoldRed}New process build of ${pkgname} ${_pkg_BUILD_LOCAL_VERSION}${ColorReset}")
+                execute_process (COMMAND ${CMAKE_COMMAND}
+                        # Put things in our special local build areas
+                        -S ${PROJECT_SOURCE_DIR}/src/cmake/dependencies
+                        -B "${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/${pkgname}-build"
+                        -DCMAKE_INSTALL_PREFIX=${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/dist
+                        -DCMAKE_BUILD_TYPE=${${PROJECT_NAME}_DEPENDENCY_BUILD_TYPE}
+                        -DCMAKE_COMPILE_WARNING_AS_ERROR=OFF
+                        -DBUILD_${pkgname}=ON
+                        ${${pkgname}_build_version_args}
+                    )
+                execute_process (COMMAND ${CMAKE_COMMAND}
+                        --build "${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/${pkgname}-build"
+                        --config ${${PROJECT_NAME}_DEPENDENCY_BUILD_TYPE}
+                    )
+                set (${pkgname}_REFIND TRUE)
+                # set (${pkgname}_REFIND_ARGS CONFIG)
+                # set_if_not (${pkgname}_VERSION ${_pkg_BUILD_LOCAL_VERSION})
+                set (${pkgname}_REFIND_VERSION ${_pkg_BUILD_LOCAL_VERSION})
+                set (${pkgname}_ROOT "${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/dist")
+            else ()
+                include("${${pkgname}_local_build_script}")
+            endif ()
             list(POP_BACK CMAKE_MESSAGE_INDENT)
             # set (${pkgname}_FOUND TRUE)
             set (${pkgname}_LOCAL_BUILD TRUE)
@@ -479,6 +514,7 @@ macro (checked_find_package pkgname)
         endif ()
     endif ()
     # unset (_${pkgname}_version_range)
+    unset (${pkgname}_build_version_args)
 endmacro()
 
 
