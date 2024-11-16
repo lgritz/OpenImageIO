@@ -5,8 +5,24 @@
 
 # Set a variable to a value if it is not already defined.
 macro (set_if_not var value)
+    cmake_parse_arguments(_sin   # prefix
+        # noValueKeywords:
+        "VERBOSE;FORCE"
+        # singleValueKeywords:
+        ""
+        # multiValueKeywords:
+        ""
+        # argsToParse:
+        ${ARGN})
     if (NOT DEFINED ${var})
-        set (${var} ${value})
+        unset (_sin_extra_args)
+        if (_sin_FORCE)
+            list (APPEND _sin_extra_args FORCE)
+        endif ()
+        set (${var} ${value} ${_sin_extra_args})
+        if (_sin_VERBOSE)
+            message (VERBOSE "set ${var} = ${value}")
+        endif ()
     endif ()
 endmacro ()
 
