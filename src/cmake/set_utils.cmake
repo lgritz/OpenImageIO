@@ -5,8 +5,20 @@
 
 # Set a variable to a value if it is not already defined.
 macro (set_if_not var value)
+    cmake_parse_arguments(_sin   # prefix
+        # noValueKeywords:
+        "VERBOSE"
+        # singleValueKeywords:
+        ""
+        # multiValueKeywords:
+        ""
+        # argsToParse:
+        ${ARGN})
     if (NOT DEFINED ${var})
         set (${var} ${value})
+        if (_sin_VERBOSE)
+            message (STATUS "set ${var} = ${value}")
+        endif ()
     endif ()
 endmacro ()
 
@@ -24,16 +36,15 @@ endmacro ()
 # Set a cmake variable `var` from an environment variable, if it is not
 # already defined (or if the FORCE flag is used). By default, the env var is
 # the same name as `var`, but you can specify a different env var name with
-# the ENVVAR keyword. If the env var doesn't exist or is empty, and a DEFAULT
-# is supplied, assign the default to the variable instead.  If the VERBOSE
-# CMake variable is set, or if the VERBOSE flag to this function is used,
-# print a message.
-macro (set_from_env var)
+# the ENVVAR keyword. If the env var doesn't exist or is empty, assign the
+# defaultval to the variable instead.  If the VERBOSE CMake variable is set,
+# or if the VERBOSE flag to this function is used, print a message.
+macro (set_from_env var defaultval)
     cmake_parse_arguments(_sfe   # prefix
         # noValueKeywords:
         "VERBOSE;FORCE"
         # singleValueKeywords:
-        "ENVVAR;DEFAULT;NAME"
+        "ENVVAR;NAME"
         # multiValueKeywords:
         ""
         # argsToParse:
@@ -43,11 +54,13 @@ macro (set_from_env var)
         set_if_not (_sfe_NAME ${var})
         if (DEFINED ENV{${_sfe_ENVVAR}} AND NOT "$ENV{${_sfe_ENVVAR}}" STREQUAL "")
             set (${var} $ENV{${_sfe_ENVVAR}})
-            if (_sfe_VERBOSE OR VERBOSE)
-                message (VERBOSE "set ${_sfe_NAME} = $ENV{${_sfe_ENVVAR}} (from env)")
-            endif ()
-        elseif (DEFINED _sfe_DEFAULT)
-            set (${var} ${_sfe_DEFAULT})
+        else ()
+            set (${var} ${defaultval})
+        endif ()
+        if (_sfe_VERBOSE)
+            message (STATUS "set ${_sfe_NAME} = $ENV{${_sfe_ENVVAR}} (from env)")
+        elseif (VERBOSE)
+            message (VERBOSE "set ${_sfe_NAME} = $ENV{${_sfe_ENVVAR}} (from env)")
         endif ()
     endif ()
 endmacro ()
@@ -66,6 +79,7 @@ endmacro ()
 #   to cache variables).
 # - `DOC <docstring>` specifies a doc string for cache variables. If omitted,
 #   an empty doc string will be used.
+# - FORCE ensures that the cache variable forces overwrite.
 # Other extensions may be added in the future.
 macro (super_set name value)
     cmake_parse_arguments(_sce   # prefix
@@ -90,8 +104,8 @@ macro (super_set name value)
     if (_sce_FORCE)
         list (APPEND _sce_extra_args FORCE)
     endif ()
-    set_if_not (_sce_DOC "empty")
-    set_from_env (_sce_val ENVVAR ${name} NAME ${name} DEFAULT ${value})
+    set_if_not (_sce_DOC "no doc")
+    set_from_env (_sce_val "${value}" ENVVAR ${name} NAME ${name})
     if (_sce_CACHE)
         set (${name} ${_sce_val} CACHE ${_sce_type} "${_sce_DOC}" ${_sce_extra_args})
     else ()
