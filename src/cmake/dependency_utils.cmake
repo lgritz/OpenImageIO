@@ -54,6 +54,27 @@ set (CFP_LOCALLY_BUILDABLE_DEPS_BADVERSION "")
 # Which dependencies did we build locally
 set (CFP_LOCALLY_BUILT_DEPS "")
 
+# Common arguments to pass to all dependency builds. Can be overwridden
+# by individual build scripts.
+set (BUILDER_COMMON_CMAKE_ARGS
+        -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -D CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+        -D CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+        # -D CMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+        -D CMAKE_IGNORE_PREFIX_PATH=${CMAKE_IGNORE_PREFIX_PATH}
+        -D CMAKE_FIND_FRAMEWORK=${CMAKE_FIND_FRAMEWORK}
+        -D CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+        -D CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+        -D CMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+        -D CMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
+        -D CMAKE_COMPILE_WARNING_AS_ERROR=OFF
+        # -D BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
+        -D CMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY}
+        -D CMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
+        -D CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+        -D CMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
+    )
+
 
 
 # Utility function to list the names and values of all variables matching
@@ -502,7 +523,7 @@ macro (build_dependency_with_cmake pkgname)
         # noValueKeywords:
         "NOINSTALL"
         # singleValueKeywords:
-        "GIT_REPOSITORY;GIT_TAG;VERSION;SOURCE_SUBDIR"
+        "GIT_REPOSITORY;GIT_TAG;VERSION;SOURCE_SUBDIR;PREFIX"
         # multiValueKeywords:
         "CMAKE_ARGS"
         # argsToParse:
@@ -510,9 +531,13 @@ macro (build_dependency_with_cmake pkgname)
 
     message (STATUS "Building local ${pkgname} ${_pkg_VERSION} from ${_pkg_GIT_REPOSITORY}")
 
-    set (${pkgname}_LOCAL_SOURCE_DIR "${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/${pkgname}")
-    set (${pkgname}_LOCAL_BUILD_DIR "${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/${pkgname}-build")
-    set (${pkgname}_LOCAL_INSTALL_DIR "${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/dist")
+    set_if_not (${PROJECT_NAME}_LOCAL_DEPS_ROOT ${PROJECT_BINARY_DIR}/deps VERBOSE)
+    message (STATUS "${PROJECT_NAME}_LOCAL_DEPS_ROOT = ${${PROJECT_NAME}_LOCAL_DEPS_ROOT}")
+    set_if_not (${PROJECT_NAME}_LOCAL_INSTALL_DIR ${${PROJECT_NAME}_LOCAL_DEPS_ROOT} VERBOSE)
+    set_if_not (_pkg_PREFIX ${${PROJECT_NAME}_LOCAL_DEPS_ROOT} VERBOSE)
+    set_if_not (${pkgname}_LOCAL_SOURCE_DIR "${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/${pkgname}" VERBOSE)
+    set_if_not (${pkgname}_LOCAL_BUILD_DIR "${${PROJECT_NAME}_LOCAL_DEPS_ROOT}/${pkgname}-build" VERBOSE)
+    set_if_not (${pkgname}_LOCAL_INSTALL_DIR "${${PROJECT_NAME}_LOCAL_INSTALL_DIR}" VERBOSE)
     message (STATUS "Downloading local ${_pkg_GIT_REPOSITORY}")
 
     set (_pkg_quiet OUTPUT_QUIET)
@@ -548,6 +573,7 @@ macro (build_dependency_with_cmake pkgname)
 
     execute_process (COMMAND
         ${CMAKE_COMMAND}
+            ${BUILDER_COMMON_CMAKE_ARGS}
             # Put things in our special local build areas
                 -S ${${pkgname}_LOCAL_SOURCE_DIR}/${_pkg_SOURCE_SUBDIR}
                 -B ${${pkgname}_LOCAL_BUILD_DIR}

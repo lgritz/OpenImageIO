@@ -17,16 +17,31 @@ checked_find_package (libdeflate REQUIRED
                       VERSION_MIN 1.18)
 alias_library_if_not_exists (Deflate::Deflate libdeflate::libdeflate_static)
 
-if (TARGET libjpeg-turbo::jpeg)
-    # We've had some trouble with TIFF finding the JPEG resources it needs to
-    # build if we're using libjpeg-turbo, TIFF needs an extra nudge.
-    get_target_property(JPEG_INCLUDE_DIRS JPEG::JPEG INTERFACE_INCLUDE_DIRECTORIES)
-    get_target_property(JPEG_LIBRARIES JPEG::JPEG INTERFACE_LINK_LIBRARIES)
-    set (JPEG_FOUND TRUE)
-    set (MORE_TIFF_CMAKE_ARGS
-         -D JPEG_INCLUDE_DIR=${JPEG_INCLUDE_DIRS}
-         -D JPEG_LIBRARY=${JPEG_LIBRARIES} )
+if (NOT JPEG_INCLUDE_DIR OR NOT JPEG_LIBRARY)
+    if (TARGET libjpeg-turbo::jpeg-static)
+        # We've had some trouble with libuhdr finding the JPEG resources it needs to
+        # build if we're using libjpeg-turbo, libuhdr needs an extra nudge.
+        get_target_property(JPEG_INCLUDE_DIR libjpeg-turbo::jpeg-static INTERFACE_INCLUDE_DIRECTORIES)
+        get_target_property(JPEG_LIBRARY libjpeg-turbo::jpeg-static INTERFACE_LINK_LIBRARIES)
+        set (JPEG_FOUND TRUE)
+    elseif (TARGET libjpeg-turbo::jpeg)
+        # We've had some trouble with libuhdr finding the JPEG resources it needs to
+        # build if we're using libjpeg-turbo, libuhdr needs an extra nudge.
+        get_target_property(JPEG_INCLUDE_DIR libjpeg-turbo::jpeg INTERFACE_INCLUDE_DIRECTORIES)
+        get_target_property(JPEG_LIBRARY libjpeg-turbo::jpeg INTERFACE_LINK_LIBRARIES)
+        set (JPEG_FOUND TRUE)
+    endif ()
 endif ()
+set (MORE_TIFF_CMAKE_ARGS
+     -D JPEG_INCLUDE_DIR=${JPEG_INCLUDE_DIRS}
+     -D JPEG_LIBRARY=${JPEG_LIBRARIES} )
+# if (TARGET libjpeg-turbo::jpeg OR TARGET libjpeg-turbo::jpeg-static)
+#     # We've had some trouble with TIFF finding the JPEG resources it needs to
+#     # build if we're using libjpeg-turbo, TIFF needs an extra nudge.
+#     get_target_property(JPEG_INCLUDE_DIRS JPEG::JPEG INTERFACE_INCLUDE_DIRECTORIES)
+#     get_target_property(JPEG_LIBRARIES JPEG::JPEG INTERFACE_LINK_LIBRARIES)
+#     set (JPEG_FOUND TRUE)
+# endif ()
 
 build_dependency_with_cmake(TIFF
     VERSION         ${TIFF_BUILD_VERSION}

@@ -76,7 +76,11 @@ set (OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH OFF CACHE BOOL
 checked_find_package (libjpeg-turbo
                       VERSION_MIN 2.1
                       DEFINITIONS USE_JPEG_TURBO=1)
-if (TARGET libjpeg-turbo::jpeg) # Try to find the non-turbo version
+if (TARGET libjpeg-turbo::jpeg-static) # Try to find the non-turbo version
+    # Doctor it so libjpeg-turbo is aliased as JPEG::JPEG
+    alias_library_if_not_exists (JPEG::JPEG libjpeg-turbo::jpeg-static)
+    set (JPEG_FOUND TRUE)
+elseif (TARGET libjpeg-turbo::jpeg) # Try to find the non-turbo version
     # Doctor it so libjpeg-turbo is aliased as JPEG::JPEG
     alias_library_if_not_exists (JPEG::JPEG libjpeg-turbo::jpeg)
     set (JPEG_FOUND TRUE)

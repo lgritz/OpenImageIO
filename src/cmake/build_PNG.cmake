@@ -36,7 +36,7 @@ build_dependency_with_cmake (PNG
         -D PNG_FRAMEWORK=OFF
         -D CMAKE_POSITION_INDEPENDENT_CODE=ON
         -D CMAKE_INSTALL_LIBDIR=lib
-        -D PNG_PREFIX=oiio
+        # -D PNG_PREFIX=oiio
     )
 
     
@@ -53,9 +53,7 @@ if (PNG_BUILD_VERSION VERSION_GREATER 1.6.43)
 endif ()
 
 find_package(PNG ${PNG_REFIND_VERSION} ${PNG_REFIND_ARGS}
-             HINTS 
-                    ${PNG_LOCAL_INSTALL_DIR}/lib/cmake/PNG
-                    ${PNG_LOCAL_INSTALL_DIR}
+             HINTS ${PNG_ROOT}
              NO_DEFAULT_PATH
             )
 

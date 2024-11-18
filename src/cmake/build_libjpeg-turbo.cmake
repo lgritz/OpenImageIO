@@ -18,17 +18,28 @@ build_dependency_with_cmake(libjpeg-turbo
         -D ENABLE_SHARED=${libjpeg-turbo_BUILD_SHARED_LIBS}
         -D WITH_JPEG8=1
         -D CMAKE_INSTALL_LIBDIR=lib
-        -D CMAKE_POSITION_INDEPENDENT_CODE=1
-
+        -D CMAKE_POSITION_INDEPENDENT_CODE=ON
     )
-# Set some things up that we'll need for a subsequent find_package to work
+
+
+# Re-find the package we just installed
 set (libjpeg-turbo_ROOT ${libjpeg-turbo_LOCAL_INSTALL_DIR})
-
-
-# Signal to caller that we need to find again at the installed location
-set (libjpeg-turbo_REFIND TRUE)
-set (libjpeg-turbo_REFIND_ARGS CONFIG)
+find_package(libjpeg-turbo REQUIRED CONFIG)
 
 if (libjpeg-turbo_BUILD_SHARED_LIBS)
     install_local_dependency_libs (libjpeg-turbo libjpeg-turbo)
+endif ()
+
+if (TARGET libjpeg-turbo::jpeg-static)
+    # We've had some trouble with libuhdr finding the JPEG resources it needs to
+    # build if we're using libjpeg-turbo, libuhdr needs an extra nudge.
+    get_target_property(JPEG_INCLUDE_DIR libjpeg-turbo::jpeg-static INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(JPEG_LIBRARY libjpeg-turbo::jpeg-static INTERFACE_LINK_LIBRARIES)
+    set (JPEG_FOUND TRUE)
+elseif (TARGET libjpeg-turbo::jpeg)
+    # We've had some trouble with libuhdr finding the JPEG resources it needs to
+    # build if we're using libjpeg-turbo, libuhdr needs an extra nudge.
+    get_target_property(JPEG_INCLUDE_DIR libjpeg-turbo::jpeg INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(JPEG_LIBRARY libjpeg-turbo::jpeg INTERFACE_LINK_LIBRARIES)
+    set (JPEG_FOUND TRUE)
 endif ()

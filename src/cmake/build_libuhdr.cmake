@@ -13,7 +13,17 @@ set (libuhdr_GIT_TAG "v${libuhdr_BUILD_VERSION}")
 set_cache (libuhdr_BUILD_SHARED_LIBS OFF
            DOC "Should execute a local libuhdr build, if necessary, build shared libraries" ADVANCED)
 
-if (TARGET libjpeg-turbo::jpeg)
+if (TARGET libjpeg-turbo::jpeg-static)
+    # We've had some trouble with libuhdr finding the JPEG resources it needs to
+    # build if we're using libjpeg-turbo, libuhdr needs an extra nudge.
+    get_target_property(JPEG_INCLUDE_DIR libjpeg-turbo::jpeg-static INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(JPEG_LIBRARY libjpeg-turbo::jpeg-static INTERFACE_LINK_LIBRARIES)
+elseif (TARGET libjpeg-turbo::jpeg)
+    # We've had some trouble with libuhdr finding the JPEG resources it needs to
+    # build if we're using libjpeg-turbo, libuhdr needs an extra nudge.
+    get_target_property(JPEG_INCLUDE_DIR libjpeg-turbo::jpeg INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(JPEG_LIBRARY libjpeg-turbo::jpeg INTERFACE_LINK_LIBRARIES)
+elseif (TARGET JPEG::JPEG)
     # We've had some trouble with libuhdr finding the JPEG resources it needs to
     # build if we're using libjpeg-turbo, libuhdr needs an extra nudge.
     get_target_property(JPEG_INCLUDE_DIR JPEG::JPEG INTERFACE_INCLUDE_DIRECTORIES)
@@ -49,9 +59,10 @@ if (WIN32)
     unset (_header_files)
 endif ()
 
-set (libuhdr_ROOT ${libuhdr_LOCAL_INSTALL_DIR})
 
-find_package(libuhdr REQUIRED)
+# Re-find the package we just installed
+set (libuhdr_ROOT ${libuhdr_LOCAL_INSTALL_DIR})
+find_package(libuhdr ${libuhdr_BUILD_VERSION} REQUIRED)
 
 set (libuhdr_VERSION ${libuhdr_BUILD_VERSION})
 

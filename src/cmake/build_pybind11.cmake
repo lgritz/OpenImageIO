@@ -20,7 +20,6 @@ build_dependency_with_cmake(pybind11
     GIT_TAG         ${pybind11_GIT_TAG}
     CMAKE_ARGS
         -D PYBIND11_PYTHON_VERSION=${PYTHON3_VERSION}
-        # Don't built unnecessary parts of Pybind11
         -D BUILD_TESTING=OFF
         -D PYBIND11_TEST=OFF
     )

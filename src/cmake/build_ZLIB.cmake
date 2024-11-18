@@ -23,6 +23,7 @@ build_dependency_with_cmake(ZLIB
         -D BUILD_SHARED_LIBS=${ZLIB_BUILD_SHARED_LIBS}
         -D CMAKE_POSITION_INDEPENDENT_CODE=ON
         -D CMAKE_INSTALL_LIBDIR=lib
+        -D ZLIB_BUILD_EXAMPLES=OFF
     )
 
 # Set some things up that we'll need for a subsequent find_package to work
