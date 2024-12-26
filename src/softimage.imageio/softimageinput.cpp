@@ -225,35 +225,25 @@ SoftimageInput::close()
 
 
 
-inline bool
+bool
 SoftimageInput::read_next_scanline(void* data)
 {
     // Each scanline is stored using one or more channel packets.
     // We go through each of those to pull the data
     for (auto& cp : m_channel_packets) {
-        if (cp.type & UNCOMPRESSED) {
-            if (!read_pixels_uncompressed(cp, data)) {
-                errorfmt("Failed to read uncompressed pixel data from \"{}\"",
-                         m_filename);
-                close();
-                return false;
-            }
-        } else if (cp.type & PURE_RUN_LENGTH) {
-            if (!read_pixels_pure_run_length(cp, data)) {
-                errorfmt(
-                    "Failed to read pure run length encoded pixel data from \"{}\"",
-                    m_filename);
-                close();
-                return false;
-            }
-        } else if (cp.type & MIXED_RUN_LENGTH) {
-            if (!read_pixels_mixed_run_length(cp, data)) {
-                errorfmt(
-                    "Failed to read mixed run length encoded pixel data from \"{}\"",
-                    m_filename);
-                close();
-                return false;
-            }
+        bool ok = false;
+        if (cp.type == UNCOMPRESSED) {
+            ok = read_pixels_uncompressed(cp, data);
+        } else if (cp.type == PURE_RUN_LENGTH) {
+            ok = read_pixels_pure_run_length(cp, data);
+        } else if (cp.type == MIXED_RUN_LENGTH) {
+            ok = read_pixels_mixed_run_length(cp, data);
+        }
+        if (!ok) {
+            errorfmt("Failed to read channel packed type {:d} from \"{}\"",
+                     int(cp.type), m_filename);
+            close();
+            return false;
         }
     }
     return true;
@@ -261,7 +251,7 @@ SoftimageInput::read_next_scanline(void* data)
 
 
 
-inline bool
+bool
 SoftimageInput::read_pixels_uncompressed(
     const softimage_pvt::ChannelPacket& curPacket, void* data)
 {
@@ -304,7 +294,7 @@ SoftimageInput::read_pixels_uncompressed(
 
 
 
-inline bool
+bool
 SoftimageInput::read_pixels_pure_run_length(
     const softimage_pvt::ChannelPacket& curPacket, void* data)
 {
@@ -365,7 +355,7 @@ SoftimageInput::read_pixels_pure_run_length(
 
 
 
-inline bool
+bool
 SoftimageInput::read_pixels_mixed_run_length(
     const softimage_pvt::ChannelPacket& curPacket, void* data)
 {

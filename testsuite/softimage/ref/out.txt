@@ -1,0 +1,30 @@
+Reading ../oiio-images/softimage/fisheye.pic
+../oiio-images/softimage/fisheye.pic :   75 x   75, 4 channel, uint8 softimage
+    SHA-1: 3A3D307729BEDC0855302F3FD2846A6477887E61
+    channel list: R, G, B, A
+    BitsPerSample: 8
+    ImageDescription: "Written by mental images libimg"
+    Stats Min: 0 0 0 0 (of 255)
+    Stats Max: 237 249 237 255 (of 255)
+    Stats Avg: 137.64 58.72 26.04 200.10 (of 255)
+    Stats StdDev: 92.44 56.97 40.52 103.14 (of 255)
+    Stats NanCount: 0 0 0 0 
+    Stats InfCount: 0 0 0 0 
+    Stats FiniteCount: 5625 5625 5625 5625 
+    Constant: No
+    Monochrome: No
+Reading ../oiio-images/softimage/astone64.pic
+../oiio-images/softimage/astone64.pic :   64 x   64, 3 channel, uint8 softimage
+    SHA-1: 0FD57F8BBD941261055C65A64BBA294D9C21664F
+    channel list: R, G, B
+    BitsPerSample: 8
+    ImageDescription: "ImageFX SoftImage Saver (Amiga)"
+    Stats Min: 26 30 0 (of 255)
+    Stats Max: 255 255 174 (of 255)
+    Stats Avg: 154.83 158.82 68.19 (of 255)
+    Stats StdDev: 37.89 37.86 29.05 (of 255)
+    Stats NanCount: 0 0 0 
+    Stats InfCount: 0 0 0 
+    Stats FiniteCount: 4096 4096 4096 
+    Constant: No
+    Monochrome: No
