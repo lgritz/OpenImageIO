@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // https://github.com/AcademySoftwareFoundation/OpenImageIO
 
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <memory>
+#include <utility>
 
 #include <OpenEXR/ImfTimeCode.h>  //For TimeCode support
 
@@ -77,20 +79,16 @@ private:
     }
 
     /// Helper function - retrieve string for libdpx characteristic
-    ///
     std::string get_characteristic_string(dpx::Characteristic c);
 
     /// Helper function - retrieve string for libdpx descriptor
-    ///
     std::string get_descriptor_string(dpx::Descriptor c);
 
     /// Helper function - fill int array with KeyCode values
-    ///
-    void get_keycode_values(int* array);
+    void get_keycode_values(span<int> array);
 
     /// Helper function - convert Imf::TimeCode to string;
-    ///
-    std::string get_timecode_string(Imf::TimeCode& tc);
+    std::string get_timecode_string(const Imf::TimeCode& tc);
 };
 
 
@@ -170,6 +168,22 @@ DPXInput::open(const std::string& name, ImageSpec& newspec,
                  || config.get_int_attribute("oiio:RawColor");
     ioproxy_retrieve_from_config(config);
     return open(name, newspec);
+}
+
+
+
+// Helper, given key and a span of (KEY,VAL) pairs, look up which item
+// matches. If no key is found, then return the defaultval.
+template<typename KEY, typename VAL>
+const VAL&
+lookup(const KEY& key, cspan<std::pair<KEY, VAL>> values, const VAL& defaultval)
+{
+    OIIO_ASSERT(values.size() >= 2);
+    auto found = std::find_if(values.begin(), values.end(),
+                              [&key](const std::pair<KEY, VAL>& v) {
+                                  return v.first == key;
+                              });
+    return (found != values.end()) ? found->second : defaultval;
 }
 
 
@@ -294,18 +308,18 @@ DPXInput::seek_subimage(int subimage, int miplevel)
     // bits per pixel
     m_spec.attribute("oiio:BitsPerSample", m_dpx.header.BitDepth(subimage));
     // image orientation - see appendix B.2 of the OIIO documentation
-    int orientation;
-    switch (m_dpx.header.ImageOrientation()) {
-    case dpx::kLeftToRightTopToBottom: orientation = 1; break;
-    case dpx::kRightToLeftTopToBottom: orientation = 2; break;
-    case dpx::kLeftToRightBottomToTop: orientation = 4; break;
-    case dpx::kRightToLeftBottomToTop: orientation = 3; break;
-    case dpx::kTopToBottomLeftToRight: orientation = 5; break;
-    case dpx::kTopToBottomRightToLeft: orientation = 6; break;
-    case dpx::kBottomToTopLeftToRight: orientation = 8; break;
-    case dpx::kBottomToTopRightToLeft: orientation = 7; break;
-    default: orientation = 0; break;
-    }
+    static const std::pair<dpx::Orientation, int> orientation_table[]
+        = { { dpx::kLeftToRightTopToBottom, 1 },
+            { dpx::kRightToLeftTopToBottom, 2 },
+            { dpx::kLeftToRightBottomToTop, 4 },
+            { dpx::kRightToLeftBottomToTop, 3 },
+            { dpx::kTopToBottomLeftToRight, 5 },
+            { dpx::kTopToBottomRightToLeft, 6 },
+            { dpx::kBottomToTopLeftToRight, 8 },
+            { dpx::kBottomToTopRightToLeft, 7 } };
+    int orientation
+        = lookup<dpx::Orientation, int>(m_dpx.header.ImageOrientation(),
+                                        orientation_table, 1);
     m_spec.attribute("Orientation", orientation);
 
     m_spec.attribute("oiio:subimages", (int)m_dpx.header.ImageElementCount());
@@ -495,51 +509,31 @@ DPXInput::seek_subimage(int subimage, int miplevel)
             m_spec.attribute("dpx:FilmEdgeCode", filmedge);
     }
 
-    tmpstr.clear();
-    switch (m_dpx.header.Signal()) {
-    case dpx::kUndefined: tmpstr = "Undefined"; break;
-    case dpx::kNTSC: tmpstr = "NTSC"; break;
-    case dpx::kPAL: tmpstr = "PAL"; break;
-    case dpx::kPAL_M: tmpstr = "PAL-M"; break;
-    case dpx::kSECAM: tmpstr = "SECAM"; break;
-    case dpx::k525LineInterlace43AR:
-        tmpstr = "YCbCr ITU-R 601-5 525i, 4:3";
-        break;
-    case dpx::k625LineInterlace43AR:
-        tmpstr = "YCbCr ITU-R 601-5 625i, 4:3";
-        break;
-    case dpx::k525LineInterlace169AR:
-        tmpstr = "YCbCr ITU-R 601-5 525i, 16:9";
-        break;
-    case dpx::k625LineInterlace169AR:
-        tmpstr = "YCbCr ITU-R 601-5 625i, 16:9";
-        break;
-    case dpx::k1050LineInterlace169AR: tmpstr = "YCbCr 1050i, 16:9"; break;
-    case dpx::k1125LineInterlace169AR_274:
-        tmpstr = "YCbCr 1125i, 16:9 (SMPTE 274M)";
-        break;
-    case dpx::k1250LineInterlace169AR: tmpstr = "YCbCr 1250i, 16:9"; break;
-    case dpx::k1125LineInterlace169AR_240:
-        tmpstr = "YCbCr 1125i, 16:9 (SMPTE 240M)";
-        break;
-    case dpx::k525LineProgressive169AR: tmpstr = "YCbCr 525p, 16:9"; break;
-    case dpx::k625LineProgressive169AR: tmpstr = "YCbCr 625p, 16:9"; break;
-    case dpx::k750LineProgressive169AR:
-        tmpstr = "YCbCr 750p, 16:9 (SMPTE 296M)";
-        break;
-    case dpx::k1125LineProgressive169AR:
-        tmpstr = "YCbCr 1125p, 16:9 (SMPTE 274M)";
-        break;
-    case dpx::k255:
-        // don't set the attribute at all
-        break;
-    default:
-        tmpstr = Strutil::fmt::format("Undefined {}",
-                                      (int)m_dpx.header.Signal());
-        break;
-    }
-    if (!tmpstr.empty())
-        m_spec.attribute("dpx:Signal", tmpstr);
+    static const std::pair<dpx::VideoSignal, const char*> signal_table[] = {
+        { dpx::kUndefined, "Undefined" },
+        { dpx::kNTSC, "NTSC" },
+        { dpx::kPAL, "PAL" },
+        { dpx::kPAL_M, "PAL-M" },
+        { dpx::kSECAM, "SECAM" },
+        { dpx::k525LineInterlace43AR, "YCbCr ITU-R 601-5 525i, 4:3" },
+        { dpx::k625LineInterlace43AR, "YCbCr ITU-R 601-5 625i, 4:3" },
+        { dpx::k525LineInterlace169AR, "YCbCr ITU-R 601-5 525i, 16:9" },
+        { dpx::k625LineInterlace169AR, "YCbCr ITU-R 601-5 625i, 16:9" },
+        { dpx::k1050LineInterlace169AR, "YCbCr 1050i, 16:9" },
+        { dpx::k1125LineInterlace169AR_274, "YCbCr 1125i, 16:9 (SMPTE 274M)" },
+        { dpx::k1250LineInterlace169AR, "YCbCr 1250i, 16:9" },
+        { dpx::k1125LineInterlace169AR_240, "YCbCr 1125i, 16:9 (SMPTE 240M)" },
+        { dpx::k525LineProgressive169AR, "YCbCr 525p, 16:9" },
+        { dpx::k625LineProgressive169AR, "YCbCr 625p, 16:9" },
+        { dpx::k750LineProgressive169AR, "YCbCr 750p, 16:9 (SMPTE 296M)" },
+        { dpx::k1125LineProgressive169AR, "YCbCr 1125p, 16:9 (SMPTE 274M)" },
+        { dpx::k255, nullptr /* don't set the attribute at all */ },
+    };
+    const char* signal
+        = lookup<dpx::VideoSignal, const char*>(m_dpx.header.Signal(),
+                                                signal_table, "Undefined");
+    if (signal)
+        m_spec.attribute("dpx:Signal", signal);
 
     // read in user data; don't bother if the buffer is already filled (user
     // data is per-file, not per-element)
@@ -619,24 +613,25 @@ DPXInput::read_native_scanlines(int subimage, int miplevel, int ybegin,
 std::string
 DPXInput::get_characteristic_string(dpx::Characteristic c)
 {
-    switch (c) {
-    case dpx::kUserDefined: return "User defined";
-    case dpx::kPrintingDensity: return "Printing density";
-    case dpx::kLinear: return "Linear";
-    case dpx::kLogarithmic: return "Logarithmic";
-    case dpx::kUnspecifiedVideo: return "Unspecified video";
-    case dpx::kSMPTE274M: return "SMPTE 274M";
-    case dpx::kITUR709: return "ITU-R 709-4";
-    case dpx::kITUR601: return "ITU-R 601-5 system B or G";
-    case dpx::kITUR602: return "ITU-R 601-5 system M";
-    case dpx::kNTSCCompositeVideo: return "NTSC composite video";
-    case dpx::kPALCompositeVideo: return "PAL composite video";
-    case dpx::kZLinear: return "Z depth linear";
-    case dpx::kZHomogeneous: return "Z depth homogeneous";
-    case dpx::kADX: return "ADX";
-    case dpx::kUndefinedCharacteristic:
-    default: return "Undefined";
-    }
+    // using Val = std::pair<dpx::Characteristic, const char*>
+    static const std::pair<dpx::Characteristic, const char*> table[] {
+        { dpx::kUserDefined, "User defined" },
+        { dpx::kPrintingDensity, "Printing density" },
+        { dpx::kLinear, "Linear" },
+        { dpx::kLogarithmic, "Logarithmic" },
+        { dpx::kUnspecifiedVideo, "Unspecified video" },
+        { dpx::kSMPTE274M, "SMPTE 274M" },
+        { dpx::kITUR709, "ITU-R 709-4" },
+        { dpx::kITUR601, "ITU-R 601-5 system B or G" },
+        { dpx::kITUR602, "ITU-R 601-5 system M" },
+        { dpx::kNTSCCompositeVideo, "NTSC composite video" },
+        { dpx::kPALCompositeVideo, "PAL composite video" },
+        { dpx::kZLinear, "Z depth linear" },
+        { dpx::kZHomogeneous, "Z depth homogeneous" },
+        { dpx::kADX, "ADX" },
+        { dpx::kUndefinedCharacteristic, "Undefined" }
+    };
+    return lookup<dpx::Characteristic, const char*>(c, table, "Undefined");
 }
 
 
@@ -644,122 +639,88 @@ DPXInput::get_characteristic_string(dpx::Characteristic c)
 std::string
 DPXInput::get_descriptor_string(dpx::Descriptor c)
 {
-    switch (c) {
-    case dpx::kUserDefinedDescriptor:
-    case dpx::kUserDefined2Comp:
-    case dpx::kUserDefined3Comp:
-    case dpx::kUserDefined4Comp:
-    case dpx::kUserDefined5Comp:
-    case dpx::kUserDefined6Comp:
-    case dpx::kUserDefined7Comp:
-    case dpx::kUserDefined8Comp: return "User defined";
-    case dpx::kRed: return "Red";
-    case dpx::kGreen: return "Green";
-    case dpx::kBlue: return "Blue";
-    case dpx::kAlpha: return "Alpha";
-    case dpx::kLuma: return "Luma";
-    case dpx::kColorDifference: return "Color difference";
-    case dpx::kDepth: return "Depth";
-    case dpx::kCompositeVideo: return "Composite video";
-    case dpx::kRGB: return "RGB";
-    case dpx::kRGBA: return "RGBA";
-    case dpx::kABGR: return "ABGR";
-    case dpx::kCbYCrY: return "CbYCrY";
-    case dpx::kCbYACrYA: return "CbYACrYA";
-    case dpx::kCbYCr: return "CbYCr";
-    case dpx::kCbYCrA: return "CbYCrA";
-    //case dpx::kUndefinedDescriptor:
-    default: return "Undefined";
-    }
+    static const std::pair<dpx::Descriptor, const char*> table[] {
+        { dpx::kUserDefinedDescriptor, "User defined" },
+        { dpx::kUserDefined2Comp, "User defined" },
+        { dpx::kUserDefined3Comp, "User defined" },
+        { dpx::kUserDefined4Comp, "User defined" },
+        { dpx::kUserDefined5Comp, "User defined" },
+        { dpx::kUserDefined6Comp, "User defined" },
+        { dpx::kUserDefined7Comp, "User defined" },
+        { dpx::kUserDefined8Comp, "User defined" },
+        { dpx::kRed, "Red" },
+        { dpx::kGreen, "Green" },
+        { dpx::kBlue, "Blue" },
+        { dpx::kAlpha, "Alpha" },
+        { dpx::kLuma, "Luma" },
+        { dpx::kColorDifference, "Color difference" },
+        { dpx::kDepth, "Depth" },
+        { dpx::kCompositeVideo, "Composite video" },
+        { dpx::kRGB, "RGB" },
+        { dpx::kRGBA, "RGBA" },
+        { dpx::kABGR, "ABGR" },
+        { dpx::kCbYCrY, "CbYCrY" },
+        { dpx::kCbYACrYA, "CbYACrYA" },
+        { dpx::kCbYCr, "CbYCr" },
+        { dpx::kCbYCrA, "CbYCrA" }
+    };
+    return lookup<dpx::Descriptor, const char*>(c, table, "Undefined");
 }
 
 
 
 void
-DPXInput::get_keycode_values(int* array)
+DPXInput::get_keycode_values(span<int> array)
 {
-    std::stringstream ss;
-
+    OIIO_ASSERT(array.size() == 7);
     // Manufacturer code
-    ss << std::string(m_dpx.header.filmManufacturingIdCode, 2);
-    ss >> array[0];
-    ss.clear();
-    ss.str("");
-
+    array[0] = Strutil::stoi(
+        string_view(m_dpx.header.filmManufacturingIdCode, 2));
     // Film type
-    ss << std::string(m_dpx.header.filmType, 2);
-    ss >> array[1];
-    ss.clear();
-    ss.str("");
-
+    array[1] = Strutil::stoi(string_view(m_dpx.header.filmType, 2));
     // Prefix
-    ss << std::string(m_dpx.header.prefix, 6);
-    ss >> array[2];
-    ss.clear();
-    ss.str("");
-
+    array[2] = Strutil::stoi(string_view(m_dpx.header.prefix, 6));
     // Count
-    ss << std::string(m_dpx.header.count, 4);
-    ss >> array[3];
-    ss.clear();
-    ss.str("");
-
+    array[3] = Strutil::stoi(string_view(m_dpx.header.count, 4));
     // Perforation Offset
-    ss << std::string(m_dpx.header.perfsOffset, 2);
-    ss >> array[4];
-    ss.clear();
-    ss.str("");
+    array[4] = Strutil::stoi(string_view(m_dpx.header.perfsOffset, 2));
 
     // Format
     std::string format(m_dpx.header.format, 32);
-    int& perfsPerFrame = array[5];
-    int& perfsPerCount = array[6];
-
-    // default values
-    perfsPerFrame = 4;
-    perfsPerCount = 64;
-
+    int perfsPerFrame = 4;  // default values
+    int perfsPerCount = 64;
+    using Strutil::starts_with;
     if (format == "8kimax") {
         perfsPerFrame = 15;
         perfsPerCount = 120;
-    } else if (format.substr(0, 4) == "2kvv" || format.substr(0, 4) == "4kvv") {
+    } else if (starts_with(format, "2kvv") || starts_with(format, "4kvv")) {
         perfsPerFrame = 8;
     } else if (format == "VistaVision") {
         perfsPerFrame = 8;
-    } else if (format.substr(0, 4) == "2k35" || format.substr(0, 4) == "4k35") {
+    } else if (starts_with(format, "2k35") || starts_with(format, "4k35")) {
         perfsPerFrame = 4;
     } else if (format == "Full Aperture") {
         perfsPerFrame = 4;
     } else if (format == "Academy") {
         perfsPerFrame = 4;
-    } else if (format.substr(0, 7) == "2k3perf"
-               || format.substr(0, 7) == "4k3perf") {
+    } else if (starts_with(format, "2k3perf")
+               || starts_with(format, "4k3perf")) {
         perfsPerFrame = 3;
     } else if (format == "3perf") {
         perfsPerFrame = 3;
     }
+    array[5] = perfsPerFrame;
+    array[6] = perfsPerCount;
 }
 
 
 
 std::string
-DPXInput::get_timecode_string(Imf::TimeCode& tc)
+DPXInput::get_timecode_string(const Imf::TimeCode& tc)
 {
-    int values[] = { tc.hours(), tc.minutes(), tc.seconds(), tc.frame() };
-    std::stringstream ss;
-    for (int i = 0; i < 4; i++) {
-        std::ostringstream padded;
-        padded << std::setw(2) << std::setfill('0') << values[i];
-        ss << padded.str();
-        if (i != 3) {
-            if (i == 2) {
-                tc.dropFrame() ? ss << ';' : ss << ':';
-            } else {
-                ss << ':';
-            }
-        }
-    }
-    return ss.str();
+    return Strutil::fmt::format("{:02d}:{:02d}:{:02d}{}{:02d}", tc.hours(),
+                                tc.minutes(), tc.seconds(),
+                                (tc.dropFrame() ? ';' : ':'), tc.frame());
 }
 
 OIIO_PLUGIN_NAMESPACE_END
