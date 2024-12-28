@@ -1675,40 +1675,6 @@ test_base64_encode()
 
 // clang-format on
 
-#if 0
-/// string_like<T>::value is true if T behaves like a string (i.e., has proper
-/// looking c_str() and size() methods).
-template<typename T> struct string_like {
-private:
-    typedef char Yes[1];
-    typedef char No[2];
-
-    // Valid only if .x, .y exist and are the right type: return a Yes.
-    template<typename C,
-             OIIO_ENABLE_IF(std::is_same<decltype(T().c_str()), const char*>()),
-             OIIO_ENABLE_IF(std::is_same<decltype(T().size()), size_t>())>
-    static Yes& test(int);
-
-    // Fallback, default to returning a No.
-    template<typename C> static No& test(...);
-
-public:
-    static constexpr bool value = (sizeof(test<T>(0)) == sizeof(Yes));
-    constexpr bool operator()() const noexcept { return value; }
-};
-
-
-/// string_viewable<T> is true_type if we can make a string_view out of a T.
-template<class T, class=void, class=void>
-struct string_viewable : public std::false_type {};
-
-template<typename T,
-         OIIO_ENABLE_IF(std::is_same<decltype(T().c_str()), const char*>()),
-         OIIO_ENABLE_IF(std::is_same<decltype(T().size()), size_t>())>
-struct string_viewable : public std::true_type {};
-#endif
-
-
 /// A StringViewSpan is a parameter-passing convenience type for passing a
 /// non-owning collection of strings. For example, something like
 /// `join(collection_of_strings)`, but this type offers the flexibility of the
@@ -1724,7 +1690,7 @@ struct string_viewable : public std::true_type {};
 /// - C++ std::string
 /// - string_view
 /// - ustring
-/// - anything else having a `const char* data()` and `size_t size()` members
+/// - anything else having a `const char* c_str()` and `size_t size()` members
 ///   that appear to behave as a string.
 /// 
 class StringViewSpan {
@@ -1746,28 +1712,6 @@ public:
     {
         print("init from span of string_view\n");
     }
-
-    // /// Construct from a string_view
-    // StringViewSpan(string_view s)
-    //     : m_svs(span<string_view>(s))
-    // {
-    // }
-
-#if 0
-    StringViewSpan(span<const std::string> s)
-        : m_local(new string_view[s.size()]), m_svs(m_local)
-    {
-        for (size_t i = 0, e = s.size(); i < e; ++i)
-            m_local[i] = string_view(s[i]);
-    }
-
-    StringViewSpan(span<const ustring> s)
-        : m_local(new string_view[s.size()]), m_svs(m_local)
-    {
-        for (size_t i = 0, e = s.size(); i < e; ++i)
-            m_local[i] = string_view(s[i]);
-    }
-#else
 
     /// Construct from a span of C strings
     StringViewSpan(span<const char*> s)
@@ -1817,7 +1761,6 @@ public:
         : StringViewSpan(span<const T>(s))
     {
     }
-#endif
 
     /// Indexing gives you the i-th string_view, which the underlying span
     /// will range-check in debug mode.
