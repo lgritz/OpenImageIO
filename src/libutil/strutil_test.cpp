@@ -1675,62 +1675,26 @@ test_base64_encode()
 
 // clang-format on
 
-#if 0
-/// string_like<T>::value is true if T behaves like a string (i.e., has proper
-/// looking c_str() and size() methods).
-template<typename T> struct string_like {
-private:
-    typedef char Yes[1];
-    typedef char No[2];
-
-    // Valid only if .x, .y exist and are the right type: return a Yes.
-    template<typename C,
-             OIIO_ENABLE_IF(std::is_same<decltype(T().c_str()), const char*>()),
-             OIIO_ENABLE_IF(std::is_same<decltype(T().size()), size_t>())>
-    static Yes& test(int);
-
-    // Fallback, default to returning a No.
-    template<typename C> static No& test(...);
-
-public:
-    static constexpr bool value = (sizeof(test<T>(0)) == sizeof(Yes));
-    constexpr bool operator()() const noexcept { return value; }
-};
-
-
-/// string_viewable<T> is true_type if we can make a string_view out of a T.
-template<class T, class=void, class=void>
-struct string_viewable : public std::false_type {};
-
-template<typename T,
-         OIIO_ENABLE_IF(std::is_same<decltype(T().c_str()), const char*>()),
-         OIIO_ENABLE_IF(std::is_same<decltype(T().size()), size_t>())>
-struct string_viewable : public std::true_type {};
-#endif
-
-
 /// A StringViewSpan is a parameter-passing convenience type for passing a
-/// non-owning collection of strings. For example, something like
-/// `join(collection_of_strings)`, but this type offers the flexibility of the
-/// collection being any of
+/// non-owning collection of strings. The collection may be any of
 ///
 /// - span
 /// - std::vector
 /// - array
 /// 
-/// and the type of string contained in the collecting being any of
+/// and the type of string contained in the collecting may be any of
 ///
 /// - C string or string literal
 /// - C++ std::string
 /// - string_view
 /// - ustring
-/// - anything else having a `const char* data()` and `size_t size()` members
+/// - anything else having a `const char* c_str()` and `size_t size()` members
 ///   that appear to behave as a string.
 /// 
 class StringViewSpan {
 public:
     using element_type = OIIO::string_view;
-    using svs = OIIO::span<element_type>;
+    using svs = OIIO::span<const element_type>;
     using size_type = size_t;
     using difference_type = ptrdiff_t;
     using pointer = element_type*;
@@ -1744,36 +1708,12 @@ public:
     StringViewSpan(span<const string_view> s)
         : m_svs(s)
     {
-        print("init from span of string_view\n");
     }
-
-    // /// Construct from a string_view
-    // StringViewSpan(string_view s)
-    //     : m_svs(span<string_view>(s))
-    // {
-    // }
-
-#if 0
-    StringViewSpan(span<const std::string> s)
-        : m_local(new string_view[s.size()]), m_svs(m_local)
-    {
-        for (size_t i = 0, e = s.size(); i < e; ++i)
-            m_local[i] = string_view(s[i]);
-    }
-
-    StringViewSpan(span<const ustring> s)
-        : m_local(new string_view[s.size()]), m_svs(m_local)
-    {
-        for (size_t i = 0, e = s.size(); i < e; ++i)
-            m_local[i] = string_view(s[i]);
-    }
-#else
 
     /// Construct from a span of C strings
     StringViewSpan(span<const char*> s)
         : m_local(new string_view[s.size()]), m_svs(m_local.get(), s.size())
     {
-        print("init from span of char*\n");
         for (size_t i = 0, e = s.size(); i < e; ++i)
             m_local[i] = string_view(s[i]);
     }
@@ -1786,7 +1726,6 @@ public:
         : m_local(new string_view[s.size()])
         , m_svs(m_local.get(), s.size())
     {
-        print("init from span of string-like\n");
         for (size_t i = 0, e = s.size(); i < e; ++i)
             m_local[i] = string_view(s[i]);
     }
@@ -1817,7 +1756,6 @@ public:
         : StringViewSpan(span<const T>(s))
     {
     }
-#endif
 
     /// Indexing gives you the i-th string_view, which the underlying span
     /// will range-check in debug mode.
@@ -1826,11 +1764,21 @@ public:
     /// Number of strings in our collection
     size_t size() const noexcept { return m_svs.size(); }
 
-    svs::const_iterator begin() const noexcept { return m_svs.cbegin(); }
-    svs::const_iterator end() const noexcept { return m_svs.cend(); }
+    svs::iterator begin() noexcept { return m_svs.begin(); }
+    svs::iterator end() noexcept { return m_svs.end(); }
 
     svs::const_iterator cbegin() const noexcept { return m_svs.cbegin(); }
     svs::const_iterator cend() const noexcept { return m_svs.cend(); }
+
+    // Convert to a fully memory-owning std::vector<std::string>
+    std::vector<std::string> to_stringvec() const
+    {
+        std::vector<std::string> vs;
+        vs.reserve(m_svs.size());
+        for (auto& s : m_svs)
+            vs.push_back(s);
+        return vs;
+    }
 
 private:
     // Optional local storage of string_views, used in cases where we're
@@ -1841,17 +1789,6 @@ private:
     span<const string_view> m_svs;
 };
 
-
-
-std::vector<std::string>
-convert_to_stringvec(StringViewSpan ss)
-{
-    std::vector<std::string> vs;
-    vs.reserve(ss.size());
-    for (auto& s : ss)
-        vs.push_back(s);
-    return vs;
-}
 
 
 template<typename T>
@@ -1909,41 +1846,6 @@ void test_stringviewspan()
     test_stringviewspan_onetype<const char*>("const char*");
     test_stringviewspan_onetype<std::string>("std::string");
     test_stringviewspan_onetype<ustring>("ustring");
-    // StringViewSpan ss({ "able", "baker", "charlie" });
-    // OIIO_CHECK_EQUAL(ss.size(), 3);
-    // OIIO_CHECK_EQUAL(ss[0], "able");
-    // OIIO_CHECK_EQUAL(ss[1], "baker");
-    // OIIO_CHECK_EQUAL(ss[2], "charlie");
-    // int blah[] = { 1, 2, 3 };
-    // StringViewSpan ss(blah);
-    // {
-    //     // Check construction from an array of string_view
-    //     const string_view names[] { "able", "baker", "charlie" };
-    //     StringViewSpan ss(names);
-    //     OIIO_CHECK_EQUAL(ss.size(), 3);
-    //     OIIO_CHECK_EQUAL(ss[0], "able");
-    //     OIIO_CHECK_EQUAL(ss[1], "baker");
-    //     OIIO_CHECK_EQUAL(ss[2], "charlie");
-
-    //     // Single string_view
-    //     StringViewSpan ss(names[0]);
-    //     OIIO_CHECK_EQUAL(ss.size(), 1);
-    //     OIIO_CHECK_EQUAL(ss[0], "able");
-    // }
-    // {
-    //     // Check construction from an array of std::string
-    //     const string_view names[] { "able", "baker", "charlie" };
-    //     StringViewSpan ss(names);
-    //     OIIO_CHECK_EQUAL(ss.size(), 3);
-    //     OIIO_CHECK_EQUAL(ss[0], "able");
-    //     OIIO_CHECK_EQUAL(ss[1], "baker");
-    //     OIIO_CHECK_EQUAL(ss[2], "charlie");
-
-    //     // Single string_view
-    //     StringViewSpan ss(names[0]);
-    //     OIIO_CHECK_EQUAL(ss.size(), 1);
-    //     OIIO_CHECK_EQUAL(ss[0], "able");
-    // }
 }
 // clang-format off
 
