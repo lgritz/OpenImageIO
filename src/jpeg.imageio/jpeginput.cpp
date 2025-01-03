@@ -427,12 +427,11 @@ JpgInput::read_icc_profile(j_decompress_ptr cinfo, ImageSpec& spec)
         if (m->marker == (JPEG_APP0 + 2)
             && !strcmp((const char*)m->data, "ICC_PROFILE")) {
             int seq_no = GETJOCTET(m->data[12]);
-            memcpy(icc_buf.data() + data_offset[seq_no],
-                   m->data + ICC_HEADER_SIZE, data_length[seq_no]);
+            spancpy(make_span(icc_buf), data_offset[seq_no],
+                    cspan<uint8_t>(m->data, m->data_length), ICC_HEADER_SIZE,
+                    data_length[seq_no]);
         }
     }
-    spec.attribute("ICCProfile", TypeDesc(TypeDesc::UINT8, total_length),
-                   icc_buf.data());
 
     std::string errormsg;
     bool ok = decode_icc_profile(icc_buf, spec, errormsg);
@@ -441,6 +440,8 @@ JpgInput::read_icc_profile(j_decompress_ptr cinfo, ImageSpec& spec)
                  errormsg);
         return false;
     }
+    spec.attribute("ICCProfile", TypeDesc(TypeDesc::UINT8, total_length),
+                   icc_buf.data());
 
     return true;
 }
