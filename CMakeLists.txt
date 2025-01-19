@@ -85,6 +85,9 @@ message (STATUS "Project install prefix = ${CMAKE_INSTALL_PREFIX}")
 message (STATUS "Configuration types    = ${CMAKE_CONFIGURATION_TYPES}")
 message (STATUS "Build type             = ${CMAKE_BUILD_TYPE}")
 message (STATUS "Supported release      = ${${PROJECT_NAME}_SUPPORTED_RELEASE}")
+message (STATUS "CMAKE_CXX_COMPILER     = ${CMAKE_CXX_COMPILER}")
+message (STATUS "CMAKE_CC_COMPILER      = ${CMAKE_CC_COMPILER}")
+message (STATUS "CMAKE_CXX_COMPILER_ID  = ${CMAKE_CXX_COMPILER_ID}")
 
 # Make the build area layout look a bit more like the final dist layout
 if (PROJECT_IS_TOP_LEVEL)
