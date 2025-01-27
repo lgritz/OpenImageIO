@@ -456,14 +456,15 @@ convert_file(const std::string& in_filename, const std::string& out_filename)
             } else {
                 // Need to do it by hand for some reason.  Future expansion in which
                 // only a subset of channels are copied, or some such.
-                std::vector<char> pixels((size_t)outspec.image_bytes(true));
+                size_t size(outspec.image_bytes(true));
+                std::unique_ptr<std::byte[]> pixels(new std::byte[size]);
                 ok = in->read_image(subimage, miplevel, 0, outspec.nchannels,
-                                    outspec.format, &pixels[0]);
+                                    outspec.format, pixels.get());
                 if (!ok) {
                     print(stderr, "iconvert ERROR reading \"{}\": {}\n",
                           in_filename, in->geterror());
                 } else {
-                    ok = out->write_image(outspec.format, &pixels[0]);
+                    ok = out->write_image(outspec.format, pixels.get());
                     if (!ok)
                         print(stderr, "iconvert ERROR writing \"{}\": {}\n",
                               out_filename, out->geterror());

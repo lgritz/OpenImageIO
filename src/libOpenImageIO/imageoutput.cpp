@@ -111,6 +111,32 @@ ImageOutput::write_scanline(int /*y*/, int /*z*/, TypeDesc /*format*/,
 
 
 bool
+ImageOutput::write_scanline(int y, int z, TypeDesc format,
+                            image_span<const std::byte> data)
+{
+    if (pvt::oiio_print_debug
+#ifndef NDEBUG
+        || true
+#endif
+    ) {
+        size_t sz = (format == TypeUnknown ? m_spec.pixel_bytes(true /*native*/)
+                                           : format.size() * m_spec.nchannels)
+                    * size_t(m_spec.width);
+        if (sz != data.nbytes()) {
+            errorfmt(
+                "write_scanline: Buffer size is incorrect ({} bytes vs {} needed)",
+                sz, data.nbytes());
+            return false;
+        }
+    }
+
+    // Default implementation (for now): call the old pointer+stride
+    return write_scanline(y, z, format, data.data(), data.xstride());
+}
+
+
+
+bool
 ImageOutput::write_scanlines(int ybegin, int yend, int z, TypeDesc format,
                              const void* data, stride_t xstride,
                              stride_t ystride)
@@ -133,12 +159,67 @@ ImageOutput::write_scanlines(int ybegin, int yend, int z, TypeDesc format,
 
 
 bool
+ImageOutput::write_scanlines(int ybegin, int yend, int z, TypeDesc format,
+                             image_span<const std::byte> data)
+{
+    if (pvt::oiio_print_debug
+#ifndef NDEBUG
+        || true
+#endif
+    ) {
+        size_t sz = (format == TypeUnknown ? m_spec.pixel_bytes(true /*native*/)
+                                           : format.size() * m_spec.nchannels)
+                    * size_t(yend - ybegin) * size_t(m_spec.width);
+        if (sz != data.nbytes()) {
+            errorfmt(
+                "write_scanlines: Buffer size is incorrect ({} bytes vs {} needed)",
+                sz, data.nbytes());
+            return false;
+        }
+    }
+
+    // Default implementation (for now): call the old pointer+stride
+    return write_scanlines(ybegin, yend, z, format, data.data(), data.xstride(),
+                           data.ystride());
+}
+
+
+
+bool
 ImageOutput::write_tile(int /*x*/, int /*y*/, int /*z*/, TypeDesc /*format*/,
                         const void* /*data*/, stride_t /*xstride*/,
                         stride_t /*ystride*/, stride_t /*zstride*/)
 {
     // Default implementation: don't know how to write tiles
     return false;
+}
+
+
+
+bool
+ImageOutput::write_tile(int x, int y, int z, TypeDesc format,
+                        image_span<const std::byte> data)
+{
+    if (pvt::oiio_print_debug
+#ifndef NDEBUG
+        || true
+#endif
+    ) {
+        size_t sz = format == TypeUnknown
+                        ? m_spec.pixel_bytes(true /*native*/)
+                        : m_spec.tile_pixels() * size_t(m_spec.nchannels)
+                              * format.size();
+        if (sz != data.nbytes()) {
+            errorfmt(
+                "write_tile: Buffer size is incorrect ({} bytes vs {} needed)",
+                sz, data.nbytes());
+            return false;
+        }
+    }
+
+    // Default implementation (for now): call the old pointer+stride
+    return write_tile(x, y, z, format, data.data(), data.xstride(),
+                      data.ystride(), data.zstride());
 }
 
 
@@ -198,6 +279,19 @@ ImageOutput::write_tiles(int xbegin, int xend, int ybegin, int yend, int zbegin,
         }
     }
     return ok;
+}
+
+
+
+bool
+ImageOutput::write_tiles(int xbegin, int xend, int ybegin, int yend, int zbegin,
+                         int zend, TypeDesc format,
+                         image_span<const std::byte> data)
+{
+    // Default implementation (for now): call the old pointer+stride
+    return write_tiles(xbegin, xend, ybegin, yend, zbegin, zend, format,
+                       data.data(), data.xstride(), data.ystride(),
+                       data.zstride());
 }
 
 

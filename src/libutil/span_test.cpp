@@ -6,7 +6,7 @@
 #include <iostream>
 #include <vector>
 
-#include <OpenImageIO/image_view.h>
+#include <OpenImageIO/image_span.h>
 #include <OpenImageIO/span.h>
 #include <OpenImageIO/strided_ptr.h>
 #include <OpenImageIO/unittest.h>
@@ -260,7 +260,7 @@ test_span_strided_mutable()
 
 
 void
-test_image_view()
+test_image_span()
 {
     const int X = 4, Y = 3, C = 3, Z = 1;
     static const float IMG[Z][Y][X][C] = {
@@ -270,9 +270,16 @@ test_image_view()
           { { 0, 2, 8 }, { 1, 2, 9 }, { 2, 2, 10 }, { 3, 2, 11 } } }
     };
 
-    image_view<const float> I((const float*)IMG, 3, 4, 3);
+    image_span<const float> I((const float*)IMG, C, X, Y, Z);
+    OIIO_CHECK_EQUAL(I.getptr(0,0,0), &IMG[0][0][0][0]);
+    OIIO_CHECK_EQUAL(I.getptr(1,0,0), &IMG[0][0][0][1]);
+    OIIO_CHECK_EQUAL(I.getptr(0,1,0), &IMG[0][0][1][0]);
+    OIIO_CHECK_EQUAL(I.getptr(0,0,1), &IMG[0][1][0][0]);
     for (int y = 0, i = 0; y < Y; ++y) {
         for (int x = 0; x < X; ++x, ++i) {
+            OIIO_CHECK_EQUAL(I.get(0, x, y), x);
+            OIIO_CHECK_EQUAL(I.get(1, x, y), y);
+            OIIO_CHECK_EQUAL(I.get(2, x, y), i);
             OIIO_CHECK_EQUAL(I(x, y)[0], x);
             OIIO_CHECK_EQUAL(I(x, y)[1], y);
             OIIO_CHECK_EQUAL(I(x, y)[2], i);
@@ -283,7 +290,7 @@ test_image_view()
 
 
 void
-test_image_view_mutable()
+test_image_span_mutable()
 {
     const int X = 4, Y = 3, C = 3, Z = 1;
     static float IMG[Z][Y][X][C] = {
@@ -293,7 +300,7 @@ test_image_view_mutable()
           { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } } }
     };
 
-    image_view<float> I((float*)IMG, 3, 4, 3);
+    image_span<float> I((float*)IMG, C, X, Y, Z);
     for (int y = 0, i = 0; y < Y; ++y) {
         for (int x = 0; x < X; ++x, ++i) {
             I(x, y)[0] = x;
@@ -523,8 +530,8 @@ main(int /*argc*/, char* /*argv*/[])
     test_strided_ptr();
     test_span_strided();
     test_span_strided_mutable();
-    test_image_view();
-    test_image_view_mutable();
+    test_image_span();
+    test_image_span_mutable();
     test_make_span();
     test_as_bytes();
     test_span_cast();
