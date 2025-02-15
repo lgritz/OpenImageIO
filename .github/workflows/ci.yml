@@ -183,7 +183,7 @@ jobs:
         id: ccache
         uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
-          path: /tmp/ccache
+          path: ~/.ccache
           key: ${{github.job}}-${{matrix.nametag}}-${{steps.ccache_cache_keys.outputs.date}}
           restore-keys: ${{github.job}}-
       - name: Build setup
@@ -272,6 +272,7 @@ jobs:
       ctest_test_timeout: ${{ matrix.ctest_test_timeout }}
       coverage: ${{ matrix.coverage || 0 }}
       sonar: ${{ matrix.sonar || 0 }}
+      ccache_dir: '/home/runner/.ccache'
     strategy:
       fail-fast: false
       matrix:
@@ -527,6 +528,7 @@ jobs:
       ctest_test_timeout: ${{ matrix.ctest_test_timeout || '800' }}
       coverage: ${{ matrix.coverage || 0 }}
       sonar: ${{ matrix.sonar || 0 }}
+      ccache_dir: '/Users/runner/.ccache'
     strategy:
       fail-fast: false
       matrix:
@@ -590,6 +592,7 @@ jobs:
       ctest_test_timeout: ${{ matrix.ctest_test_timeout }}
       coverage: ${{ matrix.coverage || 0 }}
       sonar: ${{ matrix.sonar || 0 }}
+      ccache_dir: '/c/Users/runneradmin/.ccache'
     strategy:
       fail-fast: false
       matrix:

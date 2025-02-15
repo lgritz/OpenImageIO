@@ -44,6 +44,10 @@ on:
         type: string
       simd:
         type: string
+      skip_build_setup:
+        type: string
+      skip_deps:
+        type: string
       skip_build:
         type: string
       skip_tests:
@@ -63,6 +67,22 @@ on:
       sonar:
         type: string
       nametag:
+        type: string
+      build_wheel:
+        type: string
+      wheel_python:
+        type: string
+      wheel_arch:
+        type: string
+      wheel_manylinux:
+        type: string
+      wheel_name:
+        type: string
+      install_python:
+        type: string
+      USE_Libheif:
+        type: string
+      ccache_dir:
         type: string
     secrets:
         PASSED_GITHUB_TOKEN:
@@ -98,11 +118,29 @@ jobs:
       ABI_CHECK: ${{inputs.abi_check}}
       ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      # CCACHE_DIR: $HOME/.ccache
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: '0'
+      - name: Setup ccache
+        shell: bash
+        run: |
+            echo "HOME=$HOME"
+            echo "PWD=$PWD"
+            export USE_CCACHE=1
+            export CCACHE_CPP2=
+            export CCACHE_DIR=${CCACHE_DIR:=${HOME}/.ccache}
+            mkdir -p $CCACHE_DIR
+            if [[ "$RUNNER_OS" == "Linux" && "$ASWF_ORG" == "" ]]; then
+                sudo apt-get -q install -y ccache
+            elif [[ "$RUNNER_OS" == "macOS" ]]; then
+                brew install ccache
+            elif [[ "$RUNNER_OS" == "Windows" ]]; then
+                src/build-scripts/gh-win-installdeps.bash
+            fi
+            src/build-scripts/save-env.bash
       - name: Prepare ccache timestamp
         id: ccache_cache_keys
         shell: bash
@@ -111,18 +149,20 @@ jobs:
         id: ccache
         uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
-          path: ./ccache
+          path: ~/.ccache
           key: ${{github.job}}-${{inputs.nametag}}-${{steps.ccache_cache_keys.outputs.date}}
           restore-keys: ${{github.job}}-
       - name: Setup Nuget.exe (Windows only)
         if: runner.os == 'Windows'
         uses: nuget/setup-nuget@a21f25cd3998bf370fde17e3f1b4c12c175172f9 # v2.0.0
       - name: Build setup
+        if: inputs.skip_build_setup != '1'
         shell: bash
         run: |
             ${{inputs.setenvs}}
             src/build-scripts/ci-startup.bash
       - name: Dependencies
+        if: inputs.skip_deps != '1'
         shell: bash
         run: |
             ${{inputs.depcmds}}
@@ -186,7 +226,29 @@ jobs:
             cd src/doc
             time make doxygen
             time make sphinx
-      - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+      - name: Install Python action for wheels
+        if: inputs.build_wheel == '1' && inputs.install_python != ''
+        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+        with:
+          python-version: '${{ inputs.install_python }}'
+      - name: Build wheels
+        if: inputs.build_wheel == '1'
+        uses: pypa/cibuildwheel@d4a2945fcc8d13f20a1b99d461b8e844d5fc6e23 # v2.21.1
+        env:
+          CIBW_BUILD: ${{ inputs.wheel_python }}
+          CIBW_ARCHS: ${{ inputs.wheel_arch }}
+          CIBW_MANYLINUX_X86_64_IMAGE: ${{ inputs.wheel_manylinux }}
+          CIBW_MANYLINUX_AARCH64_IMAGE: ${{ inputs.wheel_manylinux }}
+          USE_Libheif: ${{ inputs.USE_Libheif }}
+      - name: Upload wheel artifact
+        if: inputs.build_wheel == '1'
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: ${{ inputs.wheel_name }}
+          # name: cibw-wheels-${{ inputs.wheel_python }}-${{ inputs.wheel_manylinux }}
+          path: ./wheelhouse/*.whl
+      - name: Upload debugging artifacts
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         if: ${{ failure() || inputs.build_docs == '1'}}
         with:
           name: oiio-${{github.job}}-${{inputs.nametag}}
@@ -200,3 +262,9 @@ jobs:
             !build/testsuite/fits-images
             !build/testsuite/j2kp4files_v1_5
             ${{ inputs.extra_artifacts }}
+      - name: ccache postmorem
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+            echo "CCACHE_DIR=$CCACHE_DIR"
+            ccache -s || true
