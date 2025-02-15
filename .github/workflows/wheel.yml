@@ -7,9 +7,10 @@
 
 name: Wheel
 
-permissions:
-  contents: read
-  id-token: write
+permissions: read-all
+# permissions:
+#   contents: read
+#   id-token: write
 
 on:
   push:
@@ -75,8 +76,87 @@ jobs:
   # Linux Wheels
   # ---------------------------------------------------------------------------
 
+  linux_steps:
+    name: Build wheels on Linux (NEW STEPS)
+    if: |
+      github.event_name != 'schedule' ||
+      github.repository == 'AcademySoftwareFoundation/OpenImageIO'
+    uses: ./.github/workflows/build-steps.yml
+    with:
+      nametag: ${{ matrix.nametag || 'unnamed!' }}
+      runner: 'ubuntu-latest'
+      container: ${{ matrix.container }}
+      setenvs: ${{ matrix.setenvs }}
+      build_wheel: '1'
+      wheel_python: ${{ matrix.python }}
+      wheel_arch: ${{ matrix.arch }}
+      wheel_manylinux: ${{ matrix.manylinux }}
+      skip_build_setup: '1'
+      skip_deps: '1'
+      skip_build: '1'
+      skip_tests: '1'
+    strategy:
+      matrix:
+        include:
+          # -------------------------------------------------------------------
+          # CPython 64 bits manylinux_2_28
+          # -------------------------------------------------------------------
+          - nametag: CPython 3.8 64 bits manylinux_2_28
+            manylinux: manylinux_2_28
+            python: cp38-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.9 64 bits manylinux_2_28
+            manylinux: manylinux_2_28
+            python: cp39-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.10 64 bits manylinux_2_28
+            manylinux: manylinux_2_28
+            python: cp310-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.11 64 bits manylinux_2_28
+            manylinux: manylinux_2_28
+            python: cp311-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.12 64 bits manylinux_2_28
+            manylinux: manylinux_2_28
+            python: cp312-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.13 64 bits manylinux_2_28
+            manylinux: manylinux_2_28
+            python: cp313-manylinux_x86_64
+            arch: x86_64
+          # -------------------------------------------------------------------
+          # CPython 64 bits manylinux2014
+          # -------------------------------------------------------------------
+          - nametag: CPython 3.8 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp38-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.9 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp39-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.10 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp310-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.11 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp311-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.12 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp312-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.13 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp313-manylinux_x86_64
+            arch: x86_64
+
+
+
   linux:
-    name: Build wheels on Linux
+    name: Build wheels on Linux (OLD)
     runs-on: ubuntu-latest
     if: |
       github.event_name != 'schedule' ||
