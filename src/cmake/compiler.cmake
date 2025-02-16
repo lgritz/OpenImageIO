@@ -243,6 +243,8 @@ if (CCACHE_FOUND AND USE_CCACHE)
     else ()
         set (MY_RULE_LAUNCH ccache)
     endif ()
+else ()
+    message (STATUS "ccache not found, not using (USE_CCACHE=${USE_CCACHE} CCACHE_FOUND=${CCACHE_FOUND} -- consider installing it for faster builds")
 endif ()
 
 

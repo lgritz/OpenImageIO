@@ -111,14 +111,14 @@ SKBUILD_CMAKE_ARGS = "-DLINKSTATIC=1; -DIGNORE_HOMEBREWED_DEPS=1"
 MACOSX_DEPLOYMENT_TARGET = "11"
 # Optimize for size (not speed).
 SKBUILD_CMAKE_BUILD_TYPE = "MinSizeRel"
-CCACHE_DIR = '/Users/runner/.ccache'
+CCACHE_DIR = '~/.ccache'
 
 [tool.cibuildwheel.linux.environment]
 SKBUILD_CMAKE_ARGS = "-DLINKSTATIC=1"
 # Suppress warnings that cause linux cibuildwheel build to fail
 CXXFLAGS = "-Wno-error=stringop-overflow -Wno-pragmas"
 SKBUILD_CMAKE_BUILD_TYPE = "MinSizeRel"
-CCACHE_DIR = '/home/runner/.ccache'
+CCACHE_DIR = '~/.ccache'
 
 [tool.cibuildwheel.windows.environment]
 SKBUILD_CMAKE_BUILD_TYPE = "MinSizeRel"
