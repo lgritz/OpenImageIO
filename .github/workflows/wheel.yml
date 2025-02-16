@@ -487,7 +487,7 @@ jobs:
       skip_deps: '1'
       skip_build: '1'
       skip_tests: '1'
-      install_python: '3.8'
+      install_python: '3.9'
       # USE_Libheif: 'OFF'
       wheel_name: cibw-wheels-${{ matrix.python }}
     strategy:
