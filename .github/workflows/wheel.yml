@@ -95,6 +95,7 @@ jobs:
       skip_deps: '1'
       skip_build: '1'
       skip_tests: '1'
+      install_python: '3.9'
     strategy:
       matrix:
         include:
@@ -128,30 +129,30 @@ jobs:
           # -------------------------------------------------------------------
           # CPython 64 bits manylinux2014
           # -------------------------------------------------------------------
-          # - nametag: CPython 3.8 64 bits manylinux2014
-          #   manylinux: manylinux2014
-          #   python: cp38-manylinux_x86_64
-          #   arch: x86_64
-          # - nametag: CPython 3.9 64 bits manylinux2014
-          #   manylinux: manylinux2014
-          #   python: cp39-manylinux_x86_64
-          #   arch: x86_64
-          # - nametag: CPython 3.10 64 bits manylinux2014
-          #   manylinux: manylinux2014
-          #   python: cp310-manylinux_x86_64
-          #   arch: x86_64
-          # - nametag: CPython 3.11 64 bits manylinux2014
-          #   manylinux: manylinux2014
-          #   python: cp311-manylinux_x86_64
-          #   arch: x86_64
-          # - nametag: CPython 3.12 64 bits manylinux2014
-          #   manylinux: manylinux2014
-          #   python: cp312-manylinux_x86_64
-          #   arch: x86_64
-          # - nametag: CPython 3.13 64 bits manylinux2014
-          #   manylinux: manylinux2014
-          #   python: cp313-manylinux_x86_64
-          #   arch: x86_64
+          - nametag: CPython 3.8 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp38-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.9 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp39-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.10 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp310-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.11 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp311-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.12 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp312-manylinux_x86_64
+            arch: x86_64
+          - nametag: CPython 3.13 64 bits manylinux2014
+            manylinux: manylinux2014
+            python: cp313-manylinux_x86_64
+            arch: x86_64
 
 
 
@@ -245,60 +246,74 @@ jobs:
 
   linux-arm:
       name: Build wheels on Linux ARM
-      runs-on: ubuntu-24.04-arm
       if: |
         github.event_name != 'schedule' ||
         github.repository == 'AcademySoftwareFoundation/OpenImageIO'
+      uses: ./.github/workflows/build-steps.yml
+      with:
+        nametag: ${{ matrix.nametag || 'unnamed!' }}
+        runner: 'ubuntu-24.04-arm'
+        container: ${{ matrix.container }}
+        setenvs: ${{ matrix.setenvs }}
+        build_wheel: '1'
+        wheel_python: ${{ matrix.python }}
+        wheel_arch: ${{ matrix.arch }}
+        wheel_manylinux: ${{ matrix.manylinux }}
+        skip_build_setup: '1'
+        skip_deps: '1'
+        skip_build: '1'
+        skip_tests: '1'
+        install_python: '3.9'
       strategy:
         matrix:
           include:
             # -------------------------------------------------------------------
             # CPython ARM 64 bits manylinux2014
             # -------------------------------------------------------------------
-            - build: CPython 3.8 ARM 64 bits manylinux2014
+            - nametag: CPython 3.8 ARM 64 bits manylinux2014
               manylinux: manylinux2014
               python: cp38-manylinux_aarch64
               arch: aarch64
-            # - build: CPython 3.9 ARM 64 bits manylinux2014
-            #   manylinux: manylinux2014
-            #   python: cp39-manylinux_aarch64
-            #   arch: aarch64
-            # - build: CPython 3.10 ARM 64 bits manylinux2014
-            #   manylinux: manylinux2014
-            #   python: cp310-manylinux_aarch64
-            #   arch: aarch64
-            # - build: CPython 3.11 ARM 64 bits manylinux2014
-            #   manylinux: manylinux2014
-            #   python: cp311-manylinux_aarch64
-            #   arch: aarch64
-            # - build: CPython 3.12 ARM 64 bits manylinux2014
-            #   manylinux: manylinux2014
-            #   python: cp312-manylinux_aarch64
-            #   arch: aarch64
-            # - build: CPython 3.13 ARM 64 bits manylinux2014
-            #   manylinux: manylinux2014
-            #   python: cp313-manylinux_aarch64
-            #   arch: aarch64
+            - nametag: CPython 3.9 ARM 64 bits manylinux2014
+              manylinux: manylinux2014
+              python: cp39-manylinux_aarch64
+              arch: aarch64
+            - nametag: CPython 3.10 ARM 64 bits manylinux2014
+              manylinux: manylinux2014
+              python: cp310-manylinux_aarch64
+              arch: aarch64
+            - nametag: CPython 3.11 ARM 64 bits manylinux2014
+              manylinux: manylinux2014
+              python: cp311-manylinux_aarch64
+              arch: aarch64
+            - nametag: CPython 3.12 ARM 64 bits manylinux2014
+              manylinux: manylinux2014
+              python: cp312-manylinux_aarch64
+              arch: aarch64
+            - nametag: CPython 3.13 ARM 64 bits manylinux2014
+              manylinux: manylinux2014
+              python: cp313-manylinux_aarch64
+              arch: aarch64
 
-      steps:
-        - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      # steps:
+      #   - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-        - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
-          name: Install Python
-          with:
-            python-version: '3.9'
+      #   - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+      #     name: Install Python
+      #     with:
+      #       python-version: '3.9'
         
-        - name: Build wheels
-          uses: pypa/cibuildwheel@d4a2945fcc8d13f20a1b99d461b8e844d5fc6e23 # v2.21.1
-          env:
-            CIBW_BUILD: ${{ matrix.python }}
-            CIBW_ARCHS: ${{ matrix.arch }}
-            CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.manylinux }}
+      #   - name: Build wheels
+      #     uses: pypa/cibuildwheel@d4a2945fcc8d13f20a1b99d461b8e844d5fc6e23 # v2.21.1
+      #     env:
+      #       CIBW_BUILD: ${{ matrix.python }}
+      #       CIBW_ARCHS: ${{ matrix.arch }}
+      #       CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.manylinux }}
 
-        - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
-          with:
-            name: cibw-wheels-${{ matrix.python }}-${{ matrix.manylinux }}
-            path: ./wheelhouse/*.whl
+      #   - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+      #     with:
+      #       name: cibw-wheels-${{ matrix.python }}-${{ matrix.manylinux }}
+      #       path: ./wheelhouse/*.whl
 
   # ---------------------------------------------------------------------------
   # macOS Wheels
@@ -306,32 +321,46 @@ jobs:
 
   macos:
     name: Build wheels on macOS
-    runs-on: macos-13
     if: |
       github.event_name != 'schedule' ||
       github.repository == 'AcademySoftwareFoundation/OpenImageIO'
+    uses: ./.github/workflows/build-steps.yml
+    with:
+      nametag: ${{ matrix.nametag || 'unnamed!' }}
+      runner: 'macos-13'
+      container: ${{ matrix.container }}
+      setenvs: ${{ matrix.setenvs }}
+      build_wheel: '1'
+      wheel_python: ${{ matrix.python }}
+      wheel_arch: ${{ matrix.arch }}
+      wheel_manylinux: ${{ matrix.manylinux }}
+      skip_build_setup: '1'
+      skip_deps: '1'
+      skip_build: '1'
+      skip_tests: '1'
+      install_python: '3.9'
     strategy:
       matrix:
         include:
           # -------------------------------------------------------------------
           # CPython 64 bits
           # -------------------------------------------------------------------
-          - build: CPython 3.8 64 bits
+          - nametag: CPython 3.8 64 bits
             python: cp38-macosx_x86_64
             arch: x86_64
-          # - build: CPython 3.9 64 bits
+          # - nametag: CPython 3.9 64 bits
           #   python: cp39-macosx_x86_64
           #   arch: x86_64
-          # - build: CPython 3.10 64 bits
+          # - nametag: CPython 3.10 64 bits
           #   python: cp310-macosx_x86_64
           #   arch: x86_64
-          # - build: CPython 3.11 64 bits
+          # - nametag: CPython 3.11 64 bits
           #   python: cp311-macosx_x86_64
           #   arch: x86_64
-          # - build: CPython 3.12 64 bits
+          # - nametag: CPython 3.12 64 bits
           #   python: cp312-macosx_x86_64
           #   arch: x86_64
-          # - build: CPython 3.13 64 bits
+          # - nametag: CPython 3.13 64 bits
           #   python: cp313-macosx_x86_64
           #   arch: x86_64
 
@@ -469,7 +498,7 @@ jobs:
 
 
   upload_pypi:
-    needs: [sdist, linux, linux-arm, macos, macos-arm, windows]
+    needs: [sdist, linux_steps, linux, linux-arm, macos, macos-arm, windows]
     runs-on: ubuntu-latest
     permissions:
       id-token: write

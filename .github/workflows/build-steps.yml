@@ -76,6 +76,8 @@ on:
         type: string
       wheel_manylinux:
         type: string
+      install_python:
+        type: string
     secrets:
         PASSED_GITHUB_TOKEN:
           required: false
@@ -83,9 +85,6 @@ on:
           required: false
 
 permissions: read-all
-# permissions:
-#   contents: read
-#   id-token: write
 
 
 jobs:
@@ -204,10 +203,10 @@ jobs:
             time make doxygen
             time make sphinx
       - name: Install Python action for wheels
-        if: inputs.build_wheel == '1'
+        if: inputs.build_wheel == '1' && inputs.install_python != ''
         uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
         with:
-          python-version: '3.9'
+          python-version: '${{ inputs.install_python }}'
       - name: Build wheels
         if: inputs.build_wheel == '1'
         uses: pypa/cibuildwheel@d4a2945fcc8d13f20a1b99d461b8e844d5fc6e23 # v2.21.1
