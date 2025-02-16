@@ -76,7 +76,11 @@ on:
         type: string
       wheel_manylinux:
         type: string
+      wheel_name:
+        type: string
       install_python:
+        type: string
+      USE_Libheif:
         type: string
     secrets:
         PASSED_GITHUB_TOKEN:
@@ -214,11 +218,14 @@ jobs:
           CIBW_BUILD: ${{ inputs.wheel_python }}
           CIBW_ARCHS: ${{ inputs.wheel_arch }}
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ inputs.wheel_manylinux }}
+          CIBW_MANYLINUX_AARCH64_IMAGE: ${{ inputs.wheel_manylinux }}
+          USE_Libheif: ${{ inputs.USE_Libheif }}
       - name: Upload wheel artifact
         if: inputs.build_wheel == '1'
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
-          name: cibw-wheels-${{ inputs.wheel_python }}-${{ inputs.wheel_manylinux }}
+          name: ${{ inputs.wheel_name }}
+          # name: cibw-wheels-${{ inputs.wheel_python }}-${{ inputs.wheel_manylinux }}
           path: ./wheelhouse/*.whl
       - name: Upload debugging artifacts
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
