@@ -18,6 +18,6 @@ printenv \
 
 
 echo "save-env: GITHUB_ENV=${GITHUB_ENV}"
-cat $GITHUB_ENV
+cat $GITHUB_ENV | sort
 echo "---------"
 

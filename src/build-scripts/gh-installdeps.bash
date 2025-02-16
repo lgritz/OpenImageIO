@@ -87,11 +87,11 @@ else
     fi
 
     time sudo apt-get -q install -y \
-        git cmake ninja-build ccache g++ \
-        libilmbase-dev libopenexr-dev \
-        libtiff-dev libgif-dev libpng-dev
+        git cmake ninja-build ccache g++
     if [[ "${SKIP_SYSTEM_DEPS_INSTALL}" != "1" ]] ; then
         time sudo apt-get -q install -y --fix-missing \
+            libilmbase-dev libopenexr-dev \
+            libtiff-dev libgif-dev libpng-dev \
             libraw-dev libwebp-dev \
             libavcodec-dev libavformat-dev libswscale-dev libavutil-dev \
             dcmtk libopenvdb-dev \

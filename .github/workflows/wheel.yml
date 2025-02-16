@@ -97,6 +97,7 @@ jobs:
       skip_tests: '1'
       install_python: '3.9'
       wheel_name: cibw-wheels-${{ matrix.python }}-${{ matrix.manylinux }}
+      ccache_dir: '/home/runner/.ccache'
     strategy:
       matrix:
         include:
@@ -266,6 +267,7 @@ jobs:
         skip_tests: '1'
         install_python: '3.9'
         wheel_name: cibw-wheels-${{ matrix.python }}-${{ matrix.manylinux }}
+        ccache_dir: '/home/runner/.ccache'
       strategy:
         matrix:
           include:
@@ -343,6 +345,7 @@ jobs:
       install_python: '3.9'
       USE_Libheif: 'OFF'
       wheel_name: cibw-wheels-${{ matrix.python }}
+      ccache_dir: '/Users/runner/.ccache'
     strategy:
       matrix:
         include:
@@ -417,6 +420,7 @@ jobs:
       install_python: '3.8'
       # USE_Libheif: 'OFF'
       wheel_name: cibw-wheels-${{ matrix.python }}
+      ccache_dir: '/Users/runner/.ccache'
     strategy:
       matrix:
         include:
@@ -490,6 +494,7 @@ jobs:
       install_python: '3.9'
       # USE_Libheif: 'OFF'
       wheel_name: cibw-wheels-${{ matrix.python }}
+      ccache_dir: '/c/Users/runneradmin/.ccache'
     strategy:
       matrix:
         include:

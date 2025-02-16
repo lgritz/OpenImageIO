@@ -82,6 +82,7 @@ jobs:
       ctest_test_timeout: ${{ matrix.ctest_test_timeout }}
       coverage: ${{ matrix.coverage || '0' }}
       sonar: ${{ matrix.sonar || '0' }}
+      ccache_dir: '/home/runner/.ccache'
     strategy:
       fail-fast: false
       matrix:
