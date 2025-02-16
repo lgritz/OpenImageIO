@@ -469,53 +469,70 @@ jobs:
 
   windows:
     name: Build wheels on Windows
-    runs-on: windows-2022
+    # runs-on: windows-2022
     if: |
       github.event_name != 'schedule' ||
       github.repository == 'AcademySoftwareFoundation/OpenImageIO'
+    uses: ./.github/workflows/build-steps.yml
+    with:
+      nametag: ${{ matrix.nametag || 'unnamed!' }}
+      runner: 'windows-2022'
+      container: ${{ matrix.container }}
+      setenvs: ${{ matrix.setenvs }}
+      build_wheel: '1'
+      wheel_python: ${{ matrix.python }}
+      wheel_arch: ${{ matrix.arch }}
+      wheel_manylinux: ${{ matrix.manylinux }}
+      skip_build_setup: '1'
+      skip_deps: '1'
+      skip_build: '1'
+      skip_tests: '1'
+      install_python: '3.8'
+      # USE_Libheif: 'OFF'
+      wheel_name: cibw-wheels-${{ matrix.python }}
     strategy:
       matrix:
         include:
           # -------------------------------------------------------------------
           # CPython 64 bits
           # -------------------------------------------------------------------
-          - build: CPython 3.8 64 bits
+          - nametag: CPython 3.8 64 bits
             python: cp38-win_amd64
             arch: AMD64
-          # - build: CPython 3.9 64 bits
-          #   python: cp39-win_amd64
-          #   arch: AMD64
-          # - build: CPython 3.10 64 bits
-          #   python: cp310-win_amd64
-          #   arch: AMD64
-          # - build: CPython 3.11 64 bits
-          #   python: cp311-win_amd64
-          #   arch: AMD64
-          # - build: CPython 3.12 64 bits
-          #   python: cp312-win_amd64
-          #   arch: AMD64
-          # - build: CPython 3.13 64 bits
-          #   python: cp313-win_amd64
-          #   arch: AMD64
+          - nametag: CPython 3.9 64 bits
+            python: cp39-win_amd64
+            arch: AMD64
+          - nametag: CPython 3.10 64 bits
+            python: cp310-win_amd64
+            arch: AMD64
+          - nametag: CPython 3.11 64 bits
+            python: cp311-win_amd64
+            arch: AMD64
+          - nametag: CPython 3.12 64 bits
+            python: cp312-win_amd64
+            arch: AMD64
+          - nametag: CPython 3.13 64 bits
+            python: cp313-win_amd64
+            arch: AMD64
 
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+    # steps:
+    #   - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
-        name: Install Python
-        with:
-          python-version: '3.9'
+    #   - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+    #     name: Install Python
+    #     with:
+    #       python-version: '3.9'
 
-      - name: Build wheels
-        uses: pypa/cibuildwheel@d4a2945fcc8d13f20a1b99d461b8e844d5fc6e23 # v2.21.1
-        env:
-          CIBW_BUILD: ${{ matrix.python }}
-          CIBW_ARCHS: ${{ matrix.arch }}
+    #   - name: Build wheels
+    #     uses: pypa/cibuildwheel@d4a2945fcc8d13f20a1b99d461b8e844d5fc6e23 # v2.21.1
+    #     env:
+    #       CIBW_BUILD: ${{ matrix.python }}
+    #       CIBW_ARCHS: ${{ matrix.arch }}
 
-      - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
-        with:
-          name: cibw-wheels-${{ matrix.python }}
-          path: ./wheelhouse/*.whl
+    #   - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+    #     with:
+    #       name: cibw-wheels-${{ matrix.python }}
+    #       path: ./wheelhouse/*.whl
 
 
   upload_pypi:
