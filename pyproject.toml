@@ -112,6 +112,8 @@ MACOSX_DEPLOYMENT_TARGET = "11"
 # Optimize for size (not speed).
 SKBUILD_CMAKE_BUILD_TYPE = "MinSizeRel"
 CCACHE_DIR = '~/.ccache'
+CMAKE_BUILD_PARALLEL_LEVEL = 6
+CTEST_PARALLEL_LEVEL = 6
 
 [tool.cibuildwheel.linux.environment]
 SKBUILD_CMAKE_ARGS = "-DLINKSTATIC=1"
@@ -119,6 +121,10 @@ SKBUILD_CMAKE_ARGS = "-DLINKSTATIC=1"
 CXXFLAGS = "-Wno-error=stringop-overflow -Wno-pragmas"
 SKBUILD_CMAKE_BUILD_TYPE = "MinSizeRel"
 CCACHE_DIR = '~/.ccache'
+CMAKE_BUILD_PARALLEL_LEVEL = 6
+CTEST_PARALLEL_LEVEL = 6
 
 [tool.cibuildwheel.windows.environment]
 SKBUILD_CMAKE_BUILD_TYPE = "MinSizeRel"
+CMAKE_BUILD_PARALLEL_LEVEL = 6
+CTEST_PARALLEL_LEVEL = 6
