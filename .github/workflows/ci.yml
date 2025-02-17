@@ -179,6 +179,8 @@ jobs:
           fetch-depth: '0'
       - name: ccache
         uses: hendrikmuhs/ccache-action@a1209f81afb8c005c13b4296c32e363431bffea5  # v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.nametag }}
       # - name: Prepare ccache timestamp
       #   id: ccache_cache_keys
       #   run: echo "date=`date -u +'%Y-%m-%dT%H:%M:%SZ'`" >> $GITHUB_OUTPUT

@@ -109,7 +109,7 @@ jobs:
       - name: ccache
         uses: hendrikmuhs/ccache-action@a1209f81afb8c005c13b4296c32e363431bffea5  # v1.2
         with:
-          key: ${{ github.job }}-${{ matrix.os }}
+          key: ${{ github.job }}-${{ inputs.nametag }}
       # - name: old Prepare ccache timestamp
       #   id: ccache_cache_keys
       #   shell: bash
