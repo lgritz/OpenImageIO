@@ -138,7 +138,7 @@ jobs:
             elif [[ "$RUNNER_OS" == "macOS" ]]; then
                 brew install ccache
             elif [[ "$RUNNER_OS" == "Windows" ]]; then
-                src/build-scripts/gh-win-installdeps.bash
+                echo src/build-scripts/gh-win-installdeps.bash
             fi
             src/build-scripts/save-env.bash
       - name: Prepare ccache timestamp
