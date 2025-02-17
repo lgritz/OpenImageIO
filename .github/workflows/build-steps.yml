@@ -100,23 +100,30 @@ jobs:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Checkout repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: '0'
-      - name: Prepare ccache timestamp
-        id: ccache_cache_keys
-        shell: bash
-        run: echo "date=`date -u +'%Y-%m-%dT%H:%M:%SZ'`" >> $GITHUB_OUTPUT
+      # - run: apt update  # Only for Docker jobs
+      #   if: inputs.container == ''
       - name: ccache
-        id: ccache
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        uses: hendrikmuhs/ccache-action@a1209f81afb8c005c13b4296c32e363431bffea5  # v1.2
         with:
-          path: ./ccache
-          key: ${{github.job}}-${{inputs.nametag}}-${{steps.ccache_cache_keys.outputs.date}}
-          restore-keys: ${{github.job}}-
-      - name: Setup Nuget.exe (Windows only)
-        if: runner.os == 'Windows'
-        uses: nuget/setup-nuget@a21f25cd3998bf370fde17e3f1b4c12c175172f9 # v2.0.0
+          key: ${{ github.job }}-${{ matrix.os }}
+      # - name: old Prepare ccache timestamp
+      #   id: ccache_cache_keys
+      #   shell: bash
+      #   run: echo "date=`date -u +'%Y-%m-%dT%H:%M:%SZ'`" >> $GITHUB_OUTPUT
+      # - name: old ccache
+      #   id: ccache
+      #   uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+      #   with:
+      #     path: ./ccache
+      #     key: ${{github.job}}-${{inputs.nametag}}-${{steps.ccache_cache_keys.outputs.date}}
+      #     restore-keys: ${{github.job}}-
+      # - name: Setup Nuget.exe (Windows only)
+      #   if: runner.os == 'Windows'
+      #   uses: nuget/setup-nuget@a21f25cd3998bf370fde17e3f1b4c12c175172f9 # v2.0.0
       - name: Build setup
         shell: bash
         run: |
@@ -186,7 +193,8 @@ jobs:
             cd src/doc
             time make doxygen
             time make sphinx
-      - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+      - name: Upload testsuite debugging artifacts
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         if: ${{ failure() || inputs.build_docs == '1'}}
         with:
           name: oiio-${{github.job}}-${{inputs.nametag}}

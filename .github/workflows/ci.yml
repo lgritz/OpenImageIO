@@ -173,19 +173,22 @@ jobs:
       #   uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813 # v1.4.3
       #   with:
       #     egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Checkout repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: '0'
-      - name: Prepare ccache timestamp
-        id: ccache_cache_keys
-        run: echo "date=`date -u +'%Y-%m-%dT%H:%M:%SZ'`" >> $GITHUB_OUTPUT
       - name: ccache
-        id: ccache
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
-        with:
-          path: /tmp/ccache
-          key: ${{github.job}}-${{matrix.nametag}}-${{steps.ccache_cache_keys.outputs.date}}
-          restore-keys: ${{github.job}}-
+        uses: hendrikmuhs/ccache-action@a1209f81afb8c005c13b4296c32e363431bffea5  # v1.2
+      # - name: Prepare ccache timestamp
+      #   id: ccache_cache_keys
+      #   run: echo "date=`date -u +'%Y-%m-%dT%H:%M:%SZ'`" >> $GITHUB_OUTPUT
+      # - name: ccache
+      #   id: ccache
+      #   uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+      #   with:
+      #     path: /tmp/ccache
+      #     key: ${{github.job}}-${{matrix.nametag}}-${{steps.ccache_cache_keys.outputs.date}}
+      #     restore-keys: ${{github.job}}-
       - name: Build setup
         run: |
             ${{matrix.setenvs}}
@@ -223,7 +226,8 @@ jobs:
             cd src/doc
             time make doxygen
             time make sphinx
-      - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+      - name: Upload testsuite debugging artifacts
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         if: ${{ failure() || matrix.build_docs == '1'}}
         with:
           name: oiio-${{github.job}}-${{matrix.nametag}}

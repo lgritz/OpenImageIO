@@ -9,10 +9,11 @@
 # with 'source', not in a separate shell.
 
 # Environment variables we always need
-export PATH=/usr/local/bin/_ccache:/usr/lib/ccache:$PATH
+# export PATH=/usr/local/bin/_ccache:/usr/lib/ccache:$PATH
+export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
 export USE_CCACHE=${USE_CCACHE:=1}
 export CCACHE_CPP2=
-export CCACHE_DIR=$HOME/.ccache
+# export CCACHE_DIR=$HOME/.ccache
 mkdir -p $CCACHE_DIR
 
 export OpenImageIO_ROOT=$PWD/dist
