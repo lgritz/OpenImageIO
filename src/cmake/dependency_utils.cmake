@@ -626,6 +626,14 @@ macro (build_dependency_with_cmake pkgname)
         list(APPEND _pkg_CMAKE_ARGS "-DCMAKE_IGNORE_PATH=${CMAKE_IGNORE_PATH_ESCAPED}")
     endif()
 
+    # Pass along our launch rules (e.g., ccache)
+    if (CCACHE_PROGRAM)
+        list (APPEND _pkg_CMAKE_ARGS -DCMAKE_CXX_COMPILER_LAUNCHER=${CCACHE_PROGRAM})
+        list (APPEND _pkg_CMAKE_ARGS -DCMAKE_CXX_LINKER_LAUNCHER=${CCACHE_PROGRAM})
+        list (APPEND _pkg_CMAKE_ARGS -DCMAKE_C_COMPILER_LAUNCHER=${CCACHE_PROGRAM})
+        list (APPEND _pkg_CMAKE_ARGS -DCMAKE_C_LINKER_LAUNCHER=${CCACHE_PROGRAM})
+    endif ()
+
     execute_process (COMMAND
         ${CMAKE_COMMAND}
             # Put things in our special local build areas
