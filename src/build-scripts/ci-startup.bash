@@ -15,6 +15,10 @@ export USE_CCACHE=${USE_CCACHE:=1}
 export CCACHE_CPP2=
 # export CCACHE_DIR=$HOME/.ccache
 mkdir -p $CCACHE_DIR
+export CMAKE_CXX_COMPILER_LAUNCHER=ccache
+export CMAKE_C_COMPILER_LAUNCHER=ccache
+export CMAKE_CXX_LINKER_LAUNCHER=ccache
+export CMAKE_C_LINKER_LAUNCHER=ccache
 
 export OpenImageIO_ROOT=$PWD/dist
 export DYLD_LIBRARY_PATH=$OpenImageIO_ROOT/lib:$DYLD_LIBRARY_PATH
