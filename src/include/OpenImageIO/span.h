@@ -645,8 +645,6 @@ size(const OIIO::span_strided<T, E>& c)
 }
 
 
-#if OIIO_CPLUSPLUS_VERSION < 20
-// C++20 and beyond already have these declared.
 template<class T, OIIO::span_size_t E = OIIO::dynamic_extent>
 constexpr ptrdiff_t
 ssize(const OIIO::span<T, E>& c)
@@ -660,7 +658,6 @@ ssize(const OIIO::span_strided<T, E>& c)
 {
     return static_cast<ptrdiff_t>(c.size());
 }
-#endif
 
 // Allow client software to easily know if the std::size/ssize was added for
 // our span templates.
