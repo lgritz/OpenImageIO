@@ -19,6 +19,7 @@ void
 test_span()
 {
     static float A[] = { 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 0 };
+    print("array size {}\n", std::size(A));
     cspan<float> a(A);
     OIIO_CHECK_EQUAL(a.size(), 12);
     OIIO_CHECK_EQUAL(std::size(a), size_t(12));
