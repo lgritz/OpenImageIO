@@ -448,7 +448,7 @@ template<typename T, size_t N>
 inline constexpr span<T>
 make_span(T (&arg)[N])  // span from C array of known length
 {
-    return { arg };
+    return { arg, N };
 }
 
 template<typename T>
@@ -462,7 +462,7 @@ template<typename T, size_t N>
 inline constexpr cspan<T>
 make_cspan(T (&arg)[N])  // cspan from C array of known length
 {
-    return { arg };
+    return { arg, N };
 }
 
 template<typename T>
