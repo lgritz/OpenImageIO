@@ -600,7 +600,8 @@ jobs:
             python_ver: "3.9"
             setenvs: export OPENIMAGEIO_PYTHON_LOAD_DLLS_FROM_PATH=1
                             OIIO_BUILD_TOOLS=0 USE_PYTHON=0
-                            OIIO_BUILD_MISSING_DEPS=none
+                            BUILD_OIIOUTIL_ONLY=1
+                            OpenImageIO_BUILD_MISSING_DEPS=none
                             CTEST_ARGS="-R span"
           - desc: Windows-2022 VS2022
             runner: windows-2022
@@ -609,5 +610,6 @@ jobs:
             python_ver: "3.9"
             setenvs: export OPENIMAGEIO_PYTHON_LOAD_DLLS_FROM_PATH=1
                             OIIO_BUILD_TOOLS=0 USE_PYTHON=0
-                            OIIO_BUILD_MISSING_DEPS=none
+                            BUILD_OIIOUTIL_ONLY=1
+                            OpenImageIO_BUILD_MISSING_DEPS=none
                             CTEST_ARGS="-R span"

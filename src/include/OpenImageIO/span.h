@@ -106,7 +106,9 @@ public:
     /// Construct from a fixed-length C array.  Template magic automatically
     /// finds the length from the declared type of the array.
     template<size_t N, OIIO_ENABLE_IF(Extent == dynamic_extent || Extent == N)>
-    constexpr span (T (&data)[N]) noexcept : m_data(data), m_size(N) { }
+    constexpr span (T (&data)[N]) noexcept : m_data(data), m_size(N) {
+        std::cout << "span ctr from array[" << N << "\n";
+     }
 
     /// Construct from std::vector<T>.
     template<class Allocator>
