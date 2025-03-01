@@ -636,6 +636,7 @@ template<class T, OIIO::span_size_t E = OIIO::dynamic_extent>
 constexpr size_t
 size(const OIIO::span<T, E>& c)
 {
+    print("in my std::size of span: span.size() = {}\n",static_cast<size_t>(c.size()));
     return static_cast<size_t>(c.size());
 }
 
