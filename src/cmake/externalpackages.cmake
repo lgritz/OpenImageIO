@@ -138,7 +138,7 @@ checked_find_package (OpenColorIO REQUIRED
                       VERSION_MIN 2.2
                       VERSION_MAX 2.9
                      )
-if (NOT OPENCOLORIO_INCLUDES)
+if (TARGET OpenColorIO::OpenColorIO AND NOT OPENCOLORIO_INCLUDES)
     get_target_property(OPENCOLORIO_INCLUDES OpenColorIO::OpenColorIO INTERFACE_INCLUDE_DIRECTORIES)
 endif ()
 include_directories(BEFORE ${OPENCOLORIO_INCLUDES})

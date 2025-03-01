@@ -601,7 +601,8 @@ jobs:
             setenvs: export OPENIMAGEIO_PYTHON_LOAD_DLLS_FROM_PATH=1
                             OIIO_BUILD_TOOLS=0 USE_PYTHON=0
                             BUILD_OIIOUTIL_ONLY=1
-                            OpenImageIO_BUILD_MISSING_DEPS=none
+                            xOpenImageIO_BUILD_MISSING_DEPS="Imath"
+                            xOpenImageIO_OPTIONAL_DEPS=ALL
                             CTEST_ARGS="-R span"
           - desc: Windows-2022 VS2022
             runner: windows-2022
@@ -611,5 +612,6 @@ jobs:
             setenvs: export OPENIMAGEIO_PYTHON_LOAD_DLLS_FROM_PATH=1
                             OIIO_BUILD_TOOLS=0 USE_PYTHON=0
                             BUILD_OIIOUTIL_ONLY=1
-                            OpenImageIO_BUILD_MISSING_DEPS=none
+                            xOpenImageIO_BUILD_MISSING_DEPS="Imath"
+                            xOpenImageIO_OPTIONAL_DEPS=ALL
                             CTEST_ARGS="-R span"
