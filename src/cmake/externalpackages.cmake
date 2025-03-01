@@ -32,6 +32,32 @@ set(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 
 include (FindThreads)
 
+# If we're only building the utility library, there are some dependencies
+# that we don't need to find.
+if (BUILD_OIIOUTIL_ONLY)
+    set (USE_PYTHON OFF)
+    set (USE_OPENCOLORIO OFF)
+    set (USE_TIFF OFF)
+    set (USE_JPEG OFF)
+    set (USE_libjpeg-turbo OFF)
+    set (USE_FREETYPE OFF)
+    set (USE_OPENCV OFF)
+    set (USE_PNG OFF)
+    set (USE_DCMTK OFF)
+    set (USE_FFMPEG OFF)
+    set (USE_GIF OFF)
+    set (USE_LIBHEIF OFF)
+    set (USE_LIBRAW OFF)
+    set (USE_OPENJPEG OFF)
+    set (USE_JXL OFF)
+    set (USE_OPENVDB OFF)
+    set (USE_PTEX OFF)
+    set (USE_WEBP OFF)
+    set (USE_NUKE OFF)
+    set (USE_R3DSDK OFF)
+    set (USE_QT OFF)
+endif ()
+
 
 ###########################################################################
 # Dependencies for required formats and features. These are so critical
@@ -45,9 +71,14 @@ if (NOT TARGET CMath::CMath)
     if (NOT MATH_LIBRARY-NOTFOUND)
         add_library (CMath::CMath UNKNOWN IMPORTED)
         set_property (TARGET CMath::CMath
-                      APPEND PROPERTY IMPORTED_LOCATION  ${MATH_LIBRARY})
+                      APPEND PROPERTY IMPORTED_LOCATION ${MATH_LIBRARY})
     endif ()
 endif ()
+
+checked_find_package (TIFF REQUIRED
+                      VERSION_MIN 4.0)
+alias_library_if_not_exists (TIFF::TIFF TIFF::tiff)
+
 
 # IlmBase & OpenEXR
 checked_find_package (Imath REQUIRED
@@ -72,6 +103,15 @@ set (OPENIMAGEIO_IMATH_DEPENDENCY_VISIBILITY "PRIVATE" CACHE STRING
 set (OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH OFF CACHE BOOL
      "Exclude find_dependency(Imath) from the exported OpenImageIOConfig.cmake")
 
+checked_find_package (OpenColorIO REQUIRED
+                      VERSION_MIN 2.2
+                      VERSION_MAX 2.9
+                     )
+if (TARGET OpenColorIO::OpenColorIO AND NOT OPENCOLORIO_INCLUDES)
+    get_target_property(OPENCOLORIO_INCLUDES OpenColorIO::OpenColorIO INTERFACE_INCLUDE_DIRECTORIES)
+endif ()
+include_directories(BEFORE ${OPENCOLORIO_INCLUDES})
+
 # JPEG -- prefer JPEG-Turbo to regular libjpeg
 checked_find_package (libjpeg-turbo
                       VERSION_MIN 2.1
@@ -85,20 +125,24 @@ else ()
     checked_find_package (JPEG REQUIRED)
 endif ()
 
+# Ultra HDR -- used to store HDR data in JPEG files
+if (JPEG_FOUND)
+    checked_find_package (libuhdr)
+endif ()
 
-# Ultra HDR
-checked_find_package (libuhdr)
+# fmtlib
+option (OIIO_INTERNALIZE_FMT "Copy fmt headers into <install>/include/OpenImageIO/detail/fmt" ON)
+checked_find_package (fmt REQUIRED
+                      VERSION_MIN 7.0
+                      BUILD_LOCAL missing
+                     )
+get_target_property(FMT_INCLUDE_DIR fmt::fmt-header-only INTERFACE_INCLUDE_DIRECTORIES)
 
-
-checked_find_package (TIFF REQUIRED
-                      VERSION_MIN 4.0)
-alias_library_if_not_exists (TIFF::TIFF TIFF::tiff)
-
-# JPEG XL
-option (USE_JXL "Enable JPEG XL support" ON)
-checked_find_package (JXL
-                      VERSION_MIN 0.10.1
-                      DEFINITIONS USE_JXL=1)
+# Tessil/robin-map
+checked_find_package (Robinmap REQUIRED
+                      VERSION_MIN 1.2.0
+                      BUILD_LOCAL missing
+                     )
 
 # Pugixml setup.  Normally we just use the version bundled with oiio, but
 # some linux distros are quite particular about having separate packages so we
@@ -113,7 +157,9 @@ else ()
 endif()
 
 # From pythonutils.cmake
-find_python()
+if (USE_PYTHON)
+    find_python()
+endif ()
 if (USE_PYTHON)
     checked_find_package (pybind11 REQUIRED VERSION_MIN 2.7)
 endif ()
@@ -133,15 +179,6 @@ endif ()
 checked_find_package (Freetype
                       VERSION_MIN 2.10.0
                       DEFINITIONS USE_FREETYPE=1 )
-
-checked_find_package (OpenColorIO REQUIRED
-                      VERSION_MIN 2.2
-                      VERSION_MAX 2.9
-                     )
-if (TARGET OpenColorIO::OpenColorIO AND NOT OPENCOLORIO_INCLUDES)
-    get_target_property(OPENCOLORIO_INCLUDES OpenColorIO::OpenColorIO INTERFACE_INCLUDE_DIRECTORIES)
-endif ()
-include_directories(BEFORE ${OPENCOLORIO_INCLUDES})
 
 checked_find_package (OpenCV 4.0
                       DEFINITIONS USE_OPENCV=1)
@@ -173,6 +210,11 @@ checked_find_package (OpenJPEG VERSION_MIN 2.0
                       RECOMMEND_MIN_REASON "for multithreading support")
 # Note: Recent OpenJPEG versions have exported cmake configs, but we don't
 # find them reliable at all, so we stick to our FindOpenJPEG.cmake module.
+
+# JPEG XL
+checked_find_package (JXL
+                      VERSION_MIN 0.10.1
+                      DEFINITIONS USE_JXL=1)
 
 checked_find_package (OpenVDB
                       VERSION_MIN  9.0
@@ -218,21 +260,6 @@ if (USE_QT AND OPENGL_FOUND)
         message (STATUS "  try:   export PATH=/usr/local/opt/qt/bin:$PATH")
     endif ()
 endif ()
-
-
-# Tessil/robin-map
-checked_find_package (Robinmap REQUIRED
-                      VERSION_MIN 1.2.0
-                      BUILD_LOCAL missing
-                     )
-
-# fmtlib
-option (OIIO_INTERNALIZE_FMT "Copy fmt headers into <install>/include/OpenImageIO/detail/fmt" ON)
-checked_find_package (fmt REQUIRED
-                      VERSION_MIN 7.0
-                      BUILD_LOCAL missing
-                     )
-get_target_property(FMT_INCLUDE_DIR fmt::fmt-header-only INTERFACE_INCLUDE_DIRECTORIES)
 
 
 ###########################################################################

@@ -361,7 +361,8 @@ macro (checked_find_package pkgname)
     #
     set (${pkgname}_FOUND FALSE)
     set (${pkgname}_LOCAL_BUILD FALSE)
-    if (_enable OR _pkg_REQUIRED)
+    # if (_enable OR _pkg_REQUIRED)
+    if (_enable)
         # Unless instructed not to, try to find the package externally
         # installed.
         if (${pkgname}_FOUND OR ${pkgname_upper}_FOUND OR _pkg_BUILD_LOCAL STREQUAL "always")

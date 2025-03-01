@@ -197,17 +197,6 @@ if (OIIO_BUILD_TESTS AND BUILD_TESTING)
                           LINK_LIBRARIES OpenImageIO_Util)
     add_test (unit_thread ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/thread_test)
 
-    fancy_add_executable (NAME simd_test SRC simd_test.cpp
-                          NO_INSTALL  FOLDER "Unit Tests"
-                          LINK_LIBRARIES OpenImageIO
-                                         ${OPENIMAGEIO_IMATH_TARGETS})
-    add_test (unit_simd ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/simd_test)
-
-    fancy_add_executable (NAME filter_test SRC filter_test.cpp
-                          NO_INSTALL  FOLDER "Unit Tests"
-                          LINK_LIBRARIES OpenImageIO)
-    add_test (unit_filter ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/filter_test)
-
     fancy_add_executable (NAME paramlist_test SRC paramlist_test.cpp
                           NO_INSTALL  FOLDER "Unit Tests"
                           LINK_LIBRARIES OpenImageIO_Util
@@ -230,5 +219,21 @@ if (OIIO_BUILD_TESTS AND BUILD_TESTING)
                           LINK_LIBRARIES OpenImageIO_Util
                                          ${OPENIMAGEIO_OPENEXR_TARGETS})
     add_test (unit_type_traits ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/type_traits_test)
+
+    if (NOT BUILD_OIIOUTIL_ONLY)
+        # These tests are for classes in libutil, but the tests themselves
+        # make use of some things in the main library. Skip those tests
+        # if we're only building the utility library.
+        fancy_add_executable (NAME filter_test SRC filter_test.cpp
+                              NO_INSTALL  FOLDER "Unit Tests"
+                              LINK_LIBRARIES OpenImageIO)
+        add_test (unit_filter ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/filter_test)
+
+        fancy_add_executable (NAME simd_test SRC simd_test.cpp
+                              NO_INSTALL  FOLDER "Unit Tests"
+                              LINK_LIBRARIES OpenImageIO
+                                             ${OPENIMAGEIO_IMATH_TARGETS})
+        add_test (unit_simd ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/simd_test)
+    endif ()
 
 endif ()
