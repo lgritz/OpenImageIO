@@ -632,6 +632,7 @@ OIIO_NAMESPACE_END
 // Declare std::size and std::ssize for our span.
 namespace std {
 
+#if 0
 template<class T, OIIO::span_size_t E = OIIO::dynamic_extent>
 constexpr size_t
 size(const OIIO::span<T, E>& c)
@@ -646,6 +647,7 @@ size(const OIIO::span_strided<T, E>& c)
 {
     return static_cast<size_t>(c.size());
 }
+#endif
 
 
 template<class T, OIIO::span_size_t E = OIIO::dynamic_extent>
