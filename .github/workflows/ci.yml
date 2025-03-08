@@ -15,6 +15,7 @@ on:
       - '!**/docs.yml'
       - '!**/scorecard.yml'
       - '!**.properties'
+      - '!pyproject.toml'
       - '!docs/**'
   pull_request:
     paths:

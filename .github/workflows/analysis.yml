@@ -25,6 +25,7 @@ on:
       - '!**/docs.yml'
       - '!**/scorecard.yml'
       - '!**.properties'
+      - '!pyproject.toml'
       - '!docs/**'
   # Run analysis on PRs only if the branch name indicates that the purpose of
   # the PR is related to the Sonar analysis. We don't run on every PR because
