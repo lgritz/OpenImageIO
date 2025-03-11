@@ -477,6 +477,66 @@ ImageInput::read_native_scanlines(int subimage, int miplevel, int ybegin,
 
 
 bool
+ImageInput::read_native_scanlines(int subimage, int miplevel, int ybegin,
+                                  int yend, span<std::byte> data)
+{
+    if (pvt::oiio_print_debug
+#ifndef NDEBUG
+        || true
+#endif
+    ) {
+        // Only for debug builds or if OIIO "debug" is enabled at runtime,
+        // validate that the span provided is sized to exactly what is needed
+        // to hold the requested scanlines.
+        ImageSpec s = spec_dimensions(subimage, miplevel);
+        size_t sz   = s.scanline_bytes(true /*native*/) * size_t(yend - ybegin);
+        if (sz > data.size()) {
+            errorfmt(
+                "read_native_scanlines: Buffer size is inadequate ({} bytes vs {} needed)",
+                sz, data.size());
+            return false;
+        }
+    }
+
+    // Default implementation (for now): call the old pointer based flavor
+    return read_native_scanlines(subimage, miplevel, ybegin, yend, 0,
+                                 data.data());
+}
+
+
+
+bool
+ImageInput::read_native_scanlines(int subimage, int miplevel, int ybegin,
+                                  int yend, int chbegin, int chend,
+                                  span<std::byte> data)
+{
+    if (pvt::oiio_print_debug
+#ifndef NDEBUG
+        || true
+#endif
+    ) {
+        // Only for debug builds or if OIIO "debug" is enabled at runtime,
+        // validate that the span provided is sized to exactly what is needed
+        // to hold the requested scanlines.
+        ImageSpec s = spec_dimensions(subimage, miplevel);
+        size_t sz   = s.pixel_bytes(chbegin, chend, true /*native*/)
+                    * size_t(yend - ybegin) * size_t(s.width);
+        if (sz > data.size()) {
+            errorfmt(
+                "read_native_scanlines: Buffer size is inadequate ({} bytes vs {} needed)",
+                sz, data.size());
+            return false;
+        }
+    }
+
+    // Default implementation (for now): call the old pointer based flavor
+    return read_native_scanlines(subimage, miplevel, ybegin, yend, 0, chbegin,
+                                 chend, data.data());
+}
+
+
+
+bool
 ImageInput::read_tile(int x, int y, int z, TypeDesc format, void* data,
                       stride_t xstride, stride_t ystride, stride_t zstride)
 {
@@ -839,6 +899,94 @@ ImageInput::read_native_tiles(int subimage, int miplevel, int xbegin, int xend,
         }
     }
     return true;
+}
+
+
+
+bool
+ImageInput::read_native_tiles(int subimage, int miplevel, int xbegin, int xend,
+                              int ybegin, int yend,
+                              span<std::byte> data)
+{
+    if (pvt::oiio_print_debug
+#ifndef NDEBUG
+        || true
+#endif
+    ) {
+        // Only for debug builds or if OIIO "debug" is enabled at runtime,
+        // validate that the span provided is sized to exactly what is needed
+        // to hold the requested tiles.
+        ImageSpec s = spec_dimensions(subimage, miplevel);
+        size_t sz   = s.tile_bytes(true /*native*/);
+        if (sz > data.size()) {
+            errorfmt(
+                "read_native_tiles: Buffer size is inadequate ({} bytes vs {} needed)",
+                sz, data.size());
+            return false;
+        }
+    }
+
+    // Default implementation (for now): call the old pointer based flavor
+    return read_native_tiles(subimage, miplevel, xbegin, xend, ybegin, yend,
+                             0, 1, data.data());
+}
+
+
+
+bool
+ImageInput::read_native_tiles(int subimage, int miplevel, int xbegin, int xend,
+                              int ybegin, int yend, int chbegin, int chend,
+                              span<std::byte> data)
+{
+    if (pvt::oiio_print_debug
+#ifndef NDEBUG
+        || true
+#endif
+    ) {
+        // Only for debug builds or if OIIO "debug" is enabled at runtime,
+        // validate that the span provided is sized to exactly what is needed
+        // to hold the requested tiles.
+        ImageSpec s = spec_dimensions(subimage, miplevel);
+        size_t sz   = s.pixel_bytes(chbegin, chend, true /*native*/)
+                    * size_t(xend - xbegin) * size_t(yend - ybegin)
+                    /* * size_t(zend - zbegin) */;
+        if (sz > data.size()) {
+            errorfmt(
+                "read_native_tiles: Buffer size is inadequate ({} bytes vs {} needed)",
+                sz, data.size());
+            return false;
+        }
+    }
+
+    // Default implementation (for now): call the old pointer based flavor
+    return read_native_tiles(subimage, miplevel, xbegin, xend, ybegin, yend,
+                             0, 1, chbegin, chend, data.data());
+}
+
+
+
+bool
+ImageInput::read_native_volumetric_tiles(int subimage, int miplevel, int xbegin,
+                                         int xend, int ybegin, int yend,
+                                         int zbegin, int zend,
+                                         span<std::byte> data)
+{
+    errorfmt("Unimplemented read_native_volumetric_tiles() for {}",
+             format_name());
+    return false;
+}
+
+
+
+bool
+ImageInput::read_native_volumetric_tiles(int subimage, int miplevel, int xbegin,
+                                         int xend, int ybegin, int yend,
+                                         int zbegin, int zend, int chbegin,
+                                         int chend, span<std::byte> data)
+{
+    errorfmt("Unimplemented read_native_volumetric_tiles() for {}",
+             format_name());
+    return false;
 }
 
 

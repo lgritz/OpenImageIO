@@ -1566,6 +1566,17 @@ public:
                                         int ybegin, int yend, int z,
                                         int chbegin, int chend, void *data);
 
+    /// Read a range of scanlines (all channels) of native data into
+    /// contiguous memory.
+    virtual bool read_native_scanlines(int subimage, int miplevel, int ybegin,
+                                       int yend, span<std::byte> data);
+
+    /// Read a range of scanlines (with potentially a subset of channels) of
+    /// native data into contiguous memory.
+    virtual bool read_native_scanlines(int subimage, int miplevel, int ybegin,
+                                       int yend, int chbegin, int chend,
+                                       span<std::byte> data);
+
     /// Read a single tile (all channels) of native data into contiguous
     /// memory. The base class read_native_tile fails. A format reader that
     /// supports tiles MUST overload this virtual method that reads a single
@@ -1596,6 +1607,33 @@ public:
                                     int xbegin, int xend, int ybegin, int yend,
                                     int zbegin, int zend,
                                     int chbegin, int chend, void *data);
+
+    /// Read a range of tiles (all channels) of native data into contiguous
+    /// memory.
+    virtual bool read_native_tiles(int subimage, int miplevel,
+                                   int xbegin, int xend, int ybegin, int yend,
+                                   span<std::byte> data);
+
+    /// Read a range of tiles (with potentially a subset of channels) of
+    /// native data into contiguous memory.
+    virtual bool read_native_tiles(int subimage, int miplevel,
+                                   int xbegin, int xend, int ybegin, int yend,
+                                   int chbegin, int chend,
+                                   span<std::byte> data);
+
+    /// Read a range of 3D volumetric tiles (all channels) of native data into
+    /// contiguous memory. This is only functional for volumetric formats.
+    virtual bool read_native_volumetric_tiles(int subimage, int miplevel,
+                                   int xbegin, int xend, int ybegin, int yend,
+                                   int zbegin, int zend, span<std::byte> data);
+
+    /// Read a range of 3D volumetric tiles (with potentially a subset of
+    /// channels) of native data into contiguous memory. This is only
+    /// functional for volumetric formats.
+    virtual bool read_native_volumetric_tiles(int subimage, int miplevel,
+                                int xbegin, int xend, int ybegin, int yend,
+                                int zbegin, int zend, int chbegin, int chend,
+                                span<std::byte> data);
     /// @}
 
 
