@@ -331,16 +331,19 @@ ImageInput::read_scanlines(int subimage, int miplevel, int ybegin, int yend,
     bool contiguous                = (xstride == (stride_t)buffer_pixel_bytes
                        && ystride == (stride_t)buffer_scanline_bytes);
 
+    auto dataspan = make_span(static_cast<std::byte*>(data),
+                              buffer_scanline_bytes * size_t(yend - ybegin));
+
     // no_type_convert is true if asking for data in the native format
     bool no_type_convert = (format == spec.format
                             && spec.channelformats.empty());
     if ((native || no_type_convert) && contiguous) {
         if (chbegin == 0 && chend == spec.nchannels)
-            return read_native_scanlines(subimage, miplevel, ybegin, yend, z,
-                                         data);
+            return read_native_scanlines(subimage, miplevel, ybegin, yend,
+                                         dataspan);
         else
-            return read_native_scanlines(subimage, miplevel, ybegin, yend, z,
-                                         chbegin, chend, data);
+            return read_native_scanlines(subimage, miplevel, ybegin, yend,
+                                         chbegin, chend, dataspan);
     }
 
     // No such luck.  Read scanlines in chunks.
@@ -350,14 +353,16 @@ ImageInput::read_scanlines(int subimage, int miplevel, int ybegin, int yend,
     int chunk = std::max(1, (1 << 26) / int(spec.scanline_bytes(true)));
     chunk     = std::max(chunk, int(oiio_read_chunk));
     chunk     = round_to_multiple(chunk, rps);
-    std::unique_ptr<char[]> buf(new char[chunk * native_scanline_bytes]);
+    std::unique_ptr<std::byte[]> buf(
+        new std::byte[chunk * native_scanline_bytes]);
+    auto bufspan = make_span(buf.get(), chunk * native_scanline_bytes);
 
     bool ok             = true;
     int scanline_values = spec.width * nchans;
     for (; ok && ybegin < yend; ybegin += chunk) {
         int y1 = std::min(ybegin + chunk, yend);
-        ok &= read_native_scanlines(subimage, miplevel, ybegin, y1, z, chbegin,
-                                    chend, &buf[0]);
+        ok &= read_native_scanlines(subimage, miplevel, ybegin, y1, chbegin,
+                                    chend, bufspan);
         if (!ok)
             break;
 
@@ -366,11 +371,11 @@ ImageInput::read_scanlines(int subimage, int miplevel, int ybegin, int yend,
         if (spec.channelformats.empty()) {
             // No per-channel formats -- do the conversion in one shot
             if (contiguous) {
-                ok = convert_pixel_values(spec.format, &buf[0], format, data,
+                ok = convert_pixel_values(spec.format, buf.get(), format, data,
                                           chunkvalues);
             } else {
                 ok = parallel_convert_image(nchans, spec.width, nscanlines, 1,
-                                            &buf[0], spec.format, AutoStride,
+                                            buf.get(), spec.format, AutoStride,
                                             AutoStride, AutoStride, data,
                                             format, xstride, ystride, zstride,
                                             threads());
@@ -905,8 +910,7 @@ ImageInput::read_native_tiles(int subimage, int miplevel, int xbegin, int xend,
 
 bool
 ImageInput::read_native_tiles(int subimage, int miplevel, int xbegin, int xend,
-                              int ybegin, int yend,
-                              span<std::byte> data)
+                              int ybegin, int yend, span<std::byte> data)
 {
     if (pvt::oiio_print_debug
 #ifndef NDEBUG
@@ -927,8 +931,8 @@ ImageInput::read_native_tiles(int subimage, int miplevel, int xbegin, int xend,
     }
 
     // Default implementation (for now): call the old pointer based flavor
-    return read_native_tiles(subimage, miplevel, xbegin, xend, ybegin, yend,
-                             0, 1, data.data());
+    return read_native_tiles(subimage, miplevel, xbegin, xend, ybegin, yend, 0,
+                             1, data.data());
 }
 
 
@@ -948,8 +952,7 @@ ImageInput::read_native_tiles(int subimage, int miplevel, int xbegin, int xend,
         // to hold the requested tiles.
         ImageSpec s = spec_dimensions(subimage, miplevel);
         size_t sz   = s.pixel_bytes(chbegin, chend, true /*native*/)
-                    * size_t(xend - xbegin) * size_t(yend - ybegin)
-                    /* * size_t(zend - zbegin) */;
+                    * size_t(xend - xbegin) * size_t(yend - ybegin);
         if (sz > data.size()) {
             errorfmt(
                 "read_native_tiles: Buffer size is inadequate ({} bytes vs {} needed)",
@@ -959,8 +962,8 @@ ImageInput::read_native_tiles(int subimage, int miplevel, int xbegin, int xend,
     }
 
     // Default implementation (for now): call the old pointer based flavor
-    return read_native_tiles(subimage, miplevel, xbegin, xend, ybegin, yend,
-                             0, 1, chbegin, chend, data.data());
+    return read_native_tiles(subimage, miplevel, xbegin, xend, ybegin, yend, 0,
+                             1, chbegin, chend, data.data());
 }
 
 
