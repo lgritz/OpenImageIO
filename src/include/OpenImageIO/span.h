@@ -505,6 +505,37 @@ as_writable_bytes(span<T, Extent> s) noexcept
 
 
 
+/// Convert a raw `const T*` ptr + length to a span of const bytes covering
+/// the same range of memory. For non-void pointers, the length is in the
+/// number of elements of T; for void pointers, the length is measured in
+/// bytes.
+template<typename T>
+span<const std::byte>
+as_bytes(const T* ptr, size_t len) noexcept
+{
+    size_t nbytes = len;
+    if constexpr (!std::is_void_v<T>)
+        nbytes *= sizeof(T);
+    return make_cspan(reinterpret_cast<const std::byte*>(ptr), nbytes);
+}
+
+
+
+/// Convert a raw `T*` ptr + length to a span of mutable bytes covering the
+/// same range of memory. For non-void pointers, the length is in the number
+/// of elements of T; for void pointers, the length is measured in bytes.
+template<class T, OIIO_ENABLE_IF(!std::is_const_v<T>)>
+span<std::byte>
+as_writable_bytes(T* ptr, size_t len) noexcept
+{
+    size_t nbytes = len;
+    if constexpr (!std::is_void_v<T>)
+        nbytes *= sizeof(T);
+    return make_span(reinterpret_cast<std::byte*>(ptr), nbytes);
+}
+
+
+
 /// Try to copy `n` items of type `T` from `src[srcoffset...]` to
 /// `dst[dstoffset...]`. Don't read or write outside the respective span
 /// boundaries. Return the number of items actually copied, which should be

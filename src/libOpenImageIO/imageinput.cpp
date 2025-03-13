@@ -233,22 +233,25 @@ ImageInput::read_scanline(int y, int z, TypeDesc format, void* data,
         m_spec.auto_stride(xstride, format, m_spec.nchannels);
     // Do the strides indicate that the data area is contiguous?
     bool contiguous = (xstride == buffer_pixel_bytes);
+    // Bytes a scanline takes in native formats
+    size_t native_sl_bytes = m_spec.scanline_bytes(true);
 
     // If user's format and strides are set up to accept the native data
     // layout, read the scanline directly into the user's buffer.
     if (native_data && contiguous)
-        return read_native_scanline(current_subimage(), current_miplevel(), y,
-                                    z, data);
+        return read_native_scanlines(current_subimage(), current_miplevel(), y,
+                                     y + 1,
+                                     as_writable_bytes(data, native_sl_bytes));
 
     // Complex case -- either changing data type or stride
     int scanline_values = m_spec.width * m_spec.nchannels;
 
     unsigned char* buf;
-    OIIO_ALLOCATE_STACK_OR_HEAP(buf, unsigned char,
-                                m_spec.scanline_bytes(true));
+    OIIO_ALLOCATE_STACK_OR_HEAP(buf, unsigned char, native_sl_bytes);
 
-    bool ok = read_native_scanline(current_subimage(), current_miplevel(), y, z,
-                                   buf);
+    bool ok = read_native_scanlines(current_subimage(), current_miplevel(), y,
+                                    y + 1,
+                                    as_writable_bytes(buf, native_sl_bytes));
     if (!ok)
         return false;
     if (m_spec.channelformats.empty()) {
