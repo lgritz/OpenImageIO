@@ -45,18 +45,20 @@ class DeepData;
 class ImageBuf;
 class Timer;
 
+#ifndef OIIO_STRIDE_T_DEFINED
+#    define OIIO_STRIDE_T_DEFINED
+/// Type we use to express how many pixels (or bytes) constitute an image,
+/// tile, or scanline.
+using imagesize_t = uint64_t;
 
 /// Type we use for stride lengths between pixels, scanlines, or image
 /// planes.
 using stride_t = int64_t;
 
-/// Type we use to express how many pixels (or bytes) constitute an image,
-/// tile, or scanline.
-using imagesize_t = uint64_t;
-
 /// Special value to indicate a stride length that should be
 /// auto-computed.
 inline constexpr stride_t AutoStride = std::numeric_limits<stride_t>::min();
+#endif
 
 
 
