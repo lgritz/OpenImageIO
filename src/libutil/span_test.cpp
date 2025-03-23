@@ -272,6 +272,24 @@ test_image_span(string_view typenm)
           { { 0, 2, 8 }, { 1, 2, 9 }, { 2, 2, 10 }, { 3, 2, 11 } } }
     };
 
+    // Test a 2D image_span
+    {
+        image2d_span<T> I((T*)IMG, C, X, Y);
+        OIIO_CHECK_EQUAL(I.getptr(0, 0), &IMG[0][0][0][0]);
+        OIIO_CHECK_EQUAL(I.getptr(1, 0), &IMG[0][0][0][1]);
+        OIIO_CHECK_EQUAL(I.getptr(0, 1), &IMG[0][0][1][0]);
+        for (int y = 0, i = 0; y < Y; ++y) {
+            for (int x = 0; x < X; ++x, ++i) {
+                OIIO_CHECK_EQUAL(I.get(0, x, y), x);
+                OIIO_CHECK_EQUAL(I.get(1, x, y), y);
+                OIIO_CHECK_EQUAL(I.get(2, x, y), i);
+                OIIO_CHECK_EQUAL(I(x, y)[0], x);
+                OIIO_CHECK_EQUAL(I(x, y)[1], y);
+                OIIO_CHECK_EQUAL(I(x, y)[2], i);
+            }
+        }
+    }
+
     // Test a full volumetric image
     {
         image_span<T> I((T*)IMG, C, X, Y, Z);
@@ -289,24 +307,6 @@ test_image_span(string_view typenm)
                     OIIO_CHECK_EQUAL(I(x, y, z)[1], y);
                     OIIO_CHECK_EQUAL(I(x, y, z)[2], i);
                 }
-            }
-        }
-    }
-
-    // Test a 2D image_span
-    {
-        image2d_span<T> I((T*)IMG, C, X, Y);
-        OIIO_CHECK_EQUAL(I.getptr(0, 0), &IMG[0][0][0][0]);
-        OIIO_CHECK_EQUAL(I.getptr(1, 0), &IMG[0][0][0][1]);
-        OIIO_CHECK_EQUAL(I.getptr(0, 1), &IMG[0][0][1][0]);
-        for (int y = 0, i = 0; y < Y; ++y) {
-            for (int x = 0; x < X; ++x, ++i) {
-                OIIO_CHECK_EQUAL(I.get(0, x, y), x);
-                OIIO_CHECK_EQUAL(I.get(1, x, y), y);
-                OIIO_CHECK_EQUAL(I.get(2, x, y), i);
-                OIIO_CHECK_EQUAL(I(x, y)[0], x);
-                OIIO_CHECK_EQUAL(I(x, y)[1], y);
-                OIIO_CHECK_EQUAL(I(x, y)[2], i);
             }
         }
     }

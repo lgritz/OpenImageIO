@@ -70,6 +70,13 @@ public:
         : m_data(data)
         , m_chansize(chansize)
     {
+        // Validations:
+        // - an image_span<byte> can have any chansize, but any other T must
+        //   have the chansize equal to the data type size.
+        OIIO_DASSERT(nchannels > 0 && width > 0 && height > 0 && depth > 0);
+        OIIO_DASSERT((std::is_same<std::remove_const_t<T>, std::byte>::value)
+                     || chansize == sizeof(T));
+
         m_sizes[0] = nchannels;
         m_sizes[1] = width;
         if constexpr (Rank >= 3)
@@ -77,26 +84,18 @@ public:
         if constexpr (Rank >= 4)
             m_sizes[3] = depth;
 
-        chanstride = chanstride != AutoStride ? chanstride : chansize;
-        xstride    = xstride != AutoStride ? xstride : nchannels * chanstride;
-        if constexpr (Rank >= 3)
-            ystride = ystride != AutoStride ? ystride : width * xstride;
-        if constexpr (Rank >= 4)
-            zstride = zstride != AutoStride ? zstride : height * ystride;
-
+        chanstride   = chanstride != AutoStride ? chanstride : chansize;
+        xstride      = xstride != AutoStride ? xstride : nchannels * chanstride;
         m_strides[0] = chanstride;
         m_strides[1] = xstride;
-        if constexpr (Rank >= 3)
+        if constexpr (Rank >= 3) {
+            ystride      = ystride != AutoStride ? ystride : width * xstride;
             m_strides[2] = ystride;
-        if constexpr (Rank >= 4)
+        }
+        if constexpr (Rank >= 4) {
+            zstride      = zstride != AutoStride ? zstride : height * ystride;
             m_strides[3] = zstride;
-
-        // Validations:
-        // - an image_span<byte> can have any chansize, but any other T must
-        //   have the chansize equal to the data type size.
-        OIIO_DASSERT(nchannels > 0 && width > 0 && height > 0 && depth > 0);
-        OIIO_DASSERT((std::is_same<std::remove_const_t<T>, std::byte>::value)
-                     || chansize == sizeof(T));
+        }
     }
 
     /// Construct from span<T> and dimensions, assume contiguous strides.
@@ -114,13 +113,13 @@ public:
     image_span& operator=(const image_span& copy) = default;
 
     /// image_span(x,y,z) returns a strided_ptr<T,1> for the pixel (x,y,z).
-    /// The z can be omitted for 2D images.  Note thtn the resulting
+    /// The z can be omitted for 2D images.  Note that the resulting
     /// strided_ptr can then have individual channels accessed with
     /// operator[]. This particular strided pointer has stride multiplier 1,
     /// because this class uses bytes as strides, not sizeof(T).
-    strided_ptr<T /*, 1*/> operator()(uint32_t x, uint32_t y, uint32_t z = 0)
+    strided_ptr<T, 1> operator()(uint32_t x, uint32_t y, uint32_t z = 0)
     {
-        return strided_ptr<T /*, 1*/>(getptr(0, x, y, z) /*, m_chanstride*/);
+        return strided_ptr<T, 1>(getptr(0, x, y, z), chanstride());
     }
 
     /// Return the number of dimensions of the image.
