@@ -40,8 +40,12 @@ inline constexpr stride_t AutoStride = std::numeric_limits<stride_t>::min();
 /// the image may be modified), whereas an `image_span<const T>` is not
 /// mutable.
 ///
-template<typename T, size_t Dims = 4> class image_span {
-    static_assert(Dims >= 2 && Dims <= 4, "Dimension must be between 2 and 4");
+/// Note that the optional template parameter `Rank` includes the channels as
+/// the first dimension.  When no Rank template parameter is provided, it
+/// defaults to 4, meaning it's an image span that can describe any choice of
+/// a scanline, 2D image, or volume.
+template<typename T, size_t Rank = 4> class image_span {
+    static_assert(Rank >= 2 && Rank <= 4, "Dimension must be between 2 and 4");
 
 public:
     using value_type      = T;
@@ -64,21 +68,27 @@ public:
                stride_t xstride = AutoStride, stride_t ystride = AutoStride,
                stride_t zstride = AutoStride, uint32_t chansize = sizeof(T))
         : m_data(data)
-        , m_sizes({ nchannels, width, height, depth })
         , m_chansize(chansize)
     {
+        m_sizes[0] = nchannels;
+        m_sizes[1] = width;
+        if constexpr (Rank >= 3)
+            m_sizes[2] = height;
+        if constexpr (Rank >= 4)
+            m_sizes[3] = depth;
+
         chanstride = chanstride != AutoStride ? chanstride : chansize;
         xstride    = xstride != AutoStride ? xstride : nchannels * chanstride;
-        if constexpr (Dims >= 3)
+        if constexpr (Rank >= 3)
             ystride = ystride != AutoStride ? ystride : width * xstride;
-        if constexpr (Dims >= 4)
+        if constexpr (Rank >= 4)
             zstride = zstride != AutoStride ? zstride : height * ystride;
 
         m_strides[0] = chanstride;
         m_strides[1] = xstride;
-        if constexpr (Dims >= 3)
+        if constexpr (Rank >= 3)
             m_strides[2] = ystride;
-        if constexpr (Dims >= 4)
+        if constexpr (Rank >= 4)
             m_strides[3] = zstride;
 
         // Validations:
@@ -114,7 +124,7 @@ public:
     }
 
     /// Return the number of dimensions of the image.
-    static constexpr size_t rank() noexcept { return Dims; }
+    static constexpr size_t rank() noexcept { return Rank; }
 
     /// Return the number of channels.
     constexpr size_type nchannels() const { return m_sizes[0]; }
@@ -130,7 +140,7 @@ public:
     /// This will be 1 for a single scanline `image_span<1>`.
     constexpr size_type height() const
     {
-        if constexpr (Dims >= 2)
+        if constexpr (Rank >= 2)
             return m_sizes[2];
         else
             return 1;
@@ -139,7 +149,7 @@ public:
     /// This will be 0 for a single scanline `image_span<1>`.
     constexpr stride_type ystride() const
     {
-        if constexpr (Dims >= 2)
+        if constexpr (Rank >= 2)
             return m_strides[2];
         else
             return 0;
@@ -150,7 +160,7 @@ public:
     /// `image_span<1>` or `image_span<2>`).
     constexpr size_type depth() const
     {
-        if constexpr (Dims >= 3)
+        if constexpr (Rank >= 3)
             return m_sizes[3];
         else
             return 1;
@@ -160,7 +170,7 @@ public:
     /// not a volumetric image).
     constexpr stride_type zstride() const
     {
-        if constexpr (Dims >= 3)
+        if constexpr (Rank >= 3)
             return m_strides[3];
         else
             return 0;
@@ -203,9 +213,9 @@ public:
             /* scanline is contiguous pixels */
             && xstride() == chanstride() * nchannels()
             /* image plane is contiguous scanlines */
-            && (Dims < 2 || ystride() == xstride() * width())
+            && (Rank < 2 || ystride() == xstride() * width())
             /* volume is contiguous planes */
-            && (Dims < 3 || zstride() == ystride() * height());
+            && (Rank < 3 || zstride() == ystride() * height());
     }
 
     /// Return the total number of values (c*w*h*d).
@@ -243,10 +253,27 @@ public:
 
 private:
     T* m_data { nullptr };  // pointer to the start of the data
-    std::array<stride_type, Dims> m_strides;  // byte strides for each dim
-    std::array<size_type, Dims> m_sizes;      // size for each dim
+    std::array<stride_type, Rank> m_strides;  // byte strides for each dim
+    std::array<size_type, Rank> m_sizes;      // size for each dim
     uint32_t m_chansize { sizeof(T) };  // size of a channel value, in bytes
 };
+
+
+
+/// Type alias for an image_span that can describe a 3D volumetric image with
+/// channels.
+template<typename T>
+using image3d_span = image_span<T, 4>;
+
+/// Type alias for an image_span that can describe a 2D image with channels,
+/// but cannot describe a 3D volume.
+template<typename T>
+using image2d_span = image_span<T, 3>;
+
+/// Type alias for an image_span that can describe a single scanline with
+/// channels, but cannot describe a full 2D image or a 3D volume.
+template<typename T>
+using image1d_span = image_span<T, 2>;
 
 
 OIIO_NAMESPACE_END

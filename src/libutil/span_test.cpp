@@ -259,30 +259,55 @@ test_span_strided_mutable()
 
 
 
+template<typename T>
 void
-test_image_span()
+test_image_span(string_view typenm)
 {
+    print("testing image_span {}\n", typenm);
     const int X = 4, Y = 3, C = 3, Z = 1;
-    static const float IMG[Z][Y][X][C] = {
+    static T IMG[Z][Y][X][C] = {
         // 4x3 2D image with 3 channels
         { { { 0, 0, 0 }, { 1, 0, 1 }, { 2, 0, 2 }, { 3, 0, 3 } },
           { { 0, 1, 4 }, { 1, 1, 5 }, { 2, 1, 6 }, { 3, 1, 7 } },
           { { 0, 2, 8 }, { 1, 2, 9 }, { 2, 2, 10 }, { 3, 2, 11 } } }
     };
 
-    image_span<const float> I((const float*)IMG, C, X, Y, Z);
-    OIIO_CHECK_EQUAL(I.getptr(0,0,0), &IMG[0][0][0][0]);
-    OIIO_CHECK_EQUAL(I.getptr(1,0,0), &IMG[0][0][0][1]);
-    OIIO_CHECK_EQUAL(I.getptr(0,1,0), &IMG[0][0][1][0]);
-    OIIO_CHECK_EQUAL(I.getptr(0,0,1), &IMG[0][1][0][0]);
-    for (int y = 0, i = 0; y < Y; ++y) {
-        for (int x = 0; x < X; ++x, ++i) {
-            OIIO_CHECK_EQUAL(I.get(0, x, y), x);
-            OIIO_CHECK_EQUAL(I.get(1, x, y), y);
-            OIIO_CHECK_EQUAL(I.get(2, x, y), i);
-            OIIO_CHECK_EQUAL(I(x, y)[0], x);
-            OIIO_CHECK_EQUAL(I(x, y)[1], y);
-            OIIO_CHECK_EQUAL(I(x, y)[2], i);
+    // Test a full volumetric image
+    {
+        image_span<T> I((T*)IMG, C, X, Y, Z);
+        OIIO_CHECK_EQUAL(I.getptr(0, 0, 0), &IMG[0][0][0][0]);
+        OIIO_CHECK_EQUAL(I.getptr(1, 0, 0), &IMG[0][0][0][1]);
+        OIIO_CHECK_EQUAL(I.getptr(0, 1, 0), &IMG[0][0][1][0]);
+        OIIO_CHECK_EQUAL(I.getptr(0, 0, 1), &IMG[0][1][0][0]);
+        for (int z = 0; z < Z; ++z) {
+            for (int y = 0, i = 0; y < Y; ++y) {
+                for (int x = 0; x < X; ++x, ++i) {
+                    OIIO_CHECK_EQUAL(I.get(0, x, y, z), x);
+                    OIIO_CHECK_EQUAL(I.get(1, x, y, z), y);
+                    OIIO_CHECK_EQUAL(I.get(2, x, y, z), i);
+                    OIIO_CHECK_EQUAL(I(x, y, z)[0], x);
+                    OIIO_CHECK_EQUAL(I(x, y, z)[1], y);
+                    OIIO_CHECK_EQUAL(I(x, y, z)[2], i);
+                }
+            }
+        }
+    }
+
+    // Test a 2D image_span
+    {
+        image2d_span<T> I((T*)IMG, C, X, Y);
+        OIIO_CHECK_EQUAL(I.getptr(0, 0), &IMG[0][0][0][0]);
+        OIIO_CHECK_EQUAL(I.getptr(1, 0), &IMG[0][0][0][1]);
+        OIIO_CHECK_EQUAL(I.getptr(0, 1), &IMG[0][0][1][0]);
+        for (int y = 0, i = 0; y < Y; ++y) {
+            for (int x = 0; x < X; ++x, ++i) {
+                OIIO_CHECK_EQUAL(I.get(0, x, y), x);
+                OIIO_CHECK_EQUAL(I.get(1, x, y), y);
+                OIIO_CHECK_EQUAL(I.get(2, x, y), i);
+                OIIO_CHECK_EQUAL(I(x, y)[0], x);
+                OIIO_CHECK_EQUAL(I(x, y)[1], y);
+                OIIO_CHECK_EQUAL(I(x, y)[2], i);
+            }
         }
     }
 }
@@ -530,8 +555,8 @@ main(int /*argc*/, char* /*argv*/[])
     test_strided_ptr();
     test_span_strided();
     test_span_strided_mutable();
-    test_image_span();
-    test_image_span_mutable();
+    test_image_span<float>("float");
+    test_image_span<const float>("const float");
     test_make_span();
     test_as_bytes();
     test_span_cast();
