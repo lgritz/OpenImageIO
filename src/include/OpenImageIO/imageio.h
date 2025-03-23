@@ -1698,6 +1698,19 @@ public:
     // General message passing between client and image input server. This
     // is currently undefined and is reserved for future use.
     virtual int send_to_input (const char *format, ...);
+    int send_to_client (const char *format, ...);
+
+    /// Set an IOProxy for this reader. This must be called prior to
+    /// `open()`, and only for readers that support them
+    /// (`supports("ioproxy")`). The caller retains ownership of the proxy.
+    ///
+    /// @returns `true` for success, `false` for failure.
+    virtual bool set_ioproxy (Filesystem::IOProxy* ioproxy);
+
+    /// Is there a pending error message waiting to be retrieved, that
+    /// resulted from an ImageInput API call made by the this thread?
+    ///
+    /// Note that any `error()` calls issued are thread-specific, and the
     /// `geterror()/has_error()` are expected to be called by the same
     /// thread that called whichever API function encountered an error.
     bool has_error() const;
