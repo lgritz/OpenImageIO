@@ -262,18 +262,15 @@ private:
 
 /// Type alias for an image_span that can describe a 3D volumetric image with
 /// channels.
-template<typename T>
-using image3d_span = image_span<T, 4>;
+template<typename T> using image3d_span = image_span<T, 4>;
 
 /// Type alias for an image_span that can describe a 2D image with channels,
 /// but cannot describe a 3D volume.
-template<typename T>
-using image2d_span = image_span<T, 3>;
+template<typename T> using image2d_span = image_span<T, 3>;
 
 /// Type alias for an image_span that can describe a single scanline with
 /// channels, but cannot describe a full 2D image or a 3D volume.
-template<typename T>
-using image1d_span = image_span<T, 2>;
+template<typename T> using image1d_span = image_span<T, 2>;
 
 
 OIIO_NAMESPACE_END
