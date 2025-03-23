@@ -33,24 +33,23 @@ inline constexpr stride_t AutoStride = std::numeric_limits<stride_t>::min();
 
 
 
-/// image_span : a non-owning reference to n-D image-like array having between
-/// 2 and 4 dimensions representing channel, x, y, z with each dimension
-/// having known size and optionally non-default strides (expressed in bytes)
-/// through the data.  An image_span<T> is mutable (the values in the image
-/// may be modified), whereas an image_span<const T> is not mutable.
+/// image_span : a non-owning reference to an image-like n-D array having
+/// between 2 and 4 dimensions representing channel, x, y, z with each
+/// dimension having known size and optionally non-default strides (expressed
+/// in bytes) through the data.  An `image_span<T>` is mutable (the values in
+/// the image may be modified), whereas an `image_span<const T>` is not
+/// mutable.
 ///
-template<typename T, size_t Dims = 4>
-class image_span {
+template<typename T, size_t Dims = 4> class image_span {
     static_assert(Dims >= 2 && Dims <= 4, "Dimension must be between 2 and 4");
 
 public:
-    typedef T value_type;
-    typedef T& reference;
-    typedef const T& const_reference;
-    using stride_t = int64_t;
-    using stride_type = int64_t;
-    using size_type = uint32_t;
-    static constexpr stride_t AutoStride = std::numeric_limits<stride_t>::min();
+    using value_type      = T;
+    using reference       = T&;
+    using const_reference = const T&;
+    using stride_t        = int64_t;
+    using stride_type     = int64_t;
+    using size_type       = uint32_t;
 
     /// Default ctr -- points to nothing
     image_span() = default;
@@ -60,7 +59,6 @@ public:
 
     /// Construct from T*, dimensions, and (possibly default) strides (in
     /// bytes).
-    // template<typename T = value_type, OIIO_ENABLE_IF(Dims == 4)>
     image_span(T* data, uint32_t nchannels, uint32_t width, uint32_t height,
                uint32_t depth = 1, stride_t chanstride = AutoStride,
                stride_t xstride = AutoStride, stride_t ystride = AutoStride,
@@ -102,12 +100,11 @@ public:
     }
 
     /// assignments -- not a deep copy, just make this image_span point to the
-    /// same data as the operand.
+    /// same strided data as the operand.
     image_span& operator=(const image_span& copy) = default;
 
-#if 1
     /// image_span(x,y,z) returns a strided_ptr<T,1> for the pixel (x,y,z).
-    /// The z can be omitted for 2D images.  Note than the resulting
+    /// The z can be omitted for 2D images.  Note thtn the resulting
     /// strided_ptr can then have individual channels accessed with
     /// operator[]. This particular strided pointer has stride multiplier 1,
     /// because this class uses bytes as strides, not sizeof(T).
@@ -115,20 +112,22 @@ public:
     {
         return strided_ptr<T /*, 1*/>(getptr(0, x, y, z) /*, m_chanstride*/);
     }
-    // strided_ptr<T /*, 1*/> operator()(int x, int y, int z = 0)
-    // {
-    //     return (*this)(uint32_t(x), uint32_t(y), uint32_t(x));
-    // }
-#endif
 
+    /// Return the number of dimensions of the image.
     static constexpr size_t rank() noexcept { return Dims; }
 
+    /// Return the number of channels.
     constexpr size_type nchannels() const { return m_sizes[0]; }
+    /// Return the stride, in bytes, between channels within a pixel.
     constexpr stride_type chanstride() const { return m_strides[0]; }
 
+    /// Return the width -- the number of pixels in the x dimension.
     constexpr size_type width() const { return m_sizes[1]; }
+    /// Return the stride, in bytes, between pixels in the x dimension.
     constexpr stride_type xstride() const { return m_strides[1]; }
 
+    /// Return the height -- the number of pixels in the y dimension.
+    /// This will be 1 for a single scanline `image_span<1>`.
     constexpr size_type height() const
     {
         if constexpr (Dims >= 2)
@@ -136,6 +135,8 @@ public:
         else
             return 1;
     }
+    /// Return the stride, in bytes, between pixels in the y dimension.
+    /// This will be 0 for a single scanline `image_span<1>`.
     constexpr stride_type ystride() const
     {
         if constexpr (Dims >= 2)
@@ -144,6 +145,9 @@ public:
             return 0;
     }
 
+    /// Return the depth -- the number of pixels in the z dimension.
+    /// This will be 1 if there are fewer than 3 dimensions (i.e. an
+    /// `image_span<1>` or `image_span<2>`).
     constexpr size_type depth() const
     {
         if constexpr (Dims >= 3)
@@ -151,6 +155,9 @@ public:
         else
             return 1;
     }
+    /// Return the stride, in bytes, between pixels in the z dimension.
+    /// This will be 0 if there are fewer than 3 dimensions (i.e. if it's
+    /// not a volumetric image).
     constexpr stride_type zstride() const
     {
         if constexpr (Dims >= 3)
@@ -159,21 +166,14 @@ public:
             return 0;
     }
 
-    // int nchannels() const { return m_nchannels; }
-    // int width() const { return m_width; }
-    // int height() const { return m_height; }
-    // int depth() const { return m_depth; }
-
-    // stride_t chanstride() const { return m_chanstride; }
-    // stride_t xstride() const { return m_xstride; }
-    // stride_t ystride() const { return m_ystride; }
-    // stride_t zstride() const { return m_zstride; }
-
+    /// Return the size of a channel, in bytes.
     constexpr size_type chansize() const { return m_chansize; }
 
+    /// Return a raw pointer to the start of the data: channel=0,
+    /// x=0, y=0, z=0.
     T* data() const { return m_data; }
 
-    /// Convert an image_span<T> to an image_span<const std::byte>
+    /// Convert an `image_span<T>` to an `image_span<const std::byte>`
     /// representing the same sized and strided memory pattern represented
     /// un-typed memory.
     image_span<const std::byte> as_bytes_image_span() const noexcept
@@ -203,9 +203,9 @@ public:
             /* scanline is contiguous pixels */
             && xstride() == chanstride() * nchannels()
             /* image plane is contiguous scanlines */
-            && ystride() == xstride() * width()
+            && (Dims < 2 || ystride() == xstride() * width())
             /* volume is contiguous planes */
-            && zstride() == ystride() * height();
+            && (Dims < 3 || zstride() == ystride() * height());
     }
 
     /// Return the total number of values (c*w*h*d).
@@ -218,7 +218,8 @@ public:
     /// Return the total number of bytes of (c*w*h*d) values of the given type.
     size_t nbytes() const { return nvalues() * sizeof(chansize()); }
 
-    inline T& get(int c, int x, int y, int z = 0) const
+    /// Return a reference to the value at channel c, pixel (x,y,z).
+    inline T& get(int c, int x, int y = 0, int z = 0) const
     {
         // Bounds check in debug mode
         OIIO_DASSERT(unsigned(c) < unsigned(nchannels())
@@ -228,7 +229,8 @@ public:
         return *getptr(c, x, y, z);
     }
 
-    inline T* getptr(int c, int x, int y, int z = 0) const
+    /// Return a pointer to the value at channel c, pixel (x,y,z).
+    inline T* getptr(int c, int x, int y = 0, int z = 0) const
     {
         // Bounds check in debug mode
         OIIO_DASSERT(unsigned(c) < unsigned(nchannels())
@@ -240,10 +242,10 @@ public:
     }
 
 private:
-    T* m_data { nullptr };
-    std::array<stride_type, Dims> m_strides;
-    std::array<size_type, Dims> m_sizes;
-    uint32_t m_chansize { sizeof(T) };
+    T* m_data { nullptr };  // pointer to the start of the data
+    std::array<stride_type, Dims> m_strides;  // byte strides for each dim
+    std::array<size_type, Dims> m_sizes;      // size for each dim
+    uint32_t m_chansize { sizeof(T) };  // size of a channel value, in bytes
 };
 
 
