@@ -731,13 +731,125 @@ _contiguize(const T* src, int nchannels, stride_t xstride, stride_t ystride,
     return dstsave;
 }
 
+
+// Turn non-contiguous data into contiguous-stride. This internal
+// Caller must pass in a dst pointing to enough memory to
+// hold the contiguous rectangle.  Return a ptr to where the contiguous
+// data ended up, which is either dst or src (if the strides indicated
+// that data were already contiguous).
+void
+_contiguize(image_span<const std::byte> src, span<std::byte> dst)
+{
+    // Contiguized result must fit in dst
+    OIIO_DASSERT(src.size_bytes() <= dst.size());
+
+    // This should only be called if it's not already contiguous
+    OIIO_DASSERT(!src.is_contiguous());
+
+    std::byte* dstptr = dst.data();
+    if (src.is_contiguous_scanline()) {
+        // Optimize for contiguous scanlines, but not necessarily from
+        // scanline to scanline or plane to plane. This should be the most
+        // common case.
+        size_t chunksize = src.width() * src.nchannels() * src.chansize();
+        for (uint32_t z = 0; z < src.depth(); ++z)
+            for (uint32_t y = 0; y < src.height(); ++y, dstptr += chunksize)
+                memcpy(dstptr, src.getptr(0, 0, y, z), chunksize);
+    } else if (src.is_contiguous_pixel()) {
+        // Optimize for contiguous pixels, but gaps between pixels
+        size_t chunksize = src.nchannels() * src.chansize();
+        for (uint32_t z = 0; z < src.depth(); ++z)
+            for (uint32_t y = 0; y < src.height(); ++y)
+                for (uint32_t x = 0; x < src.width(); ++x, dstptr += chunksize)
+                    memcpy(dstptr, src.getptr(0, x, y, z), chunksize);
+    } else {
+        // Noncontiguous pixels: just copy value by value, inefficient but
+        // hopefully rare. If this ever becomes a bottleneck, we can optimize
+        // it with SIMD or specialize on the data type size.
+        size_t chunksize = src.chansize();
+        for (uint32_t z = 0; z < src.depth(); ++z)
+            for (uint32_t y = 0; y < src.height(); ++y)
+                for (uint32_t x = 0; x < src.width(); ++x)
+                    for (uint32_t c = 0; c < src.nchannels();
+                         ++c, dstptr += chunksize)
+                        memcpy(dstptr, src.getptr(c, x, y, z), chunksize);
+    }
+}
+
 }  // namespace
+
+
+
+span<const std::byte>
+pvt::contiguize(image_span<const std::byte> src, span<std::byte> dst)
+{
+    if (src.is_contiguous()) {  // Already contiguous
+        return make_cspan(src.data(), src.size_bytes());
+    }
+
+    // Contiguized result must fit in dst
+    OIIO_DASSERT(src.size_bytes() <= dst.size());
+
+    // This should only be called if it's not already contiguous
+    OIIO_DASSERT(!src.is_contiguous());
+
+    std::byte* dstptr = dst.data();
+    if (src.is_contiguous_scanline()) {
+        // Optimize for contiguous scanlines, but not necessarily from
+        // scanline to scanline or plane to plane. This should be the most
+        // common case.
+        size_t chunksize = src.width() * src.nchannels() * src.chansize();
+        for (uint32_t z = 0; z < src.depth(); ++z)
+            for (uint32_t y = 0; y < src.height(); ++y, dstptr += chunksize)
+                memcpy(dstptr, src.getptr(0, 0, y, z), chunksize);
+    } else if (src.is_contiguous_pixel()) {
+        // Optimize for contiguous pixels, but gaps between pixels
+        size_t chunksize = src.nchannels() * src.chansize();
+        for (uint32_t z = 0; z < src.depth(); ++z)
+            for (uint32_t y = 0; y < src.height(); ++y)
+                for (uint32_t x = 0; x < src.width(); ++x, dstptr += chunksize)
+                    memcpy(dstptr, src.getptr(0, x, y, z), chunksize);
+    } else {
+        // Noncontiguous pixels: just copy value by value, inefficient but
+        // hopefully rare. If this ever becomes a bottleneck, we can optimize
+        // it with SIMD or specialize on the data type size.
+        size_t chunksize = src.chansize();
+        for (uint32_t z = 0; z < src.depth(); ++z)
+            for (uint32_t y = 0; y < src.height(); ++y)
+                for (uint32_t x = 0; x < src.width(); ++x)
+                    for (uint32_t c = 0; c < src.nchannels();
+                         ++c, dstptr += chunksize)
+                        memcpy(dstptr, src.getptr(c, x, y, z), chunksize);
+    }
+    return make_cspan(dst.data(), dstptr - dst.data());
+}
+
+
 
 const void*
 pvt::contiguize(const void* src, int nchannels, stride_t xstride,
                 stride_t ystride, stride_t zstride, void* dst, int width,
                 int height, int depth, TypeDesc format)
 {
+    OIIO_DASSERT(nchannels >= 0 && width >= 0 && height >= 0 && depth >= 0);
+#if 0
+    // Just implement in terms of the span-based version
+    auto datasize = format.size();
+    if (xstride == nchannels * datasize && ystride == xstride * width
+        && (zstride == ystride * height || !zstride)) {
+        // Already contiguous
+        return src;
+    }
+    // Not completely contiguous
+    size_t nvals = size_t(width) * size_t(height) * size_t(depth)
+                   * size_t(nchannels);
+    contiguize(
+        image_span<const std::byte>(reinterpret_cast<const std::byte*>(src),
+                                    nchannels, width, height, depth, datasize,
+                                    xstride, ystride, zstride, datasize),
+        as_writable_bytes(dst, nvals * datasize));
+    return dst;
+#else
     switch (format.basetype) {
     case TypeDesc::FLOAT:
         return _contiguize((const float*)src, nchannels, xstride, ystride,
@@ -766,6 +878,7 @@ pvt::contiguize(const void* src, int nchannels, stride_t xstride,
         OIIO_ASSERT(0 && "OpenImageIO::contiguize : bad format");
         return NULL;
     }
+#endif
 }
 
 

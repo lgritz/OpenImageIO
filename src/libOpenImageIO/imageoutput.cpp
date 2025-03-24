@@ -122,10 +122,10 @@ ImageOutput::write_scanline(int y, int z, TypeDesc format,
         size_t sz = (format == TypeUnknown ? m_spec.pixel_bytes(true /*native*/)
                                            : format.size() * m_spec.nchannels)
                     * size_t(m_spec.width);
-        if (sz != data.nbytes()) {
+        if (sz != data.size_bytes()) {
             errorfmt(
                 "write_scanline: Buffer size is incorrect ({} bytes vs {} needed)",
-                sz, data.nbytes());
+                sz, data.size_bytes());
             return false;
         }
     }
@@ -170,10 +170,10 @@ ImageOutput::write_scanlines(int ybegin, int yend, int z, TypeDesc format,
         size_t sz = (format == TypeUnknown ? m_spec.pixel_bytes(true /*native*/)
                                            : format.size() * m_spec.nchannels)
                     * size_t(yend - ybegin) * size_t(m_spec.width);
-        if (sz != data.nbytes()) {
+        if (sz != data.size_bytes()) {
             errorfmt(
                 "write_scanlines: Buffer size is incorrect ({} bytes vs {} needed)",
-                sz, data.nbytes());
+                sz, data.size_bytes());
             return false;
         }
     }
@@ -209,10 +209,10 @@ ImageOutput::write_tile(int x, int y, int z, TypeDesc format,
                         ? m_spec.pixel_bytes(true /*native*/)
                         : m_spec.tile_pixels() * size_t(m_spec.nchannels)
                               * format.size();
-        if (sz != data.nbytes()) {
+        if (sz != data.size_bytes()) {
             errorfmt(
                 "write_tile: Buffer size is incorrect ({} bytes vs {} needed)",
-                sz, data.nbytes());
+                sz, data.size_bytes());
             return false;
         }
     }

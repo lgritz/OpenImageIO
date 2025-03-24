@@ -203,18 +203,31 @@ public:
                                      zstride(), m_chansize);
     }
 
+    /// Does this image_span represent contiguous pixel data -- i.e. each
+    /// channel value directly abuts its neighbour in the same pixel?
+    bool is_contiguous_pixel() const noexcept
+    {
+        return chanstride() == m_chansize;
+    }
+
+    /// Does this image_span represent contiguous scanline data -- i.e.
+    /// channels contiguous within a pixel and pixels contiguous within a
+    /// scanline?
+    bool is_contiguous_scanline() const noexcept
+    {
+        return is_contiguous_pixel()
+               && xstride() == chanstride() * nchannels();
+    }
+
     /// Does this image_span represent contiguous data -- i.e. each channel,
     /// pixel, and scanline directly abuts its neighbour, with no gaps?
     bool is_contiguous() const noexcept
     {
-        return /* pixel is contiguous channels */
-            chanstride() == m_chansize
-            /* scanline is contiguous pixels */
-            && xstride() == chanstride() * nchannels()
-            /* image plane is contiguous scanlines */
-            && (Rank < 2 || ystride() == xstride() * width())
-            /* volume is contiguous planes */
-            && (Rank < 3 || zstride() == ystride() * height());
+        return is_contiguous_scanline()
+               /* image plane is contiguous scanlines */
+               && (Rank < 2 || ystride() == xstride() * width())
+               /* volume is contiguous planes */
+               && (Rank < 3 || zstride() == ystride() * height());
     }
 
     /// Return the total number of values (c*w*h*d).
@@ -225,7 +238,7 @@ public:
     }
 
     /// Return the total number of bytes of (c*w*h*d) values of the given type.
-    size_t nbytes() const { return nvalues() * sizeof(chansize()); }
+    size_t size_bytes() const { return nvalues() * sizeof(chansize()); }
 
     /// Return a reference to the value at channel c, pixel (x,y,z).
     inline T& get(int c, int x, int y = 0, int z = 0) const
@@ -248,6 +261,38 @@ public:
                      && unsigned(z) < unsigned(depth()));
         return (T*)((char*)data() + c * chanstride() + x * xstride()
                     + y * ystride() + z * zstride());
+    }
+
+    /// Return a subspan in x, y, and z (but assume all channels are
+    /// included).
+    image_span subspan(uint32_t xbegin, uint32_t xend, uint32_t ybegin,
+                       uint32_t yend, uint32_t zbegin = 0,
+                       uint32_t zend = 1) const
+    {
+        // Bounds check in debug mode
+        OIIO_DASSERT(xbegin <= xend && xend <= width() && ybegin <= yend
+                     && yend <= height() && zbegin <= zend && zend <= depth());
+        return image_span(data() + xbegin * xstride() + ybegin * ystride()
+                              + zbegin * zstride(),
+                          nchannels(), xend - xbegin, yend - ybegin,
+                          zend - zbegin, chanstride(), xstride(), ystride(),
+                          zstride(), chansize());
+    }
+
+    /// Return a subspan in all dimensions: channel, x, y, and z.
+    image_span chansubspan(uint32_t chbegin, uint32_t chend, uint32_t xbegin,
+                           uint32_t xend, uint32_t ybegin, uint32_t yend,
+                           uint32_t zbegin = 0, uint32_t zend = 1) const
+    {
+        // Bounds check in debug mode
+        OIIO_DASSERT(chbegin <= chend && chend <= nchannels() && xbegin <= xend
+                     && xend <= width() && ybegin <= yend && yend <= height()
+                     && zbegin <= zend && zend <= depth());
+        return image_span(data() + chbegin * chanstride() + xbegin * xstride()
+                              + ybegin * ystride() + zbegin * zstride(),
+                          chend - chbegin, xend - xbegin, yend - ybegin,
+                          zend - zbegin, chanstride(), xstride(), ystride(),
+                          zstride(), chansize());
     }
 
 private:

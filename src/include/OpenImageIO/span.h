@@ -41,7 +41,8 @@ OIIO_NAMESPACE_BEGIN
 using span_size_t = size_t;
 using oiio_span_size_type = OIIO::span_size_t;  // back-compat alias
 
-inline constexpr span_size_t dynamic_extent = -1;
+inline constexpr span_size_t dynamic_extent
+    = std::numeric_limits<span_size_t>::max();
 
 
 
@@ -571,6 +572,18 @@ as_writable_bytes(T* ptr, size_t len) noexcept
     if constexpr (!std::is_void_v<T>)
         nbytes *= sizeof(T);
     return make_span(reinterpret_cast<std::byte*>(ptr), nbytes);
+}
+
+
+
+/// Copy the memory contents of `src` to `dst`. They must have the same
+/// total size.
+template<typename T, typename S>
+inline void
+spancpy(span<T> dst, span<S> src)
+{
+    OIIO_DASSERT(dst.size_bytes() == src.size_bytes());
+    memcpy(dst.data(), src.data(), src.size_bytes());
 }
 
 
