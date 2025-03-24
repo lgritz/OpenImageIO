@@ -12,6 +12,8 @@
 #include <OpenImageIO/parallel.h>
 #include <OpenImageIO/unittest.h>
 
+#include "imageio_pvt.h"
+
 #include <iostream>
 
 using namespace OIIO;
@@ -711,6 +713,51 @@ test_iterator_concurrency()
 
 
 
+void
+benchmark_image_span()
+{
+    print("Benchmarking image_span operations:\n");
+
+    // Benchmark old (ptr) versus new (span) contiguize functions
+    using pvt::contiguize;
+    Benchmarker bench;
+    bench.units(Benchmarker::Unit::ms);
+    const int rez = 2048, nchans = 4;
+    {
+        std::vector<float> bigbuf(rez * rez * nchans);
+        std::vector<float> contigbuf(rez * rez * nchans);
+        bench("contiguize span (contig pixels, non-contig scanlines)", [&]() {
+            contiguize(image_span((const std::byte*)bigbuf.data(), nchans - 1,
+                                  rez, rez, 1, sizeof(float),
+                                  nchans * sizeof(float), AutoStride,
+                                  AutoStride, sizeof(float)),
+                       as_writable_bytes(span(contigbuf)));
+        });
+        bench("contiguize ptr (contig pixels, non-contig scanlines)", [&]() {
+            contiguize(bigbuf.data(), nchans - 1, nchans * sizeof(float),
+                       rez * nchans * sizeof(float),
+                       rez * rez * nchans * sizeof(float), contigbuf.data(),
+                       rez, rez, 1, TypeFloat);
+        });
+        bench("contiguize span (contig scanlines, non-contig planes)", [&]() {
+            contiguize(image_span((const std::byte*)bigbuf.data(), nchans,
+                                  rez - 1, rez, 1, sizeof(float),
+                                  nchans * sizeof(float),
+                                  rez * nchans * sizeof(float),
+                                  AutoStride, sizeof(float)),
+                       as_writable_bytes(span(contigbuf)));
+        });
+        bench("contiguize ptr (contig scanlines, non-contig planes)", [&]() {
+            contiguize(bigbuf.data(), nchans, nchans * sizeof(float),
+                       rez * nchans * sizeof(float),
+                       rez * rez * nchans * sizeof(float), contigbuf.data(),
+                       rez - 1, rez, 1, TypeFloat);
+        });
+    }
+}
+
+
+
 int
 main(int /*argc*/, char* /*argv*/[])
 {
@@ -748,6 +795,9 @@ main(int /*argc*/, char* /*argv*/[])
     test_write_over();
 
     test_uncaught_error();
+
+    // Some random stuff that doesn't fit elsewhere
+    benchmark_image_span();
 
     Filesystem::remove("A_imagebuf_test.tif");
     return unit_test_failures;

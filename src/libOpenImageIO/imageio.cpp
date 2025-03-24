@@ -714,6 +714,8 @@ _contiguize(const T* src, int nchannels, stride_t xstride, stride_t ystride,
                      scanline = (const T*)((char*)scanline + ystride))
                 memcpy(dst, scanline, xstride * width);
         }
+        print("    old contiguize, contig sl: total size (bytes) = {:d}\n",
+              (dst - dstsave) * sizeof(T));
     } else {
         for (int z = 0; z < depth;
              ++z, src = (const T*)((char*)src + zstride)) {
@@ -727,6 +729,8 @@ _contiguize(const T* src, int nchannels, stride_t xstride, stride_t ystride,
                         *dst++ = pixel[c];
             }
         }
+        print("    old contiguize general: total size (bytes) = {:d}\n",
+              (dst - dstsave) * sizeof(T));
     }
     return dstsave;
 }
@@ -798,17 +802,30 @@ pvt::contiguize(image_span<const std::byte> src, span<std::byte> dst)
         // Optimize for contiguous scanlines, but not necessarily from
         // scanline to scanline or plane to plane. This should be the most
         // common case.
-        size_t chunksize = src.width() * src.nchannels() * src.chansize();
-        for (uint32_t z = 0; z < src.depth(); ++z)
-            for (uint32_t y = 0; y < src.height(); ++y, dstptr += chunksize)
-                memcpy(dstptr, src.getptr(0, 0, y, z), chunksize);
+        stride_t chunksize = src.width() * src.xstride();
+        auto ystride = src.ystride();
+        for (uint32_t z = 0; z < src.depth(); ++z) {
+            const std::byte* srcptr = src.getptr(0, 0, 0, z);
+            for (uint32_t y = 0; y < src.height(); ++y, dstptr += chunksize, srcptr += ystride)
+                memcpy(dstptr, srcptr, chunksize);
+        }
+        print("    new contiguize contig sl: total size (bytes) = {:d}\n",
+              dstptr - dst.data());
     } else if (src.is_contiguous_pixel()) {
         // Optimize for contiguous pixels, but gaps between pixels
         size_t chunksize = src.nchannels() * src.chansize();
-        for (uint32_t z = 0; z < src.depth(); ++z)
-            for (uint32_t y = 0; y < src.height(); ++y)
-                for (uint32_t x = 0; x < src.width(); ++x, dstptr += chunksize)
-                    memcpy(dstptr, src.getptr(0, x, y, z), chunksize);
+        auto xstride = src.xstride();
+        auto ystride = src.ystride();
+        for (uint32_t z = 0; z < src.depth(); ++z) {
+            const std::byte* srcslptr = src.getptr(0, 0, 0, z);
+            for (uint32_t y = 0; y < src.height(); ++y, srcslptr += ystride) {
+                const std::byte* srcptr = srcslptr;
+                for (uint32_t x = 0; x < src.width(); ++x, dstptr += chunksize, srcptr += xstride)
+                    memcpy(dstptr, srcptr, chunksize);
+            }
+        }
+        print("    new contiguize contig pel: total size (bytes) = {:d}\n",
+              dstptr - dst.data());
     } else {
         // Noncontiguous pixels: just copy value by value, inefficient but
         // hopefully rare. If this ever becomes a bottleneck, we can optimize
@@ -820,6 +837,8 @@ pvt::contiguize(image_span<const std::byte> src, span<std::byte> dst)
                     for (uint32_t c = 0; c < src.nchannels();
                          ++c, dstptr += chunksize)
                         memcpy(dstptr, src.getptr(c, x, y, z), chunksize);
+        print("    new contiguize general: total size (bytes) = {:d}\n",
+              dstptr - dst.data());
     }
     return make_cspan(dst.data(), dstptr - dst.data());
 }

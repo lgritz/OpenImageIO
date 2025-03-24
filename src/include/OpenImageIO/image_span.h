@@ -5,9 +5,6 @@
 
 #pragma once
 
-#include <stdexcept>
-#include <vector>
-
 #include <OpenImageIO/dassert.h>
 #include <OpenImageIO/oiioversion.h>
 #include <OpenImageIO/span.h>
