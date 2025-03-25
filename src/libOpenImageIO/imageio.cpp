@@ -813,15 +813,52 @@ pvt::contiguize(image_span<const std::byte> src, span<std::byte> dst)
               dstptr - dst.data());
     } else if (src.is_contiguous_pixel()) {
         // Optimize for contiguous pixels, but gaps between pixels
-        size_t chunksize = src.nchannels() * src.chansize();
-        auto xstride = src.xstride();
-        auto ystride = src.ystride();
+        size_t chunksize  = src.nchannels() * src.chansize();
+        // chunksize4 is the number of 4-byte quantities in chunksize
+        auto xstride      = src.xstride();
+        auto ystride      = src.ystride();
+        if ((chunksize & 3) == 0 && (uint64_t(src.data()) & 3) == 0
+            && (uint64_t(dst.data()) & 3) == 0 && (xstride & 3) == 0
+            && (ystride & 3) == 0 && (src.zstride() & 3) == 0) {
+            // Special case: copying things that are multiples of 4 bytes
+            // and having 4-byte alignment.
+            using T = float;
+            // chunksize is the number of bytes we want to copy for each pixel
+            size_t chunksize4 = chunksize / 4;
+            // srcstepsize is the number of T's to step along the src for each
+            // pixel
+            auto srcstepsize  = xstride / 4;
+            T* dstptr         = reinterpret_cast<T*>(dst.data());
+            for (uint32_t z = 0; z < src.depth(); ++z) {
+                const std::byte* srcslptr = src.getptr(0, 0, 0, z);
+                for (uint32_t y = 0; y < src.height();
+                     ++y, srcslptr += ystride) {
+                    const T* srcptr = reinterpret_cast<const T*>(srcslptr);
+                    for (uint32_t x = 0; x < src.width();
+                         ++x, dstptr += chunksize4, srcptr += srcstepsize) {
+                        for (uint32_t c = 0; c < chunksize4; ++c)
+                            dstptr[c] = srcptr[c];
+                        // memcpy(dstptr + c * src.chansize(), srcptr + c * src.chansize(), src.chansize());
+                        // memcpy(dstptr, srcptr, chunksize);
+                    }
+                }
+            }
+            print(
+                "    new contiguize contig pel 4-ply (x{}): total size (bytes) = {:d}\n",
+                chunksize4, reinterpret_cast<std::byte*>(dstptr) - dst.data());
+            return make_cspan(dst.data(), reinterpret_cast<std::byte*>(dstptr)
+                                              - dst.data());
+        }
         for (uint32_t z = 0; z < src.depth(); ++z) {
             const std::byte* srcslptr = src.getptr(0, 0, 0, z);
             for (uint32_t y = 0; y < src.height(); ++y, srcslptr += ystride) {
                 const std::byte* srcptr = srcslptr;
-                for (uint32_t x = 0; x < src.width(); ++x, dstptr += chunksize, srcptr += xstride)
-                    memcpy(dstptr, srcptr, chunksize);
+                for (uint32_t x = 0; x < src.width(); ++x, dstptr += chunksize, srcptr += xstride) {
+                    for (uint32_t c = 0; c < src.nchannels(); ++c)
+                        dstptr[c] = srcptr[c];
+                        // memcpy(dstptr + c * src.chansize(), srcptr + c * src.chansize(), src.chansize());
+                    // memcpy(dstptr, srcptr, chunksize);
+                }
             }
         }
         print("    new contiguize contig pel: total size (bytes) = {:d}\n",
