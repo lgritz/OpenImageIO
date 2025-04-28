@@ -338,7 +338,16 @@ jobs:
             fmt_ver: 10.1.1
             pybind11_ver: v2.12.0
             setenvs: PUGIXML_VERSION=v1.14
-          - desc: VFX2024 sanitizers
+          - desc: VFX2025 gcc11/C++17 py3.11 exr3.3 ocio2.4
+            nametag: linux-vfx2025
+            runner: ubuntu-latest
+            container: aswftesting/ci-oiio:2025
+            python_ver: "3.11"
+            simd: "avx2,f16c"
+            fmt_ver: 11.1.4
+            pybind11_ver: v2.13.6
+            setenvs: PUGIXML_VERSION=v1.15
+          - desc: Sanitizers
             nametag: sanitizer
             runner: ubuntu-latest
             container: aswf/ci-osl:2024-clang17
