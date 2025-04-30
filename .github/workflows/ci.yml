@@ -439,6 +439,7 @@ jobs:
                             PUGIXML_VERSION=master
                             WEBP_VERSION=main
                             OIIO_CMAKE_FLAGS="-DOIIO_HARDENING=2"
+                            EXTRA_APT_REPOS="ppa:ubuntu-toolchain-r/test"
                             EXTRA_DEP_PACKAGES="gcc-15 python3.12-dev python3-numpy"
                             USE_OPENVDB=0
                             SKIP_APT_GET_UPDATE=1
