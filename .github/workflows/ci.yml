@@ -428,8 +428,8 @@ jobs:
           - desc: bleeding edge gcc14 C++20 py3.12 OCIO/libtiff/exr-main avx2
             nametag: linux-bleeding-edge
             runner: ubuntu-24.04
-            cc_compiler: gcc-14
-            cxx_compiler: g++-14
+            cc_compiler: gcc-15
+            cxx_compiler: g++-15
             cxx_std: 20
             fmt_ver: master
             opencolorio_ver: main
@@ -446,8 +446,10 @@ jobs:
                             PUGIXML_VERSION=master
                             WEBP_VERSION=main
                             OIIO_CMAKE_FLAGS="-DOIIO_HARDENING=2"
-                            EXTRA_DEP_PACKAGES="python3.12-dev python3-numpy"
+                            EXTRA_APT_REPOS="ppa:ubuntu-toolchain-r/test"
+                            EXTRA_DEP_PACKAGES="gcc-15 python3.12-dev python3-numpy"
                             USE_OPENVDB=0
+                            xSKIP_APT_GET_UPDATE=1
                             FREETYPE_VERSION=master
                             QT_VERSION=0 INSTALL_OPENCV=0
                             # The installed OpenVDB has a TLS conflict with Python 3.8

@@ -82,6 +82,10 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
 else
     # Using native Ubuntu runner
 
+    for f in ${EXTRA_APT_REPOS} ; do
+        sudo add-apt-repository $f
+    done
+
     if [[ "${SKIP_APT_GET_UPDATE}" != "1" ]] ; then
         time sudo apt-get update
     fi
