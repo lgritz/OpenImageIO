@@ -442,7 +442,7 @@ jobs:
                             EXTRA_APT_REPOS="ppa:ubuntu-toolchain-r/test"
                             EXTRA_DEP_PACKAGES="gcc-15 python3.12-dev python3-numpy"
                             USE_OPENVDB=0
-                            SKIP_APT_GET_UPDATE=1
+                            xSKIP_APT_GET_UPDATE=1
                             FREETYPE_VERSION=master
                             QT_VERSION=0 INSTALL_OPENCV=0
                             # The installed OpenVDB has a TLS conflict with Python 3.8
