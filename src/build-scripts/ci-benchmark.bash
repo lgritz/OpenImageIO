@@ -12,6 +12,11 @@ fi
 ls build
 ls $BUILD_BIN_DIR
 
+# The unit tests by default don't do all the benchmark trials, to cut down
+# on CI time. But in this case, we do want them to run full benchmarks.
+# So set the special env variable to make that happen.
+OIIO_CI_DO_BENCHMARK=1
+
 mkdir -p build/benchmarks
 for t in image_span_test simd_test ; do
     echo

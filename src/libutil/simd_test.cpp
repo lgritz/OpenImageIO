@@ -14,6 +14,7 @@
 #include <OpenImageIO/fmath.h>
 #include <OpenImageIO/imageio.h>
 #include <OpenImageIO/strutil.h>
+#include <OpenImageIO/sysutil.h>
 #include <OpenImageIO/timer.h>
 #include <OpenImageIO/typedesc.h>
 #include <OpenImageIO/unittest.h>
@@ -1967,9 +1968,13 @@ main(int argc, char* argv[])
     // For the sake of test time, reduce the default iterations for DEBUG,
     // CI, and code coverage builds. Explicit use of --iters or --trials
     // will override this, since it comes before the getargs() call.
-    iterations /= 10;
-    ntrials = 1;
+    // Also override if OIIO_CI_DO_BENCHMARK environment variable is nonzero.
+    if (!Strutil::stoi(Sysutil::getenv("OIIO_CI_DO_BENCHMARK", "0"))) {
+        iterations /= 10;
+        ntrials = 1;
+    }
 #endif
+
     for (int i = 0; i < 16; ++i) {
         dummy_float[i] = 1.0f;
         dummy_int[i]   = 1;
