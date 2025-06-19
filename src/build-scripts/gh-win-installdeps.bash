@@ -50,12 +50,12 @@ echo "---------------"
 
 #vcpkg install libdeflate:x64-windows-release
 #vcpkg install zlib:x64-windows-release
-vcpkg install tiff:x64-windows-release
+#vcpkg install tiff:x64-windows-release
 # vcpkg install libpng:x64-windows-release
 # vcpkg install giflib:x64-windows-release
-vcpkg install freetype:x64-windows-release
+#vcpkg install freetype:x64-windows-release
 # # vcpkg install openexr:x64-windows-release
-vcpkg install libjpeg-turbo:x64-windows-release
+#vcpkg install libjpeg-turbo:x64-windows-release
 # 
 # vcpkg install libraw:x64-windows-release
 # vcpkg install openjpeg:x64-windows-release
