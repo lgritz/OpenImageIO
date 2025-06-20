@@ -11,7 +11,7 @@ set (pystring_GIT_REPOSITORY "https://github.com/imageworks/pystring")
 # See imageworks/pystring issue #43,  git commit #c5ca4f5
 # We require pystring commits made after the v1.1.4 tag to properly install headers!
 # TODO: Set this to "v${pystring_BUILD_VERSION}" once 1.1.5 is released
-set (pystring_GIT_TAG master)
+set (pystring_GIT_TAG 962fd25b2)
 
 
 set_cache (pystring_BUILD_SHARED_LIBS OFF
