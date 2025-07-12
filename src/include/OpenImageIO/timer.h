@@ -121,7 +121,7 @@ public:
     {
         if (m_ticking) {
             ticks_t n = now();
-            m_elapsed_ticks += tickdiff(m_starttime, n);
+            add_ticks(tickdiff(m_starttime, n));
             m_ticking = false;
         }
         return seconds(m_elapsed_ticks);
@@ -142,7 +142,7 @@ public:
     {
         ticks_t n = now();
         ticks_t r = m_ticking ? tickdiff(m_starttime, n) : ticks_t(0);
-        m_elapsed_ticks += r;
+        add_ticks(r);
         m_starttime = n;
         m_ticking   = true;
         return r;
@@ -192,6 +192,19 @@ public:
     /// it will be reflected in ticks() or seconds(), but will NOT be
     /// reflected in ticks_since_start() or time_since_start().
     void add_seconds(double t) { add_ticks(ticks_t(t * ticks_per_second)); }
+
+    /// Just like add_ticks, but does an atomic add so that it's thread-safe
+    /// for multiple threads to be calling it on the same timer.
+    void atomic_add_ticks(ticks_t delta)
+    {
+        *reinterpret_cast<std::atomic<ticks_t>*>(&m_elapsed_ticks) += delta;
+    }
+    /// Just like add_seconds, but does an atomic add so that it's thread-safe
+    /// for multiple threads to be calling it on the same timer.
+    void atomic_add_seconds(double t)
+    {
+        atomic_add_ticks(ticks_t(t * ticks_per_second));
+    }
 
 private:
     bool m_ticking;           ///< Are we currently ticking?
