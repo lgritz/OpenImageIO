@@ -4,10 +4,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # https://github.com/AcademySoftwareFoundation/OpenImageIO
 
-DEP_DIR="$PWD/dist/$PLATFORM"
+# DEP_DIR="$PWD/ext/dist"
+DEP_DIR="$PWD/dist"
 mkdir -p "$DEP_DIR"
 mkdir -p ext
-INT_DIR="build/$PLATFORM"
 VCPKG_INSTALLATION_ROOT=/c/vcpkg
 
 export CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH:=.}
@@ -62,7 +62,6 @@ fi
 # FFmpeg_ROOT=$PWD/ffmpeg-4.2.1-win64-dev
 
 echo "CMAKE_PREFIX_PATH = $CMAKE_PREFIX_PATH"
-
 
 if [[ "$OPENEXR_VERSION" != "" ]] ; then
     OPENEXR_CXX_FLAGS=" /W1 /EHsc /DWIN32=1 "

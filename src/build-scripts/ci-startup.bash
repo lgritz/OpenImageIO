@@ -22,20 +22,23 @@ if [[ "$(which ccache)" != "" ]] ; then
 fi
 mkdir -p $CCACHE_DIR
 
+export DISTDIR=$PWD/dist
 export OpenImageIO_ROOT=$PWD/dist
-export DYLD_LIBRARY_PATH=$OpenImageIO_ROOT/lib:$DYLD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$OpenImageIO_ROOT/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=$OpenImageIO_ROOT/lib64:$LD_LIBRARY_PATH
-export OIIO_LIBRARY_PATH=$OpenImageIO_ROOT/lib
+export DYLD_LIBRARY_PATH=$DISTDIR/lib:$DYLD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$DISTDIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$DISTDIR/lib64:$LD_LIBRARY_PATH
+export OIIO_LIBRARY_PATH=$DISTDIR/lib
 export LSAN_OPTIONS=suppressions=$PWD/src/build-scripts/nosanitize.txt
 export ASAN_OPTIONS=print_suppressions=0
 export UBSAN_OPTIONS=suppressions=$PWD/src/build-scripts/ubsan-suppressions.txt
 
 export PYTHON_VERSION=${PYTHON_VERSION:="3.7"}
-export PYTHONPATH=$OpenImageIO_ROOT/lib/python${PYTHON_VERSION}/site-packages:$PYTHONPATH
-export COMPILER=${COMPILER:=gcc}
-export CC=${CC:=gcc}
-export CXX=${CXX:=g++}
+export PYTHONPATH=$DISTDIR/lib/python${PYTHON_VERSION}/site-packages:$PYTHONPATH
+# export COMPILER=${COMPILER:=gcc}
+if [[ `uname -s` == "Linux" ]] ; then
+    export CC=${CC:=gcc}
+    export CXX=${CXX:=g++}
+fi
 export OpenImageIO_CI=true
 export USE_NINJA=${USE_NINJA:=1}
 export CMAKE_GENERATOR=${CMAKE_GENERATOR:=Ninja}
