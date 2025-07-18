@@ -76,6 +76,23 @@ function (dump_matching_variables pattern)
 endfunction ()
 
 
+# Utility function to find and clear all properties of targets listed
+# as arguments to the function.
+function (clear_all_target_properties)
+    foreach (targetname ${ARGV})
+        if (TARGET ${targetname})
+            get_property (props TARGET ${targetname} PROPERTY PROPERTIES)
+            foreach (prop IN LISTS props)
+                get_target_property (value ${targetname} ${prop})
+                message (STATUS "  clearing ${targetname} - ${p} = ${value}")
+                set_target_properties (${targetname} PROPERTIES ${prop} "")
+            endforeach ()
+        endif ()
+    endforeach ()
+endfunction ()
+
+
+
 # Helper: Print a report about missing dependencies and give insructions on
 # how to turn on automatic local dependency building.
 function (print_package_notfound_report)
@@ -189,6 +206,7 @@ function (reject_out_of_range_versions pkgname pkgversion versionmin versionmax 
         unset (${pkgname}_FOUND PARENT_SCOPE)
         unset (${pkgname}_VERSION PARENT_SCOPE)
         unset (${pkgname}_INCLUDE PARENT_SCOPE)
+        unset (${pkgname}_INCLUDE_DIR PARENT_SCOPE)
         unset (${pkgname}_INCLUDES PARENT_SCOPE)
         unset (${pkgname}_LIBRARY PARENT_SCOPE)
         unset (${pkgname}_LIBRARIES PARENT_SCOPE)
@@ -296,10 +314,11 @@ macro (checked_find_package pkgname)
     string (TOLOWER ${pkgname} pkgname_lower)
     string (TOUPPER ${pkgname} pkgname_upper)
     set (_pkg_VERBOSE ${VERBOSE})
-    if (_pkg_DEBUG)
+    if (_pkg_DEBUG OR "$ENV{${pkgname}_FIND_DEBUG}")
         set (_pkg_VERBOSE ON)
+        set (_pkg_DEBUG ON)
     endif ()
-    if (NOT _pkg_VERBOSE)
+    if (NOT _pkg_VERBOSE AND NOT "$ENV{${pkgname}_FIND_VERBOSE}")
         set (${pkgname}_FIND_QUIETLY true)
         set (${pkgname_upper}_FIND_QUIETLY true)
     endif ()
@@ -413,7 +432,7 @@ macro (checked_find_package pkgname)
         if (NOT ${pkgname}_FOUND AND NOT ${pkgname_upper}_FOUND
             AND (_pkg_BUILD_LOCAL STREQUAL "always" OR _pkg_BUILD_LOCAL STREQUAL "missing")
             AND EXISTS "${${pkgname}_local_build_script}")
-            message (STATUS "${ColorMagenta}Building package ${pkgname} ${${pkgname}_VERSION} locally${ColorReset}")
+            message (STATUS "${ColorMagenta}Building package ${pkgname} ${_${pkgname}_version_range} locally${ColorReset}")
             list(APPEND CMAKE_MESSAGE_INDENT "        ")
             include("${${pkgname}_local_build_script}")
             list(POP_BACK CMAKE_MESSAGE_INDENT)
@@ -462,7 +481,7 @@ macro (checked_find_package pkgname)
                 list (APPEND CFP_ALL_BUILD_DEPS_FOUND "${pkgname} NONE")
             endif ()
         endif()
-        if (_pkg_VERBOSE AND (${pkgname}_FOUND OR ${pkgname_upper}_FOUND OR _pkg_DEBUG))
+        if (_pkg_VERBOSE AND (${pkgname}_FOUND OR ${pkgname_upper}_FOUND) OR _pkg_DEBUG)
             if (_pkg_DEBUG)
                 dump_matching_variables (${pkgname})
             endif ()
@@ -470,6 +489,9 @@ macro (checked_find_package pkgname)
                                 ${pkgname}_INCLUDE_DIR ${pkgname_upper}_INCLUDE_DIR
                                 ${pkgname}_INCLUDE_DIRS ${pkgname_upper}_INCLUDE_DIRS
                                 ${pkgname}_LIBRARIES ${pkgname_upper}_LIBRARIES
+                                ${pkgname}_FOUND ${pkgname_upper}_FOUND
+                                ${pkgname}_DEFINITIONS ${pkgname_upper}_DEFINITIONS
+                                ${pkgname}_VERSION ${pkgname_upper}_VERSION
                                 ${_pkg_PRINT})
             list (REMOVE_DUPLICATES _vars_to_print)
             foreach (_v IN LISTS _vars_to_print)

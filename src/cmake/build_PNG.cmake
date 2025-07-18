@@ -6,7 +6,7 @@
 # PNG by hand!
 ######################################################################
 
-set_cache (PNG_BUILD_VERSION 1.6.47 "PNG version for local builds")
+set_cache (PNG_BUILD_VERSION 1.6.50 "PNG version for local builds")
 set (PNG_GIT_REPOSITORY "https://github.com/pnggroup/libpng")
 set (PNG_GIT_TAG "v${PNG_BUILD_VERSION}")
 
@@ -45,19 +45,35 @@ set (PNG_REFIND_VERSION ${PNG_BUILD_VERSION})
 
 
 set (PNG_REFIND_ARGS EXACT REQUIRED)
-set (PNG_DIR ${PNG_LOCAL_INSTALL_DIR}/lib/cmake/PNG)
+# set (PNG_DIR ${PNG_LOCAL_INSTALL_DIR}/lib/cmake/PNG)
 set (PNG_FIND_VERSION_EXACT ON)
+unset (PNG_LIBRARY)
+unset (PNG_LIBRARY_RELEASE)
+unset (PNG_LIBRARY_DEBUG)
+unset (PNG_INCLUDE_DIR)
+unset (PNG_INCLUDE_DIR)
+unset (PNG_PNG_INCLUDE_DIR)
 
 if (PNG_BUILD_VERSION VERSION_GREATER 1.6.43)
     list (APPEND PNG_REFIND_ARGS CONFIG)
 endif ()
+if (TARGET PNG::PNG)
+    message(STATUS "1st check, TARGET PNG::PNG")
+    clear_all_target_properties (PNG::PNG PNG::png PNG::png_static)
+endif ()
 
+set(CMAKE_FIND_DEBUG_MODE TRUE)
 find_package(PNG ${PNG_REFIND_VERSION} ${PNG_REFIND_ARGS}
              HINTS 
                     ${PNG_LOCAL_INSTALL_DIR}/lib/cmake/PNG
                     ${PNG_LOCAL_INSTALL_DIR}
              NO_DEFAULT_PATH
             )
+set(CMAKE_FIND_DEBUG_MODE FALSE)
+
+if (TARGET PNG::PNG)
+    message(STATUS "2nd check, TARGET PNG::PNG")
+endif ()
 
 set (PNG_INCLUDE_DIRS ${PNG_LOCAL_INSTALL_DIR}/include)
 include_directories(BEFORE ${PNG_INCLUDE_DIRS})
@@ -65,3 +81,7 @@ include_directories(BEFORE ${PNG_INCLUDE_DIRS})
 if (PNG_BUILD_SHARED_LIBS)
     install_local_dependency_libs (PNG png)
 endif ()
+
+unset (PNG_INCLUDE_DIRS)
+unset (PNG_LIBRARIES)
+unset (PNG_DEFINITIONS)
