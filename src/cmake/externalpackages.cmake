@@ -125,7 +125,7 @@ endif ()
 # Dependencies for optional formats and features. If these are not found,
 # we will continue building, but the related functionality will be disabled.
 
-checked_find_package (PNG VERSION_MIN 1.6.0)
+checked_find_package (PNG VERSION_MIN 1.6.0 PREFER_CONFIG)
 if (TARGET PNG::png_static)
     set (PNG_TARGET PNG::png_static)
 elseif (TARGET PNG::PNG)
