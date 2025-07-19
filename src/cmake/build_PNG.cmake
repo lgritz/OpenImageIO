@@ -55,8 +55,11 @@ unset (PNG_INCLUDE_DIR)
 unset (PNG_PNG_INCLUDE_DIR)
 
 # if (PNG_BUILD_VERSION VERSION_GREATER 1.6.43)
-    list (APPEND PNG_REFIND_ARGS CONFIG)
+    # list (APPEND PNG_REFIND_ARGS CONFIG)
 # endif ()
+if (TARGET PNG::PNG)
+    message(STATUS "1st check, TARGET PNG::PNG")
+endif ()
 
 set(CMAKE_FIND_DEBUG_MODE TRUE)
 find_package(PNG ${PNG_REFIND_VERSION} ${PNG_REFIND_ARGS}
@@ -66,6 +69,10 @@ find_package(PNG ${PNG_REFIND_VERSION} ${PNG_REFIND_ARGS}
              NO_DEFAULT_PATH
             )
 set(CMAKE_FIND_DEBUG_MODE FALSE)
+
+if (TARGET PNG::PNG)
+    message(STATUS "2nd check, TARGET PNG::PNG")
+endif ()
 
 set (PNG_INCLUDE_DIRS ${PNG_LOCAL_INSTALL_DIR}/include)
 include_directories(BEFORE ${PNG_INCLUDE_DIRS})
