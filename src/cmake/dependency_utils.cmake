@@ -80,6 +80,7 @@ endfunction ()
 # as arguments to the function.
 function (clear_all_target_properties)
     foreach (targetname ${ARGV})
+        message (STATUS "  target ${targetname}")
         if (TARGET ${targetname})
             get_property (props TARGET ${targetname} PROPERTY PROPERTIES)
             foreach (prop IN LISTS props)
