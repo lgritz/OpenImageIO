@@ -12,7 +12,10 @@ set (PNG_GIT_TAG "v${PNG_BUILD_VERSION}")
 
 set_cache (PNG_BUILD_SHARED_LIBS OFF
            DOC "Should execute a local PNG build, if necessary, build shared libraries" ADVANCED)
-
+set_option (PNG_BUILD_USE_CUSTOM_PREFIX "Use custom namespace prefix for libpng" OFF)
+if (PNG_BUILD_USE_CUSTOM_PREFIX)
+    list (APPEND PNG_BUILD_EXTRA_CMAKE_ARGS -D PNG_PREFIX=oiio)
+endif ()
 string (MAKE_C_IDENTIFIER ${PNG_BUILD_VERSION} PNG_VERSION_IDENT)
 
 unset (PNG_FOUND)
@@ -36,7 +39,7 @@ build_dependency_with_cmake (PNG
         -D PNG_FRAMEWORK=OFF
         -D CMAKE_POSITION_INDEPENDENT_CODE=ON
         -D CMAKE_INSTALL_LIBDIR=lib
-        -D PNG_PREFIX=oiio
+        ${PNG_BUILD_EXTRA_CMAKE_ARGS}
     )
 
     
