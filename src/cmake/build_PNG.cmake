@@ -6,7 +6,7 @@
 # PNG by hand!
 ######################################################################
 
-set_cache (PNG_BUILD_VERSION 1.6.47 "PNG version for local builds")
+set_cache (PNG_BUILD_VERSION 1.6.50 "PNG version for local builds")
 set (PNG_GIT_REPOSITORY "https://github.com/pnggroup/libpng")
 set (PNG_GIT_TAG "v${PNG_BUILD_VERSION}")
 
@@ -47,6 +47,10 @@ set (PNG_REFIND_VERSION ${PNG_BUILD_VERSION})
 set (PNG_REFIND_ARGS EXACT REQUIRED)
 # set (PNG_DIR ${PNG_LOCAL_INSTALL_DIR}/lib/cmake/PNG)
 set (PNG_FIND_VERSION_EXACT ON)
+unset (PNG_LIBRARY)
+unset (PNG_INCLUDE_DIR)
+unset (PNG_INCLUDE_DIR)
+unset (PNG_PNG_INCLUDE_DIR)
 
 if (PNG_BUILD_VERSION VERSION_GREATER 1.6.43)
     list (APPEND PNG_REFIND_ARGS CONFIG)

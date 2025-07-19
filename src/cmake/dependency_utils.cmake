@@ -189,6 +189,7 @@ function (reject_out_of_range_versions pkgname pkgversion versionmin versionmax 
         unset (${pkgname}_FOUND PARENT_SCOPE)
         unset (${pkgname}_VERSION PARENT_SCOPE)
         unset (${pkgname}_INCLUDE PARENT_SCOPE)
+        unset (${pkgname}_INCLUDE_DIR PARENT_SCOPE)
         unset (${pkgname}_INCLUDES PARENT_SCOPE)
         unset (${pkgname}_LIBRARY PARENT_SCOPE)
         unset (${pkgname}_LIBRARIES PARENT_SCOPE)
