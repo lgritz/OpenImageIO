@@ -58,12 +58,14 @@ unset (PNG_PNG_INCLUDE_DIR)
     list (APPEND PNG_REFIND_ARGS CONFIG)
 # endif ()
 
+set(CMAKE_FIND_DEBUG_MODE TRUE)
 find_package(PNG ${PNG_REFIND_VERSION} ${PNG_REFIND_ARGS}
              HINTS 
                     ${PNG_LOCAL_INSTALL_DIR}/lib/cmake/PNG
                     ${PNG_LOCAL_INSTALL_DIR}
              NO_DEFAULT_PATH
             )
+set(CMAKE_FIND_DEBUG_MODE FALSE)
 
 set (PNG_INCLUDE_DIRS ${PNG_LOCAL_INSTALL_DIR}/include)
 include_directories(BEFORE ${PNG_INCLUDE_DIRS})
