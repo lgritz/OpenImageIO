@@ -136,7 +136,7 @@ security-related issues [security@openimageio.org](security@openimageio.org).
 🔧 Contributing and developer documentation
 -------------------------------------------
 
-OpenImageIO welcomes code contributions, and [nearly 200 people](CREDITS.md)
+OpenImageIO welcomes code contributions, and [nearly 250 people](CREDITS.md)
 have done so over the years. We take code contributions via the usual GitHub
 pull request (PR) mechanism.
 
@@ -155,6 +155,11 @@ pull request (PR) mechanism.
   building the documentation locally, which may be helpful if you are editing
   the documentation in nontrivial ways and want to preview the appearance.
 * Other developer documentation is in the [docs/dev](docs/dev) directory.
+* You may also have luck learning a bit about the organization and
+  architecture of the project by reading the [DeepWiki Analysis of
+  OpenImageIO](https://deepwiki.com/AcademySoftwareFoundation/OpenImageIO).
+  But take it with a grain of salt -- like any LLM-generated summary, there
+  may be inaccuracies lurking.
 
 
 ☎️ Communications channels and additional resources
@@ -167,3 +172,15 @@ pull request (PR) mechanism.
 * Biweekly Technical Steering Committee (TSC) Zoom meetings are on the [ASWF
   Calendar](https://calendar.openimageio.org) (click on the OpenImageIO
   meeting entries, every second Monday, to get the Zoom link, anyone may join)
+
+
+🙌 Credits
+----------
+
+<a href="https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=AcademySoftwareFoundation/OpenImageIO&max=1000&columns=12" />
+</a>
+
+  <img src="https://contrib.rocks/image?repo=AcademySoftwareFoundation/OpenImageIO&max=1000&columns=12" />
+
+(Made with [contrib.rocks](https://contrib.rocks).)
