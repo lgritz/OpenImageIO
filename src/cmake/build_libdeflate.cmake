@@ -14,6 +14,12 @@ set_cache (libdeflate_BUILD_SHARED_LIBS OFF # ${LOCAL_BUILD_SHARED_LIBS_DEFAULT}
 
 string (MAKE_C_IDENTIFIER ${libdeflate_BUILD_VERSION} libdeflate_VERSION_IDENT)
 
+# Pass along any CMAKE_MSVC_RUNTIME_LIBRARY
+if (WIN32 AND CMAKE_MSVC_RUNTIME_LIBRARY)
+    list (APPEND LIBDEFLATE_CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY} )
+endif ()
+
+
 build_dependency_with_cmake(libdeflate
     VERSION         ${libdeflate_BUILD_VERSION}
     GIT_REPOSITORY  ${libdeflate_GIT_REPOSITORY}
@@ -24,6 +30,7 @@ build_dependency_with_cmake(libdeflate
         -D CMAKE_POSITION_INDEPENDENT_CODE=ON
         -D CMAKE_INSTALL_LIBDIR=lib
         -D LIBDEFLATE_BUILD_GZIP=OFF
+        ${LIBDEFLATE_CMAKE_ARGS}
     )
 
 # Set some things up that we'll need for a subsequent find_package to work

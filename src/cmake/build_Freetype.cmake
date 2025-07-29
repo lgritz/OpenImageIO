@@ -20,7 +20,12 @@ string (MAKE_C_IDENTIFIER ${Freetype_BUILD_VERSION} Freetype_VERSION_IDENT)
 # Conditionally disable support for PNG-compressed OpenType embedded bitmaps on MacOS
 # https://github.com/AcademySoftwareFoundation/OpenImageIO/pull/4423#issuecomment-2455217897
 if ( APPLE )
-    set (_freetype_EXTRA_CMAKE_ARGS -DFT_DISABLE_PNG=ON )
+    list (APPEND FREETYPE_CMAKE_ARGS -DFT_DISABLE_PNG=ON )
+endif ()
+
+# Pass along any CMAKE_MSVC_RUNTIME_LIBRARY
+if (WIN32 AND CMAKE_MSVC_RUNTIME_LIBRARY)
+    list (APPEND FREETYPE_CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY} )
 endif ()
 
 build_dependency_with_cmake(Freetype
@@ -31,7 +36,7 @@ build_dependency_with_cmake(Freetype
         -D BUILD_SHARED_LIBS=${Freetype_BUILD_SHARED_LIBS}
         -D CMAKE_POSITION_INDEPENDENT_CODE=ON
         -D CMAKE_INSTALL_LIBDIR=lib
-        ${_freetype_EXTRA_CMAKE_ARGS}
+        ${FREETYPE_CMAKE_ARGS}
         # Fix for freetype breaking against cmake 4.0.
         # Remove when freetype is fixed to declare its own minimum high enough.
         -D CMAKE_POLICY_VERSION_MINIMUM=3.5

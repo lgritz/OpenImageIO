@@ -10,6 +10,12 @@ set_cache (libjpeg-turbo_BUILD_SHARED_LIBS OFF #${LOCAL_BUILD_SHARED_LIBS_DEFAUL
 
 string (MAKE_C_IDENTIFIER ${libjpeg-turbo_BUILD_VERSION} libjpeg-turbo_VERSION_IDENT)
 
+# Pass along any CMAKE_MSVC_RUNTIME_LIBRARY
+if (WIN32 AND CMAKE_MSVC_RUNTIME_LIBRARY)
+    list (APPEND LIBJPEGTURBO_CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY} )
+endif ()
+
+
 build_dependency_with_cmake(libjpeg-turbo
     VERSION         ${libjpeg-turbo_BUILD_VERSION}
     GIT_REPOSITORY  ${libjpeg-turbo_GIT_REPOSITORY}
@@ -19,8 +25,9 @@ build_dependency_with_cmake(libjpeg-turbo
         -D WITH_JPEG8=1
         -D CMAKE_INSTALL_LIBDIR=lib
         -D CMAKE_POSITION_INDEPENDENT_CODE=1
-
+        ${LIBJPEGTURBO_CMAKE_ARGS}
     )
+
 # Set some things up that we'll need for a subsequent find_package to work
 set (libjpeg-turbo_ROOT ${libjpeg-turbo_LOCAL_INSTALL_DIR})
 

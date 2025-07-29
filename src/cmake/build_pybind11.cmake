@@ -14,6 +14,12 @@ set_cache (pybind11_BUILD_SHARED_LIBS ${LOCAL_BUILD_SHARED_LIBS_DEFAULT}
 
 string (MAKE_C_IDENTIFIER ${pybind11_BUILD_VERSION} pybind11_VERSION_IDENT)
 
+# Pass along any CMAKE_MSVC_RUNTIME_LIBRARY
+if (WIN32 AND CMAKE_MSVC_RUNTIME_LIBRARY)
+    list (APPEND PYBIND11_CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY} )
+endif ()
+
+
 build_dependency_with_cmake(pybind11
     VERSION         ${pybind11_BUILD_VERSION}
     GIT_REPOSITORY  ${pybind11_GIT_REPOSITORY}
@@ -23,6 +29,7 @@ build_dependency_with_cmake(pybind11
         # Don't built unnecessary parts of Pybind11
         -D BUILD_TESTING=OFF
         -D PYBIND11_TEST=OFF
+        ${PYBIND11_CMAKE_ARGS}
         # Fix for pybind11 breaking against cmake 4.0.
         # Remove when pybind11 is fixed to declare its own minimum high enough.
         -D CMAKE_POLICY_VERSION_MINIMUM=3.5

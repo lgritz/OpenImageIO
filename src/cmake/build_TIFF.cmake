@@ -23,9 +23,14 @@ if (TARGET libjpeg-turbo::jpeg)
     get_target_property(JPEG_INCLUDE_DIRS JPEG::JPEG INTERFACE_INCLUDE_DIRECTORIES)
     get_target_property(JPEG_LIBRARIES JPEG::JPEG INTERFACE_LINK_LIBRARIES)
     set (JPEG_FOUND TRUE)
-    set (MORE_TIFF_CMAKE_ARGS
+    list (APPEND TIFF_CMAKE_ARGS
          -D JPEG_INCLUDE_DIR=${JPEG_INCLUDE_DIRS}
          -D JPEG_LIBRARY=${JPEG_LIBRARIES} )
+endif ()
+
+# Pass along any CMAKE_MSVC_RUNTIME_LIBRARY
+if (WIN32 AND CMAKE_MSVC_RUNTIME_LIBRARY)
+    list (APPEND TIFF_CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY} )
 endif ()
 
 build_dependency_with_cmake(TIFF
@@ -44,7 +49,7 @@ build_dependency_with_cmake(TIFF
         -D lzma=OFF
         -D zstd=OFF
         -D jbig=OFF
-        ${MORE_TIFF_CMAKE_ARGS}
+        ${TIFF_CMAKE_ARGS}
     )
 
 # Set some things up that we'll need for a subsequent find_package to work
@@ -60,4 +65,4 @@ if (TIFF_BUILD_SHARED_LIBS)
     install_local_dependency_libs (TIFF TIFF)
 endif ()
 
-unset (MORE_TIFF_CMAKE_ARGS)
+unset (TIFF_CMAKE_ARGS)

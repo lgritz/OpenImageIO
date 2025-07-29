@@ -11,6 +11,12 @@ set (fmt_GIT_REPOSITORY "https://github.com/fmtlib/fmt")
 set (fmt_GIT_TAG "${fmt_BUILD_VERSION}")
 # Note: fmt doesn't put "v" in front of version for its git tags
 
+# Pass along any CMAKE_MSVC_RUNTIME_LIBRARY
+if (WIN32 AND CMAKE_MSVC_RUNTIME_LIBRARY)
+    list (APPEND FMT_CMAKE_ARGS -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY} )
+endif ()
+
+
 build_dependency_with_cmake(fmt
     VERSION         ${fmt_BUILD_VERSION}
     GIT_REPOSITORY  ${fmt_GIT_REPOSITORY}
@@ -20,6 +26,7 @@ build_dependency_with_cmake(fmt
         # Don't built unnecessary parts of fmt
         -D FMT_DOC=OFF
         -D FMT_TEST=OFF
+        ${FMT_CMAKE_ARGS}
     )
 
 # Set some things up that we'll need for a subsequent find_package to work
