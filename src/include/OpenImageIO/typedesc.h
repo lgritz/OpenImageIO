@@ -36,6 +36,31 @@
 
 OIIO_NAMESPACE_BEGIN
 
+/// BaseType is a simple enum describing the base data types that correspond
+/// (mostly) to the C/C++ built-in types. These include all the types that
+/// pixels can be, plus a few that are not allowed for pixels (like STRING or
+/// PTR).
+enum class BaseType : uint8_t {
+    UNKNOWN     = 0,   ///< unknown or unspecified type
+    NONE        = 1,   ///< explicitly void, no type
+    UINT8       = 2,   ///< 8-bit unsigned int values ranging from 0..255
+    INT8        = 3,   ///< 8-bit int values ranging from -128..127
+    UINT16      = 4,   ///< 16-bit int values ranging from 0..65535
+    INT16       = 5,   ///< 16-bit int values ranging from -32768..32767
+    UINT32      = 6,   ///< 32-bit unsigned int values
+    INT32       = 7,   ///< signed 32-bit int values
+    UINT64      = 8,   ///< 64-bit unsigned int values
+    INT64       = 9,   ///< signed 64-bit int values
+    HALF        = 10,  ///< 16-bit IEEE floating point values
+    FLOAT       = 11,  ///< 32-bit IEEE floating point values
+    DOUBLE      = 12,  ///< 64-bit IEEE floating point values
+    STRING      = 13,  ///< Character string
+    PTR         = 14,  ///< Pointer value
+    USTRINGHASH = 15,  ///< A uint64 that is the hash of a ustring.
+};
+
+
+
 /////////////////////////////////////////////////////////////////////////////
 /// A TypeDesc describes simple data types.
 ///
@@ -54,36 +79,30 @@ struct OIIO_UTIL_API TypeDesc {
     /// BASETYPE is a simple enum describing the base data types that
     /// correspond (mostly) to the C/C++ built-in types.
     enum BASETYPE {
-        UNKNOWN,            ///< unknown type
-        NONE,               ///< void/no type
-        UINT8,              ///< 8-bit unsigned int values ranging from 0..255,
-                            ///<   (C/C++ `unsigned char`).
-        UCHAR=UINT8,
-        INT8,               ///< 8-bit int values ranging from -128..127,
-                            ///<   (C/C++ `char`).
-        CHAR=INT8,
-        UINT16,             ///< 16-bit int values ranging from 0..65535,
-                            ///<   (C/C++ `unsigned short`).
-        USHORT=UINT16,
-        INT16,              ///< 16-bit int values ranging from -32768..32767,
-                            ///<   (C/C++ `short`).
-        SHORT=INT16,
-        UINT32,             ///< 32-bit unsigned int values (C/C++ `unsigned int`).
-        UINT=UINT32,
-        INT32,              ///< signed 32-bit int values (C/C++ `int`).
-        INT=INT32,
-        UINT64,             ///< 64-bit unsigned int values (C/C++
-                            ///<   `unsigned long long` on most architectures).
-        ULONGLONG=UINT64,
-        INT64,              ///< signed 64-bit int values (C/C++ `long long`
-                            ///<   on most architectures).
-        LONGLONG=INT64,
-        HALF,               ///< 16-bit IEEE floating point values (OpenEXR `half`).
-        FLOAT,              ///< 32-bit IEEE floating point values, (C/C++ `float`).
-        DOUBLE,             ///< 64-bit IEEE floating point values, (C/C++ `double`).
-        STRING,             ///< Character string.
-        PTR,                ///< A pointer value.
-        USTRINGHASH,        ///< A uint64 that is the hash of a ustring.
+        UNKNOWN     = uint8_t(BaseType::UNKNOWN),
+        NONE        = uint8_t(BaseType::NONE),
+        UINT8       = uint8_t(BaseType::UINT8),
+        UCHAR       = UINT8,  // obsolete synonym
+        INT8        = uint8_t(BaseType::INT8),
+        CHAR        = INT8,  // obsolete synonym
+        UINT16      = uint8_t(BaseType::UINT16),
+        USHORT      = UINT16,  // obsolete synonym
+        INT16       = uint8_t(BaseType::INT16),
+        SHORT       = INT16,  // obsolete synonym
+        UINT32      = uint8_t(BaseType::UINT32),
+        UINT        = UINT32,  // obsolete synonym
+        INT32       = uint8_t(BaseType::INT32),
+        INT         = INT32,  // obsolete synonym
+        UINT64      = uint8_t(BaseType::UINT64),
+        ULONGLONG   = UINT64,  // obsolete synonym
+        INT64       = uint8_t(BaseType::INT64),
+        LONGLONG    = INT64,  // obsolete synonym
+        HALF        = uint8_t(BaseType::HALF),
+        FLOAT       = uint8_t(BaseType::FLOAT),
+        DOUBLE      = uint8_t(BaseType::DOUBLE),
+        STRING      = uint8_t(BaseType::STRING),
+        PTR         = uint8_t(BaseType::PTR),
+        USTRINGHASH = uint8_t(BaseType::USTRINGHASH),
         LASTBASE
     };
 
@@ -130,7 +149,17 @@ struct OIIO_UTIL_API TypeDesc {
 
     /// Construct from a BASETYPE and optional aggregateness, semantics,
     /// and arrayness.
-    OIIO_HOSTDEVICE constexpr TypeDesc (BASETYPE btype=UNKNOWN, AGGREGATE agg=SCALAR,
+    OIIO_HOSTDEVICE constexpr TypeDesc(BASETYPE btype, AGGREGATE agg=SCALAR,
+                                       VECSEMANTICS semantics=NOSEMANTICS,
+                                       int arraylen=0) noexcept
+        : basetype(static_cast<unsigned char>(btype)),
+          aggregate(static_cast<unsigned char>(agg)),
+          vecsemantics(static_cast<unsigned char>(semantics)), reserved(0),
+          arraylen(arraylen)
+          { }
+    /// Construct from a BASETYPE and optional aggregateness, semantics,
+    /// and arrayness.
+    OIIO_HOSTDEVICE constexpr TypeDesc(BaseType btype=BaseType::UNKNOWN, AGGREGATE agg=SCALAR,
                         VECSEMANTICS semantics=NOSEMANTICS,
                         int arraylen=0) noexcept
         : basetype(static_cast<unsigned char>(btype)),
@@ -140,12 +169,18 @@ struct OIIO_UTIL_API TypeDesc {
           { }
 
     /// Construct an array of a non-aggregate BASETYPE.
-    OIIO_HOSTDEVICE constexpr TypeDesc (BASETYPE btype, int arraylen) noexcept
+    OIIO_HOSTDEVICE constexpr TypeDesc(BaseType btype, int arraylen) noexcept
+        : TypeDesc(btype, SCALAR, NOSEMANTICS, arraylen) {}
+    OIIO_HOSTDEVICE constexpr TypeDesc(BASETYPE btype, int arraylen) noexcept
         : TypeDesc(btype, SCALAR, NOSEMANTICS, arraylen) {}
 
     /// Construct an array from BASETYPE, AGGREGATE, and array length,
     /// with unspecified (or moot) semantic hints.
-    OIIO_HOSTDEVICE constexpr TypeDesc (BASETYPE btype, AGGREGATE agg, int arraylen) noexcept
+    OIIO_HOSTDEVICE constexpr TypeDesc(BaseType btype, AGGREGATE agg,
+                                       int arraylen) noexcept
+        : TypeDesc(btype, agg, NOSEMANTICS, arraylen) {}
+    OIIO_HOSTDEVICE constexpr TypeDesc(BASETYPE btype, AGGREGATE agg,
+                                       int arraylen) noexcept
         : TypeDesc(btype, agg, NOSEMANTICS, arraylen) {}
 
     /// Construct from a string (e.g., "float[3]").  If no valid

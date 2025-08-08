@@ -332,7 +332,7 @@ ParamValue::get_string_indexed(int index) const
     } else {
         out += Strutil::fmt::format(
             "<unknown data type> (base {:d}, agg {:d} vec {:d})",
-            type().basetype, type().aggregate, type().vecsemantics);
+            int(type().basetype), type().aggregate, type().vecsemantics);
     }
     return out;
 }
