@@ -207,7 +207,7 @@ private:
     std::vector<CSInfo> colorspaces;
     std::string scene_linear_alias;  // Alias for a scene-linear color space
     std::string lin_srgb_alias;
-    std::string srgb_alias;
+    std::string srgb_display_alias;
     std::string ACEScg_alias;
     std::string Rec709_alias;
     mutable spin_rw_mutex m_mutex;
@@ -404,7 +404,7 @@ private:
     void debug_print_aliases()
     {
         DBG("Aliases: scene_linear={}   lin_srgb={}   srgb={}   ACEScg={}   Rec709={}\n",
-            scene_linear_alias, lin_srgb_alias, srgb_alias, ACEScg_alias,
+            scene_linear_alias, lin_srgb_alias, srgb_display_alias, ACEScg_alias,
             Rec709_alias);
     }
 
@@ -582,17 +582,21 @@ ColorConfig::Impl::classify_by_name(CSInfo& cs)
         || Strutil::iequals(cs.name, "srgb_tx")
         || Strutil::iequals(cs.name, "srgb_texture")
         || Strutil::iequals(cs.name, "srgb texture")
+        || Strutil::iequals(cs.name, "srgb_rec709_scene")
+        || Strutil::iequals(cs.name, "srgb_rec709_display")
         || Strutil::iequals(cs.name, "sRGB - Texture")) {
-        cs.setflag(CSInfo::is_srgb, srgb_alias);
+        cs.setflag(CSInfo::is_srgb, srgb_display_alias);
     } else if (Strutil::iequals(cs.name, "Rec709")) {
         cs.setflag(CSInfo::is_Rec709, Rec709_alias);
     } else if (Strutil::iequals(cs.name, "lin_srgb")
                || Strutil::iequals(cs.name, "lin_rec709")
+               || Strutil::iequals(cs.name, "lin_rec709_scene")
                || Strutil::iequals(cs.name, "Linear Rec.709 (sRGB)")
                || Strutil::iequals(cs.name, "linear")) {
         cs.setflag(CSInfo::is_lin_srgb | CSInfo::is_linear_response,
                    lin_srgb_alias);
     } else if (Strutil::iequals(cs.name, "ACEScg")
+               || Strutil::iequals(cs.name, "lin_ap1_scene")
                || Strutil::iequals(cs.name, "lin_ap1")) {
         cs.setflag(CSInfo::is_ACEScg | CSInfo::is_linear_response,
                    ACEScg_alias);
@@ -604,7 +608,7 @@ ColorConfig::Impl::classify_by_name(CSInfo& cs)
                    ACEScg_alias);
     } else if (cs.name == "srgbf" || cs.name == "srgbh" || cs.name == "srgb16"
                || cs.name == "srgb8") {
-        cs.setflag(CSInfo::is_srgb, srgb_alias);
+        cs.setflag(CSInfo::is_srgb, srgb_display_alias);
     } else if (cs.name == "srgblnf" || cs.name == "srgblnh"
                || cs.name == "srgbln16" || cs.name == "srgbln8") {
         cs.setflag(CSInfo::is_lin_srgb, lin_srgb_alias);
@@ -660,7 +664,7 @@ ColorConfig::Impl::classify_by_conversions(CSInfo& cs)
             // canonical spaces anyway.
             // DBG("{} has LUT3\n", cs.name);
         } else if (check_same_as_builtin_transform(cs.name.c_str(), "srgb_tx")) {
-            cs.setflag(CSInfo::is_srgb, srgb_alias);
+            cs.setflag(CSInfo::is_srgb, srgb_display_alias);
         } else if (check_same_as_builtin_transform(cs.name.c_str(),
                                                    "lin_srgb")) {
             cs.setflag(CSInfo::is_lin_srgb | CSInfo::is_linear_response,
@@ -704,7 +708,7 @@ ColorConfig::Impl::reclassify_heuristics(CSInfo& cs)
         // colors from "this cs" to srgb gives us what we expect for a
         // lin_srgb->srgb, then guess what? -- this is lin_srgb!
         if (srgb_alias.size()
-            && test_conversion_yields(cs.name.c_str(), srgb_alias.c_str(),
+            && test_conversion_yields(cs.name.c_str(), srgb_display_alias.c_str(),
                                       test_colors, lin_srgb_to_srgb_results)) {
             setflag(cs, CSInfo::is_lin_srgb | CSInfo::is_linear_response,
                     lin_srgb_alias);
@@ -725,7 +729,7 @@ ColorConfig::Impl::identify_builtin_equivalents()
     Timer timer;
     if (auto n = IdentifyBuiltinColorSpace("srgb_tx")) {
         if (CSInfo* cs = find(n)) {
-            cs->setflag(CSInfo::is_srgb, srgb_alias);
+            cs->setflag(CSInfo::is_srgb, srgb_display_alias);
             DBG("Identified {} = builtin '{}'\n", "srgb", cs->name);
         }
     } else {
@@ -1344,14 +1348,19 @@ ColorConfig::Impl::resolve(string_view name) const
 
     // Maybe it's an informal alias of common names?
     spin_rw_write_lock lock(m_mutex);
-    if (Strutil::iequals(name, "sRGB") && !srgb_alias.empty())
-        return srgb_alias;
+    if ((Strutil::iequals(name, "sRGB")
+         || Strutil::iequals(name, "srgb_rec709_display"))
+        && !srgb_display_alias.empty())
+        return srgb_display_alias;
     if ((Strutil::iequals(name, "lin_srgb")
          || Strutil::iequals(name, "lin_rec709")
+         || Strutil::iequals(name, "lin_rec709_scene")
          || Strutil::iequals(name, "linear"))
         && lin_srgb_alias.size())
         return lin_srgb_alias;
-    if (Strutil::iequals(name, "ACEScg") && !ACEScg_alias.empty())
+    if ((Strutil::iequals(name, "ACEScg")
+         || Strutil::iequals(name, "lin_ap1_scene"))
+        && !ACEScg_alias.empty())
         return ACEScg_alias;
     if (Strutil::iequals(name, "scene_linear") && !scene_linear_alias.empty()) {
         return scene_linear_alias;
