@@ -838,7 +838,9 @@ DDSInput::seek_subimage(int subimage, int miplevel)
         case DDS_FORMAT_BC7_UNORM_SRGB:
         case DDS_FORMAT_R8G8B8A8_UNORM_SRGB:
         case DDS_FORMAT_B8G8R8A8_UNORM_SRGB:
-        case DDS_FORMAT_B8G8R8X8_UNORM_SRGB: colorspace = "sRGB"; break;
+        case DDS_FORMAT_B8G8R8X8_UNORM_SRGB:
+            colorspace = "srgb_rec709_display";
+            break;
         }
     }
 

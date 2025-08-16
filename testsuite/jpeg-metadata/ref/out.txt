@@ -10,7 +10,7 @@ src/blender-render.jpg :  640 x  480, 3 channel, uint8 jpeg
     Blender:Scene: "Scene"
     Blender:Time: "00:00:00:01"
     jpeg:subsampling: "4:2:0"
-    oiio:ColorSpace: "sRGB"
+    oiio:ColorSpace: "srgb_rec709_display"
 Comparing "src/blender-render.jpg" and "no-attribs.jpg"
 PASS
 Reading no-attribs.jpg
@@ -34,7 +34,7 @@ src/blender-render.jpg :  640 x  480, 3 channel, uint8 jpeg
     Blender:Scene: "Scene"
     Blender:Time: "00:00:00:01"
     jpeg:subsampling: "4:2:0"
-    oiio:ColorSpace: "sRGB"
+    oiio:ColorSpace: "srgb_rec709_display"
 Comparing "src/blender-render.jpg" and "with-attribs.jpg"
 PASS
 Reading with-attribs.jpg
@@ -65,7 +65,7 @@ src/blender-render.jpg :  640 x  480, 3 channel, uint8 jpeg
     Blender:Scene: "Scene"
     Blender:Time: "00:00:00:01"
     jpeg:subsampling: "4:2:0"
-    oiio:ColorSpace: "sRGB"
+    oiio:ColorSpace: "srgb_rec709_display"
 Comparing "src/blender-render.jpg" and "with-attribs-and-desc.jpg"
 PASS
 Reading with-attribs-and-desc.jpg
@@ -97,7 +97,7 @@ src/blender-render.jpg :  640 x  480, 3 channel, uint8 jpeg
     Blender:Scene: "Scene"
     Blender:Time: "00:00:00:01"
     jpeg:subsampling: "4:2:0"
-    oiio:ColorSpace: "sRGB"
+    oiio:ColorSpace: "srgb_rec709_display"
 Comparing "src/blender-render.jpg" and "with-colon-desc.jpg"
 PASS
 Reading with-colon-desc.jpg
