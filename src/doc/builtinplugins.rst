@@ -1771,9 +1771,6 @@ files use the file extension :file:`.png`.
    * - ``oiio:ColorSpace``
      - string
      - Color space (see Section :ref:`sec-metadata-color`).
-   * - ``oiio:Gamma``
-     - float
-     - the gamma correction value (if specified).
    * - ``ICCProfile``
      - uint8[]
      - The ICC color profile. A variety of other ``ICCProfile:*`` attributes
