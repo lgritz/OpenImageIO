@@ -15,7 +15,7 @@ nomakegps.jpg        : 2048 x 1536, 3 channel, uint8 jpeg
     Exif:WhiteBalance: 0 (auto)
     Exif:YCbCrPositioning: 1
     jpeg:subsampling: "4:2:0"
-    oiio:ColorSpace: "sRGB"
+    oiio:ColorSpace: "srgb_rec709_display"
 Reading nomake.jpg
 nomake.jpg           : 2048 x 1536, 3 channel, uint8 jpeg
     SHA-1: 2623446988E34395C6B0A4AA4FC75107C708BF18
@@ -43,7 +43,7 @@ nomake.jpg           : 2048 x 1536, 3 channel, uint8 jpeg
     GPS:TimeStamp: 17, 56, 33
     GPS:VersionID: 2, 2, 0, 0
     jpeg:subsampling: "4:2:0"
-    oiio:ColorSpace: "sRGB"
+    oiio:ColorSpace: "srgb_rec709_display"
 Reading nogps.jpg
 nogps.jpg            : 2048 x 1536, 3 channel, uint8 jpeg
     SHA-1: 2623446988E34395C6B0A4AA4FC75107C708BF18
@@ -62,7 +62,7 @@ nogps.jpg            : 2048 x 1536, 3 channel, uint8 jpeg
     Exif:WhiteBalance: 0 (auto)
     Exif:YCbCrPositioning: 1
     jpeg:subsampling: "4:2:0"
-    oiio:ColorSpace: "sRGB"
+    oiio:ColorSpace: "srgb_rec709_display"
 Reading noattribs.jpg
 noattribs.jpg        : 2048 x 1536, 3 channel, uint8 jpeg
     SHA-1: 2623446988E34395C6B0A4AA4FC75107C708BF18
