@@ -524,7 +524,7 @@
     Exif:Sharpness: 0 (normal)
     Exif:ShutterSpeedValue: 5.90689 (1/59 s)
     Exif:WhiteBalance: 0 (auto)
-    oiio:ColorSpace: "lin_rec709"
+    oiio:ColorSpace: "lin_rec709_scene"
     oiio:MakerNoteOffset: 0
     raw:cam_mul: 1972, 1024, 1632, 1024
     raw:cam_xyz: 0.9847, -0.3091, -0.0928, -0.8485, 1.6345, 0.2225, -0.0715, 0.0595, 0.7103, 0, 0, 0

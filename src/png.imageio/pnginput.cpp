@@ -175,7 +175,7 @@ PNGInput::open(const std::string& name, ImageSpec& newspec)
     const ColorConfig& colorconfig(ColorConfig::default_colorconfig());
     m_srgb = false;
     if (colorconfig.equivalent(colorspace, "srgb_rec709_display")) {
-        m_srgb = true;
+        m_srgb  = true;
         m_gamma = 1.0f;
     } else if (colorconfig.equivalent(colorspace, "g22_rec709_scene")) {
         m_gamma = 2.2f;

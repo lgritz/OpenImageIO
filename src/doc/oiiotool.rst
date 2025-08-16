@@ -709,13 +709,13 @@ Color convert an image
 ----------------------
 
 This command linearizes a JPEG assumed to be in sRGB, saving as an HDRI
-OpenEXR file::
+OpenEXR file in ACEScg color space::
 
-    oiiotool photo.jpg --colorconvert sRGB linear -o output.exr
+    oiiotool photo.jpg --colorconvert srgb_rec709_display acescg -o output.exr
 
 And the other direction::
 
-    oiiotool render.exr --colorconvert linear sRGB -o fortheweb.png
+    oiiotool render.exr --colorconvert acescg srgb_rec709_display -o fortheweb.png
 
 This converts between two named color spaces (presumably defined by your
 facility's OpenColorIO configuration)::
@@ -1608,7 +1608,7 @@ Writing images
 
         oiiotool in.tif -otex out.tx
     
-        oiiotool in.jpg --colorconvert sRGB linear -d uint16 -otex out.tx
+        oiiotool in.jpg --colorconvert srgb_rec709_display lin_rec709_scene -d uint16 -otex out.tx
     
         oiiotool --pattern:checker 512x512 3 -d uint8 -otex:wrap=periodic checker.tx
     
@@ -4266,16 +4266,16 @@ current top image.
     
         oiiotool --create 320x240 3 --text:x=10:y=400:size=40 "Hello world" \
             --text:x=100:y=200:font="Arial Bold":color=1,0,0:size=60 "Go Big Red!" \
-            --tocolorspace sRGB -o text.jpg
+            --tocolorspace srgb_rec709_display -o text.jpg
     
         oiiotool --create 320x240 3 --text:x=160:y=120:xalign=center "Centered" \
-            --tocolorspace sRGB -o textcentered.jpg
+            --tocolorspace srgb_rec709_display -o textcentered.jpg
     
         oiiotool tahoe-small.jpg \
                 --text:x=160:y=40:xalign=center:size=40:shadow=0 "shadow = 0" \
                 --text:x=160:y=80:xalign=center:size=40:shadow=1 "shadow = 1" \
                 --text:x=160:y=120:xalign=center:size=40:shadow=2 "shadow = 2" \
-                --tocolorspace sRGB -o textshadowed.jpg
+                --tocolorspace srgb_rec709_display -o textshadowed.jpg
     
     .. |textimg1| image:: figures/text.jpg
        :width: 2.0 in
@@ -4352,15 +4352,12 @@ current top image.
 Many of the color management commands depend on an installation of
 OpenColorIO (http://opencolorio.org).
 
-If OIIO has been compiled with OpenColorIO support and the environment
-variable `$OCIO` is set to point to a valid OpenColorIO configuration file,
-you will have access to all the color spaces that are known by that OCIO
-configuration.  Alternately, you can use the `--colorconfig` option to
-explicitly point to a configuration file. If no  valid configuration file is
-found (either in `$OCIO` or specified by `--colorconfig}` or OIIO was not
-compiled with OCIO support, then the only color space transformats available
-are `linear` to `Rec709` (and vice versa) and `linear` to `sRGB` (and vice
-versa).
+If the environment variable `$OCIO` is set to point to a valid OpenColorIO
+configuration file, you will have access to all the color spaces that are
+known by that OCIO configuration.  Alternately, you can use the
+`--colorconfig` option to explicitly point to a configuration file. If no
+valid configuration file is found (either in `$OCIO` or specified by
+`--colorconfig`), then the built-in OCIO "default" config will be used.
 
 If you ask for :program:`oiiotool` help (`oiiotool --help`), at the very
 bottom you will see the list of all color spaces, looks, and displays that
@@ -4572,7 +4569,7 @@ will be printed with the command `oiiotool --colorconfiginfo`.
 
     Examples::
 
-        oiiotool in.exr --ociodisplay:from=lnf:key=SHOT:value=pe0012 sRGB Film -o cc.jpg
+        oiiotool in.exr --ociodisplay:from=lnf:key=SHOT:value=pe0012 srgb_rec709_display Film -o cc.jpg
 
 
 .. option:: --ociofiletransform <name>

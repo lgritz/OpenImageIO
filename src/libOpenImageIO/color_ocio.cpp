@@ -404,8 +404,8 @@ private:
     void debug_print_aliases()
     {
         DBG("Aliases: scene_linear={}   lin_srgb={}   srgb={}   ACEScg={}   Rec709={}\n",
-            scene_linear_alias, lin_srgb_alias, srgb_display_alias, ACEScg_alias,
-            Rec709_alias);
+            scene_linear_alias, lin_srgb_alias, srgb_display_alias,
+            ACEScg_alias, Rec709_alias);
     }
 
     // For OCIO 2.3+, we can ask for the equivalent of some built-in
@@ -710,8 +710,9 @@ ColorConfig::Impl::reclassify_heuristics(CSInfo& cs)
         // colors from "this cs" to srgb gives us what we expect for a
         // lin_srgb->srgb, then guess what? -- this is lin_srgb!
         if (srgb_alias.size()
-            && test_conversion_yields(cs.name.c_str(), srgb_display_alias.c_str(),
-                                      test_colors, lin_srgb_to_srgb_results)) {
+            && test_conversion_yields(cs.name.c_str(),
+                                      srgb_display_alias.c_str(), test_colors,
+                                      lin_srgb_to_srgb_results)) {
             setflag(cs, CSInfo::is_lin_rec709scene | CSInfo::is_linear_response,
                     lin_srgb_alias);
             cs.canonical = "lin_srgb";
@@ -732,7 +733,8 @@ ColorConfig::Impl::identify_builtin_equivalents()
     if (auto n = IdentifyBuiltinColorSpace("srgb_tx")) {
         if (CSInfo* cs = find(n)) {
             cs->setflag(CSInfo::is_srgb_display, srgb_display_alias);
-            DBG("Identified {} = builtin '{}'\n", "srgb_rec709_display", cs->name);
+            DBG("Identified {} = builtin '{}'\n", "srgb_rec709_display",
+                cs->name);
         }
     } else {
         DBG("No config space identified as srgb\n");
@@ -2835,13 +2837,13 @@ ColorConfig::set_colorspace_rec709_gamma(ImageSpec& spec, float gamma) const
     if (fabsf(gamma - 1.0f) <= 0.01f) {
         set_colorspace(spec, "lin_rec709_scene");
     } else if (fabsf(gamma - 1.8f) <= 0.01f) {
-        set_colorspace(spec, "g18_rec709_scene");
+        set_colorspace(spec, "g18_rec709_display");
         spec.attribute("oiio:Gamma", 1.8f);
     } else if (fabsf(gamma - 2.2f) <= 0.01f) {
-        set_colorspace(spec, "g22_rec709_scene");
+        set_colorspace(spec, "g22_rec709_display");
         spec.attribute("oiio:Gamma", 2.2f);
     } else if (fabsf(gamma - 2.4f) <= 0.01f) {
-        set_colorspace(spec, "g24_rec709_scene");
+        set_colorspace(spec, "g24_rec709_display");
         spec.attribute("oiio:Gamma", 2.4f);
     } else {
         set_colorspace(spec, Strutil::fmt::format("g{}_rec709_display",

@@ -224,7 +224,7 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
     int srgb_intent;
     double gamma = 0.0;
     if (png_get_sRGB(sp, ip, &srgb_intent)) {
-        spec.set_colorspace("sRGB");
+        spec.set_colorspace("srgb_rec709_display");
     } else if (png_get_gAMA(sp, ip, &gamma) && gamma > 0.0) {
         // Round gamma to the nearest hundredth to prevent stupid
         // precision choices and make it easier for apps to make
@@ -235,7 +235,7 @@ read_info(png_structp& sp, png_infop& ip, int& bit_depth, int& color_type,
         set_colorspace_rec709_gamma(spec, g);
     } else {
         // If there's no info at all, assume sRGB.
-        set_colorspace(spec, "sRGB");
+        set_colorspace(spec, "srgb_rec709_display");
     }
 
     if (png_get_valid(sp, ip, PNG_INFO_iCCP)) {
@@ -600,7 +600,7 @@ write_info(png_structp& sp, png_infop& ip, int& color_type, ImageSpec& spec,
     const ColorConfig& colorconfig(ColorConfig::default_colorconfig());
     srgb = false;
     if (colorconfig.equivalent(colorspace, "srgb_rec709_display")) {
-        srgb = true;
+        srgb  = true;
         gamma = 1.0f;
     } else if (colorconfig.equivalent(colorspace, "g22_rec709_scene")) {
         gamma = 2.2f;
