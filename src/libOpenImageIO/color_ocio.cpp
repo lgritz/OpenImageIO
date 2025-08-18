@@ -200,7 +200,7 @@ struct CSInfo {
 // Hidden implementation of ColorConfig
 class ColorConfig::Impl {
 public:
-    OCIO::ConstConfigRcPtr config_;
+    OCIO::ConfigRcPtr config_;
     OCIO::ConstConfigRcPtr builtinconfig_;
 
 private:
@@ -261,6 +261,13 @@ public:
                 return &cs;
         return nullptr;
     }
+
+    // Add a new alias for an existing color space. It has no effect if the
+    // color_space does not exist, or if the alias name already refers to a
+    // different color space or an existing alias or role. Note that this is
+    // not thread-safe. Aliases should only be added during initial setup of
+    // the config.
+    bool addAlias(string_view alias, string_view color_space);
 
     // Search for a matching ColorProcessor, return it if found (otherwise
     // return an empty handle).
@@ -817,7 +824,8 @@ ColorConfig::Impl::init(string_view filename)
         // Either filename passed, or taken from $OCIO, and it seems to exist
         try {
             config_ = OCIO::Config::CreateFromFile(
-                std::string(filename).c_str());
+                          std::string(filename).c_str())
+                          ->createEditableCopy();
             configname(filename);
             m_config_is_built_in = Strutil::istarts_with(filename, "ocio://");
         } catch (OCIO::Exception& e) {
@@ -1049,6 +1057,31 @@ ColorConfig::Impl::isColorSpaceLinear(string_view name) const
            || Strutil::istarts_with(name, "lin_")
            || Strutil::iends_with(name, "_linear")
            || Strutil::iends_with(name, "_lin");
+}
+
+
+
+bool
+ColorConfig::Impl::addAlias(string_view alias, string_view color_space)
+{
+    OIIO_DASSERT(config_);
+    try {
+        auto cspace = config_->getColorSpace(c_str(color_space));
+        if (!cspace)
+            return false;  // No space with that name or alias
+        auto aspace = config_->getColorSpace(c_str(alias));
+        if (aspace)
+            return false;  // Already have an alias or role with that name
+
+        // Get a mutable handle to a copy of the color space
+        OCIO::ColorSpaceRcPtr newspace = aspace->createEditableCopy();
+        newspace->addAlias(c_str(alias));
+        config_->addColorSpace(newspace);
+    } catch (...) {
+        // If anything goes wrong, just give up
+        return false;
+    }
+    return true;
 }
 
 
