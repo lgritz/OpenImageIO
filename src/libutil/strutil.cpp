@@ -2009,3 +2009,14 @@ Strutil::eval_as_bool(string_view value)
 }
 
 OIIO_NAMESPACE_END
+
+
+
+// Backward ABI compatibility
+
+OIIO_NO_SANITIZE_ADDRESS const char*
+OIIO::v3_1::c_str(string_view str)
+{
+    return OIIO_CURRENT_NAMESPACE::c_str(str);
+}
+

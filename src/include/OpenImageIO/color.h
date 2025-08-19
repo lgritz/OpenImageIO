@@ -12,8 +12,16 @@
 #include <OpenImageIO/typedesc.h>
 #include <OpenImageIO/ustring.h>
 
+// Preprocessor symbol to allow conditional compilation depending on
+// whether the ColorProcessor class is exposed (it was not prior to OIIO 1.9).
+#define OIIO_HAS_COLORPROCESSOR 1
 
-OIIO_NAMESPACE_BEGIN
+// Preprocessor symbol to allow conditional compilation depending on
+// whether the ColorConfig returns ColorProcessor shared pointers or raw.
+#define OIIO_COLORCONFIG_USES_SHARED_PTR 1
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 /// The ColorProcessor encapsulates a baked color transformation, suitable for
 /// application to raw pixels, or ImageBuf(s). These are generated using
@@ -40,17 +48,10 @@ public:
     }
 };
 
-// Preprocessor symbol to allow conditional compilation depending on
-// whether the ColorProcessor class is exposed (it was not prior to OIIO 1.9).
-#define OIIO_HAS_COLORPROCESSOR 1
 
 
+using ColorProcessorHandle = std::shared_ptr<ColorProcessor>;
 
-typedef std::shared_ptr<ColorProcessor> ColorProcessorHandle;
-
-// Preprocessor symbol to allow conditional compilation depending on
-// whether the ColorConfig returns ColorProcessor shared pointers or raw.
-#define OIIO_COLORCONFIG_USES_SHARED_PTR 1
 
 
 
@@ -435,7 +436,20 @@ private:
     Impl* getImpl() const { return m_impl.get(); }
 };
 
+OIIO_NAMESPACE_3_1_END
 
+
+// Compatibility
+#ifndef OIIO_DOXYGEN
+OIIO_NAMESPACE_BEGIN
+using v3_1::ColorProcessor;
+using v3_1::ColorProcessorHandle;
+using v3_1::ColorConfig;
+OIIO_NAMESPACE_END
+#endif
+
+
+OIIO_NAMESPACE_BEGIN
 
 /// Utility -- convert sRGB value to linear transfer function, without
 /// any change in color primaries.

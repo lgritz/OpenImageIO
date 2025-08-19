@@ -29,7 +29,7 @@
 namespace OCIO = OCIO_NAMESPACE;
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 namespace {
 // Some test colors we use to interrogate transformations
@@ -1405,14 +1405,6 @@ ColorConfig::equivalent(string_view color_space1,
 
 
 
-bool
-equivalent_colorspace(string_view a, string_view b)
-{
-    return ColorConfig::default_colorconfig().equivalent(a, b);
-}
-
-
-
 inline OCIO::BitDepth
 ocio_bitdepth(TypeDesc type)
 {
@@ -2182,9 +2174,82 @@ ColorConfig::parseColorSpaceFromString(string_view str) const
 
 
 
+void
+ColorConfig::set_colorspace(ImageSpec& spec, string_view colorspace) const
+{
+    // If we're not changing color space, don't mess with anything
+    string_view oldspace = spec.get_string_attribute("oiio:ColorSpace");
+    if (oldspace.size() && colorspace.size() && oldspace == colorspace)
+        return;
+
+    // Set or clear the main "oiio:ColorSpace" attribute
+    if (colorspace.empty()) {
+        spec.erase_attribute("oiio:ColorSpace");
+    } else {
+        spec.attribute("oiio:ColorSpace", colorspace);
+    }
+
+    // Clear a bunch of other metadata that might contradict the colorspace,
+    // including some format-specific things that we don't want to propagate
+    // from input to output if we know that color space transformations have
+    // occurred.
+    if (!equivalent(colorspace, "sRGB"))
+        spec.erase_attribute("Exif:ColorSpace");
+    spec.erase_attribute("tiff:ColorSpace");
+    spec.erase_attribute("tiff:PhotometricInterpretation");
+    spec.erase_attribute("oiio:Gamma");
+}
+
+
+
+void
+ColorConfig::set_colorspace_rec709_gamma(ImageSpec& spec, float gamma) const
+{
+    gamma = std::round(gamma * 100.0f) / 100.0f;
+    if (fabsf(gamma - 1.0f) <= 0.01f) {
+        set_colorspace(spec, "lin_srgb");
+        // Presume that Targa files are sRGB primaries
+    } else if (fabsf(gamma - 1.8f) <= 0.01f) {
+        set_colorspace(spec, "g18_rec709");
+        spec.attribute("oiio:Gamma", 1.8f);
+    } else if (fabsf(gamma - 2.2f) <= 0.01f) {
+        set_colorspace(spec, "g22_rec709");
+        spec.attribute("oiio:Gamma", 2.2f);
+    } else {
+        set_colorspace(spec, Strutil::fmt::format("Gamma{:.2}", gamma));
+        spec.attribute("oiio:Gamma", gamma);
+    }
+}
+
+
+OIIO_NAMESPACE_3_1_END
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Image Processing Implementations
+
+OIIO_NAMESPACE_BEGIN
+
+bool
+equivalent_colorspace(string_view a, string_view b)
+{
+    return ColorConfig::default_colorconfig().equivalent(a, b);
+}
+
+
+void
+set_colorspace(ImageSpec& spec, string_view colorspace)
+{
+    ColorConfig::default_colorconfig().set_colorspace(spec, colorspace);
+}
+
+void
+set_colorspace_rec709_gamma(ImageSpec& spec, float gamma)
+{
+    ColorConfig::default_colorconfig().set_colorspace_rec709_gamma(spec, gamma);
+}
+
 
 
 bool
@@ -2786,68 +2851,5 @@ ImageBufAlgo::colorconvert(span<float> color, const ColorProcessor* processor,
 
     return true;
 }
-
-
-
-void
-ColorConfig::set_colorspace(ImageSpec& spec, string_view colorspace) const
-{
-    // If we're not changing color space, don't mess with anything
-    string_view oldspace = spec.get_string_attribute("oiio:ColorSpace");
-    if (oldspace.size() && colorspace.size() && oldspace == colorspace)
-        return;
-
-    // Set or clear the main "oiio:ColorSpace" attribute
-    if (colorspace.empty()) {
-        spec.erase_attribute("oiio:ColorSpace");
-    } else {
-        spec.attribute("oiio:ColorSpace", colorspace);
-    }
-
-    // Clear a bunch of other metadata that might contradict the colorspace,
-    // including some format-specific things that we don't want to propagate
-    // from input to output if we know that color space transformations have
-    // occurred.
-    if (!equivalent(colorspace, "sRGB"))
-        spec.erase_attribute("Exif:ColorSpace");
-    spec.erase_attribute("tiff:ColorSpace");
-    spec.erase_attribute("tiff:PhotometricInterpretation");
-    spec.erase_attribute("oiio:Gamma");
-}
-
-
-
-void
-ColorConfig::set_colorspace_rec709_gamma(ImageSpec& spec, float gamma) const
-{
-    gamma = std::round(gamma * 100.0f) / 100.0f;
-    if (fabsf(gamma - 1.0f) <= 0.01f) {
-        set_colorspace(spec, "lin_srgb");
-        // Presume that Targa files are sRGB primaries
-    } else if (fabsf(gamma - 1.8f) <= 0.01f) {
-        set_colorspace(spec, "g18_rec709");
-        spec.attribute("oiio:Gamma", 1.8f);
-    } else if (fabsf(gamma - 2.2f) <= 0.01f) {
-        set_colorspace(spec, "g22_rec709");
-        spec.attribute("oiio:Gamma", 2.2f);
-    } else {
-        set_colorspace(spec, Strutil::fmt::format("Gamma{:.2}", gamma));
-        spec.attribute("oiio:Gamma", gamma);
-    }
-}
-
-
-void
-set_colorspace(ImageSpec& spec, string_view colorspace)
-{
-    ColorConfig::default_colorconfig().set_colorspace(spec, colorspace);
-}
-
-void
-set_colorspace_rec709_gamma(ImageSpec& spec, float gamma)
-{
-    ColorConfig::default_colorconfig().set_colorspace_rec709_gamma(spec, gamma);
-}
-
 
 OIIO_NAMESPACE_END

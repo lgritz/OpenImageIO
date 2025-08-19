@@ -24,11 +24,16 @@
 #include <limits>
 
 
-OIIO_NAMESPACE_BEGIN
-
+OIIO_NAMESPACE_3_1_BEGIN
 // forward declarations
 class ColorConfig;
 class ColorProcessor;
+OIIO_NAMESPACE_3_1_END
+
+
+OIIO_NAMESPACE_BEGIN
+using v3_1::ColorConfig;
+using v3_1::ColorProcessor;
 class Filter2D;
 
 
