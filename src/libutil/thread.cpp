@@ -87,10 +87,15 @@ OIIO_NAMESPACE_END
 
 
 OIIO_NAMESPACE_BEGIN
-
 namespace pvt {
 OIIO_UTIL_API int oiio_use_tbb(0);  // Use TBB if available
 }
+OIIO_NAMESPACE_END
+
+
+OIIO_NAMESPACE_3_1_BEGIN
+// Thread utils still in the v3_1 namespace until it needs to break ABI
+// compatibility.
 
 
 static int
@@ -574,6 +579,9 @@ task_set::wait(bool block)
 #endif
 }
 
+OIIO_NAMESPACE_3_1_END
+
+OIIO_NAMESPACE_BEGIN
 
 
 // Helper function to keep track of the recursve depth of our use of the

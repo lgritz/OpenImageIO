@@ -159,6 +159,7 @@ namespace @PROJ_NAMESPACE@ {
     // Current version's new inner namespace is inline so it's used by default.
     inline namespace @PROJ_VERSION_NAMESPACE@ { }
     // Legacy namespaces:
+    namespace v3_1 { }
     namespace v3_0 { }
 }
 namespace OIIO = @PROJ_NAMESPACE@;
