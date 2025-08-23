@@ -16,7 +16,7 @@
 #include "imageio_pvt.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 template<class D, class S = D>
@@ -459,4 +459,4 @@ ImageBufAlgo::transpose(const ImageBuf& src, ROI roi, int nthreads)
     return result;
 }
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

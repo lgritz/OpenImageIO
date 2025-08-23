@@ -20,7 +20,7 @@
 #include "imageio_pvt.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 // FIXME -- NOT CORRECT!  This code assumes sorted, non-overlapping samples.
@@ -444,4 +444,4 @@ ImageBufAlgo::deep_holdout(const ImageBuf& src, const ImageBuf& thresh, ROI roi,
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

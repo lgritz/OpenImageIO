@@ -25,7 +25,7 @@
 #include <limits>
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 /// @defgroup ImageBufAlgo_intro (ImageBufAlgo common principles)
@@ -2702,4 +2702,15 @@ inline bool fit(ImageBuf &dst, const ImageBuf &src, Filter2D *filter,
 
 }  // end namespace ImageBufAlgo
 
+OIIO_NAMESPACE_END
+
+
+// Compatibility
+OIIO_NAMESPACE_BEGIN
+#ifndef OIIO_DOXYGEN
+using v3_1::Image_or_Const;
+namespace ImageBufAlgo {
+using namespace OIIO::v3_1::ImageBufAlgo;
+}
+#endif
 OIIO_NAMESPACE_END

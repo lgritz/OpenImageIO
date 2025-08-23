@@ -21,7 +21,7 @@
 
 #include <Imath/ImathBox.h>
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 namespace {
@@ -1534,4 +1534,4 @@ ImageBufAlgo::st_warp(const ImageBuf& src, const ImageBuf& stbuf,
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

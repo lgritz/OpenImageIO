@@ -22,7 +22,7 @@
 #include "imageio_pvt.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 template<class Rtype, class Atype, class Btype>
@@ -1819,4 +1819,4 @@ ImageBufAlgo::zover(const ImageBuf& A, const ImageBuf& B, bool z_zeroisinf,
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

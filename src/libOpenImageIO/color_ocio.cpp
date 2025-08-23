@@ -2003,10 +2003,6 @@ ColorConfig::parseColorSpaceFromString(string_view str) const
     return string_view(ustring(rightMostColorspace));
 }
 
-OIIO_NAMESPACE_3_1_END
-
-
-OIIO_NAMESPACE_BEGIN
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2614,10 +2610,6 @@ ImageBufAlgo::colorconvert(span<float> color, const ColorProcessor* processor,
     return true;
 }
 
-OIIO_NAMESPACE_END
-
-
-OIIO_NAMESPACE_3_1_BEGIN
 
 void
 ColorConfig::set_colorspace(ImageSpec& spec, string_view colorspace) const

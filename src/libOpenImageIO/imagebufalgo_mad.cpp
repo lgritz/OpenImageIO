@@ -15,7 +15,7 @@
 #include "imageio_pvt.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 
@@ -251,4 +251,4 @@ ImageBufAlgo::invert(const ImageBuf& A, ROI roi, int nthreads)
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

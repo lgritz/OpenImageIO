@@ -94,6 +94,11 @@ fill_corners_(ImageBuf& dst, const float* topleft, const float* topright,
     return true;
 }
 
+OIIO_NAMESPACE_END
+
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 bool
 ImageBufAlgo::fill(ImageBuf& dst, cspan<float> pixel, ROI roi, int nthreads)
@@ -726,7 +731,10 @@ ImageBufAlgo::bluenoise_image()
     return img;
 }
 
+OIIO_NAMESPACE_3_1_END
 
+
+OIIO_NAMESPACE_BEGIN
 
 static std::vector<std::string> font_search_dirs;
 static std::vector<std::string> all_font_files;
@@ -1114,6 +1122,10 @@ resolve_font(string_view font_, std::string& result)
 #endif
 
 
+OIIO_NAMESPACE_END
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 ROI
 ImageBufAlgo::text_size(string_view text, int fontsize, string_view font_)
@@ -1316,7 +1328,10 @@ ImageBufAlgo::render_text(ImageBuf& R, int x, int y, string_view text,
 #endif
 }
 
+OIIO_NAMESPACE_3_1_END
 
+
+OIIO_NAMESPACE_BEGIN
 
 const std::vector<std::string>&
 pvt::font_family_list()

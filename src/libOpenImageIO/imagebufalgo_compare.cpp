@@ -21,7 +21,7 @@
 
 #include "imageio_pvt.h"
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 void
@@ -979,4 +979,4 @@ ImageBufAlgo::histogram(const ImageBuf& src, int channel, int bins, float min,
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

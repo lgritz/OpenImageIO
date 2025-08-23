@@ -29,8 +29,7 @@
 
 #include "imageio_pvt.h"
 
-using namespace OIIO;
-
+OIIO_NAMESPACE_BEGIN
 
 static spin_mutex maketx_mutex;  // for anything that needs locking
 
@@ -2042,7 +2041,11 @@ make_texture_impl(ImageBufAlgo::MakeTextureMode mode, const ImageBuf* input,
     return ok;
 }
 
+OIIO_NAMESPACE_END
 
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 bool
 ImageBufAlgo::make_texture(ImageBufAlgo::MakeTextureMode mode,
@@ -2093,3 +2096,5 @@ ImageBufAlgo::make_texture(ImageBufAlgo::MakeTextureMode mode,
     }
     return ok;
 }
+
+OIIO_NAMESPACE_3_1_END

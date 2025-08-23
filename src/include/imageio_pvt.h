@@ -16,12 +16,17 @@
 
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 namespace ImageBufAlgo {
 struct PixelStats;
 }
 
+OIIO_NAMESPACE_3_1_END
+
+
+
+OIIO_NAMESPACE_BEGIN
 
 namespace pvt {
 

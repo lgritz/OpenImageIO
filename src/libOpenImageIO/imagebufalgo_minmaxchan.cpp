@@ -18,7 +18,7 @@
 #include "imageio_pvt.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 template<class Rtype, class Atype>
@@ -124,4 +124,4 @@ ImageBufAlgo::maxchan(const ImageBuf& src, ROI roi, int nthreads)
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

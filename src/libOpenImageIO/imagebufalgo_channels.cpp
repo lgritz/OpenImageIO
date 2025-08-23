@@ -21,7 +21,7 @@
 #include "imageio_pvt.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 template<typename DSTTYPE>
@@ -294,4 +294,4 @@ ImageBufAlgo::channel_append(const ImageBuf& A, const ImageBuf& B, ROI roi,
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

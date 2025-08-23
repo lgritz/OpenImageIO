@@ -57,7 +57,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 bool
@@ -1670,4 +1670,4 @@ ImageBufAlgo::fillholes_pushpull(const ImageBuf& src, ROI roi, int nthreads)
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

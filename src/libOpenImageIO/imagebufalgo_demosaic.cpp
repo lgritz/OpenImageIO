@@ -12,7 +12,7 @@
 #include "imagebufalgo_demosaic_prv.h"
 #include "imageio_pvt.h"
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 namespace {
 
@@ -1234,4 +1234,4 @@ mosaic_uint8(ImageBuf& dst, const ImageBuf& src, int x_offset, int y_offset,
 
 }  // namespace ImageBufAlgo
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

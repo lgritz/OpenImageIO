@@ -16,7 +16,7 @@
 #include "imageio_pvt.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 template<class D, class S>
@@ -395,4 +395,4 @@ ImageBufAlgo::circular_shift(const ImageBuf& src, int xshift, int yshift,
 
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END
