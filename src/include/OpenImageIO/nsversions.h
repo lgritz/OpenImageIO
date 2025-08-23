@@ -175,6 +175,7 @@ class ustringhash;
 // libOpenImageIO
 class ImageBuf;
 class ImageBufImpl;
+struct ROI;
 OIIO_NAMESPACE_3_1_END
 
 OIIO_NAMESPACE_BEGIN
@@ -198,6 +199,7 @@ using v3_1::ustringhash;
 // libOpenImageIO
 using v3_1::ImageBuf;
 using v3_1::ImageBufImpl;
+using v3_1::ROI;
 OIIO_NAMESPACE_END
 
 #endif /* defined(OPENIMAGEIO_NSVERSIONS_H) */

@@ -86,6 +86,11 @@ inline constexpr stride_t AutoStride = std::numeric_limits<stride_t>::min();
 typedef bool (*ProgressCallback)(void *opaque_data, float portion_done);
 
 
+OIIO_NAMESPACE_END
+
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 /// ROI is a small helper struct describing a rectangular region of interest
 /// in an image. The region is [xbegin,xend) x [begin,yend) x [zbegin,zend),
@@ -192,7 +197,10 @@ struct ROI {
     }
 };
 
+OIIO_NAMESPACE_3_1_END
 
+
+OIIO_NAMESPACE_BEGIN
 
 /// Union of two regions, the smallest region containing both.
 inline constexpr ROI roi_union (const ROI &A, const ROI &B) noexcept {
@@ -213,7 +221,6 @@ inline constexpr ROI roi_intersection (const ROI &A, const ROI &B) noexcept {
                std::max (A.chbegin, B.chbegin), std::min (A.chend, B.chend))
         : (A.defined() ? A : B);
 }
-
 
 
 
