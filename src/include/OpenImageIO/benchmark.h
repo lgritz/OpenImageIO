@@ -69,8 +69,10 @@ OIIO_FORCEINLINE void clobber (T& p, Ts&... ps)
         clobber(ps...);
 }
 
+OIIO_NAMESPACE_END
 
 
+OIIO_NAMESPACE_3_1_BEGIN
 
 /// Benchmarker is a class to assist with "micro-benchmarking".
 /// The goal is to discern how long it takes to run a snippet of code
@@ -308,6 +310,12 @@ private:
                                              const Benchmarker& bench);
 };
 
+OIIO_NAMESPACE_3_1_END
+
+
+
+OIIO_NAMESPACE_BEGIN
+using v3_1::Benchmarker;
 
 
 /// Helper template that runs a function (or functor) n times, using a

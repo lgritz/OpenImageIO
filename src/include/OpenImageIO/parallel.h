@@ -17,7 +17,7 @@
 #include <OpenImageIO/thread.h>
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 /// Split strategies
 /// DEPRECATED(2.4)
@@ -174,7 +174,13 @@ private:
     bool m_recursive       = false;        // Allow thread pool recursion
 };
 
+OIIO_NAMESPACE_3_1_END
 
+
+OIIO_NAMESPACE_BEGIN
+using v3_1::parallel_options;
+using v3_1::paropt;
+using v3_1::SplitDir;
 
 /// Parallel "for" loop, chunked: for a task that takes an int64_t
 /// [begin,end) range, break it into non-overlapping sections that run in
@@ -211,19 +217,19 @@ parallel_for_chunked(int64_t begin, int64_t end, int64_t chunksize,
 /// (to aid data coherence and minimize the amount of thread queue
 /// diddling). The chunk size is chosen automatically.
 OIIO_UTIL_API void
-parallel_for(int32_t begin, int32_t end, function_view<void(int32_t)> task,
+parallel_for(int32_t begin, int32_t end, function_view<void(int32_t)>&& task,
              paropt opt = 0);
 
 OIIO_UTIL_API void
-parallel_for(int64_t begin, int64_t end, function_view<void(int64_t)> task,
+parallel_for(int64_t begin, int64_t end, function_view<void(int64_t)>&& task,
              paropt opt = 0);
 
 OIIO_UTIL_API void
-parallel_for(uint32_t begin, uint32_t end, function_view<void(uint32_t)> task,
+parallel_for(uint32_t begin, uint32_t end, function_view<void(uint32_t)>&& task,
              paropt opt = 0);
 
 OIIO_UTIL_API void
-parallel_for(uint64_t begin, uint64_t end, function_view<void(uint64_t)> task,
+parallel_for(uint64_t begin, uint64_t end, function_view<void(uint64_t)>&& task,
              paropt opt = 0);
 
 

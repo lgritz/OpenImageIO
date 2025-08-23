@@ -59,6 +59,18 @@ OIIO_PRAGMA_WARNING_POP
 
 
 OIIO_NAMESPACE_BEGIN
+namespace pvt {
+static const char* oiio_debug_env = getenv("OPENIMAGEIO_DEBUG");
+#ifdef NDEBUG
+OIIO_UTIL_API int
+    oiio_print_debug(oiio_debug_env ? Strutil::stoi(oiio_debug_env) : 0);
+#else
+OIIO_UTIL_API int
+    oiio_print_debug(oiio_debug_env ? Strutil::stoi(oiio_debug_env) : 1);
+#endif
+OIIO_UTIL_API int oiio_print_uncaught_errors(1);
+}  // namespace pvt
+
 
 
 namespace {
@@ -138,7 +150,11 @@ c_str(string_view str)
     return ustring(str).c_str();
 }
 
+OIIO_NAMESPACE_END
 
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 void
 Strutil::sync_output(FILE* file, string_view str, bool flush)
@@ -163,20 +179,6 @@ Strutil::sync_output(std::ostream& file, string_view str, bool flush)
             file.flush();
     }
 }
-
-
-
-namespace pvt {
-static const char* oiio_debug_env = getenv("OPENIMAGEIO_DEBUG");
-#ifdef NDEBUG
-OIIO_UTIL_API int
-    oiio_print_debug(oiio_debug_env ? Strutil::stoi(oiio_debug_env) : 0);
-#else
-OIIO_UTIL_API int
-    oiio_print_debug(oiio_debug_env ? Strutil::stoi(oiio_debug_env) : 1);
-#endif
-OIIO_UTIL_API int oiio_print_uncaught_errors(1);
-}  // namespace pvt
 
 
 
@@ -2008,4 +2010,13 @@ Strutil::eval_as_bool(string_view value)
     }
 }
 
-OIIO_NAMESPACE_END
+
+
+// Backward ABI compatibility
+OIIO_NO_SANITIZE_ADDRESS const char*
+c_str(string_view str)
+{
+    return OIIO_CURRENT_NAMESPACE::c_str(str);
+}
+
+OIIO_NAMESPACE_3_1_END

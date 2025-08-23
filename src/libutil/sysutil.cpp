@@ -76,9 +76,7 @@
 OIIO_INTEL_PRAGMA(warning disable 2196)
 
 
-OIIO_NAMESPACE_BEGIN
-
-using namespace Sysutil;
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 size_t
@@ -369,9 +367,6 @@ isatty(int fd)
 #endif
 
 
-Term::Term(FILE* file) { m_is_console = isatty(fileno((file))); }
-
-
 
 #ifdef _WIN32
 // from https://msdn.microsoft.com/fr-fr/library/windows/desktop/mt638032%28v=vs.85%29.aspx
@@ -402,6 +397,11 @@ enableVTMode()
 }
 #endif
 
+
+
+namespace Sysutil {
+
+Term::Term(FILE* file) { m_is_console = isatty(fileno((file))); }
 
 
 Term::Term(const std::ostream& stream)
@@ -525,6 +525,8 @@ Term::ansi_bgcolor(int r, int g, int b)
     return ret;
 }
 
+}  // end namespace Sysutil
+
 
 
 bool
@@ -598,27 +600,18 @@ Sysutil::max_open_files()
 
 
 
-void*
+// Backward link compatibility
+OIIO_UTIL_API void*
 aligned_malloc(std::size_t size, std::size_t align)
 {
-#if defined(_WIN32)
-    return _aligned_malloc(size, align);
-#else
-    void* ptr;
-    return posix_memalign(&ptr, align, size) == 0 ? ptr : nullptr;
-#endif
+    return OIIO::aligned_malloc(size, align);
 }
 
-
-
-void
+// Backward link compatibility
+OIIO_UTIL_API void
 aligned_free(void* ptr)
 {
-#if defined(_WIN32)
-    _aligned_free(ptr);
-#else
-    free(ptr);
-#endif
+    return OIIO::aligned_free(ptr);
 }
 
 
@@ -684,5 +677,33 @@ Sysutil::setup_crash_stacktrace(string_view filename)
 #endif
 }
 
+
+OIIO_NAMESPACE_3_1_END
+
+
+OIIO_NAMESPACE_BEGIN
+
+void*
+aligned_malloc(std::size_t size, std::size_t align)
+{
+#if defined(_WIN32)
+    return _aligned_malloc(size, align);
+#else
+    void* ptr;
+    return posix_memalign(&ptr, align, size) == 0 ? ptr : nullptr;
+#endif
+}
+
+
+
+void
+aligned_free(void* ptr)
+{
+#if defined(_WIN32)
+    _aligned_free(ptr);
+#else
+    free(ptr);
+#endif
+}
 
 OIIO_NAMESPACE_END
