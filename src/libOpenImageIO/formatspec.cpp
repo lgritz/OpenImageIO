@@ -1311,4 +1311,48 @@ pvt::heapsize<ImageSpec>(const ImageSpec& is)
 
 
 
+ROI
+get_roi(const ImageSpec& spec)
+{
+    return ROI(spec.x, spec.x + spec.width, spec.y, spec.y + spec.height,
+               spec.z, spec.z + spec.depth, 0, spec.nchannels);
+}
+
+
+
+ROI
+get_roi_full(const ImageSpec& spec)
+{
+    return ROI(spec.full_x, spec.full_x + spec.full_width, spec.full_y,
+               spec.full_y + spec.full_height, spec.full_z,
+               spec.full_z + spec.full_depth, 0, spec.nchannels);
+}
+
+
+
+void
+set_roi(ImageSpec& spec, const ROI& newroi)
+{
+    spec.x      = newroi.xbegin;
+    spec.y      = newroi.ybegin;
+    spec.z      = newroi.zbegin;
+    spec.width  = newroi.width();
+    spec.height = newroi.height();
+    spec.depth  = newroi.depth();
+}
+
+
+
+void
+set_roi_full(ImageSpec& spec, const ROI& newroi)
+{
+    spec.full_x      = newroi.xbegin;
+    spec.full_y      = newroi.ybegin;
+    spec.full_z      = newroi.zbegin;
+    spec.full_width  = newroi.width();
+    spec.full_height = newroi.height();
+    spec.full_depth  = newroi.depth();
+}
+
+
 OIIO_NAMESPACE_END

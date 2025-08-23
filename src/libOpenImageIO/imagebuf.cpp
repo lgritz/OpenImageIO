@@ -40,51 +40,6 @@ std::atomic<float> IB_total_image_read_time(0.0f);
 
 
 
-ROI
-get_roi(const ImageSpec& spec)
-{
-    return ROI(spec.x, spec.x + spec.width, spec.y, spec.y + spec.height,
-               spec.z, spec.z + spec.depth, 0, spec.nchannels);
-}
-
-
-
-ROI
-get_roi_full(const ImageSpec& spec)
-{
-    return ROI(spec.full_x, spec.full_x + spec.full_width, spec.full_y,
-               spec.full_y + spec.full_height, spec.full_z,
-               spec.full_z + spec.full_depth, 0, spec.nchannels);
-}
-
-
-
-void
-set_roi(ImageSpec& spec, const ROI& newroi)
-{
-    spec.x      = newroi.xbegin;
-    spec.y      = newroi.ybegin;
-    spec.z      = newroi.zbegin;
-    spec.width  = newroi.width();
-    spec.height = newroi.height();
-    spec.depth  = newroi.depth();
-}
-
-
-
-void
-set_roi_full(ImageSpec& spec, const ROI& newroi)
-{
-    spec.full_x      = newroi.xbegin;
-    spec.full_y      = newroi.ybegin;
-    spec.full_z      = newroi.zbegin;
-    spec.full_width  = newroi.width();
-    spec.full_height = newroi.height();
-    spec.full_depth  = newroi.depth();
-}
-
-
-
 span<std::byte>
 span_from_buffer(void* data, TypeDesc format, int nchannels, int width,
                  int height, int depth, stride_t xstride, stride_t ystride,
@@ -147,7 +102,11 @@ force_as_image_span_writable_bytes(const image_span<T, Rank>& src) noexcept
         src.chansize());
 }
 
+OIIO_NAMESPACE_END
 
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 // Expansion of the opaque type that hides all the ImageBuf implementation
 // detail.
@@ -3700,4 +3659,4 @@ ImageBuf::unlock() const
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

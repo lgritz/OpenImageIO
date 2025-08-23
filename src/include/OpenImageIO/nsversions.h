@@ -171,6 +171,10 @@ class Timer;
 struct TypeDesc;
 class ustring;
 class ustringhash;
+
+// libOpenImageIO
+class ImageBuf;
+class ImageBufImpl;
 OIIO_NAMESPACE_3_1_END
 
 OIIO_NAMESPACE_BEGIN
@@ -190,6 +194,10 @@ using v3_1::Timer;
 using v3_1::TypeDesc;
 using v3_1::ustring;
 using v3_1::ustringhash;
+
+// libOpenImageIO
+using v3_1::ImageBuf;
+using v3_1::ImageBufImpl;
 OIIO_NAMESPACE_END
 
 #endif /* defined(OPENIMAGEIO_NSVERSIONS_H) */
