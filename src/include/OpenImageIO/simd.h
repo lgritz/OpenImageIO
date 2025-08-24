@@ -302,12 +302,17 @@ class vfloat16;
 
 } // namespace simd
 
+OIIO_NAMESPACE_END
 
+
+OIIO_NAMESPACE_3_1_BEGIN
 // Force has_subscript_N to understand that our simd::vfloat3 counts as a
 // 3-vector, even though its padding to 4 values makes it look the wrong size.
 template<> struct has_subscript_N<simd::vfloat3, float, 3> : public std::true_type { };
+OIIO_NAMESPACE_3_1_END
 
 
+OIIO_NAMESPACE_BEGIN
 
 namespace simd {
 

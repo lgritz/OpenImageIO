@@ -11,7 +11,7 @@
 #include <OpenImageIO/strided_ptr.h>
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 #ifndef OIIO_STRIDE_T_DEFINED
 #    define OIIO_STRIDE_T_DEFINED
@@ -402,4 +402,21 @@ image_span_within_span(const image_span<T, Trank>& ispan,
                                   as_bytes(contiguous));
 }
 
+OIIO_NAMESPACE_3_1_END
+
+
+// Compatibility
+OIIO_NAMESPACE_BEGIN
+#ifndef OIIO_DOXYGEN
+using v3_1::as_image_span_bytes;
+using v3_1::as_image_span_writable_bytes;
+using v3_1::AutoStride;
+using v3_1::image1d_span;
+using v3_1::image2d_span;
+using v3_1::image3d_span;
+using v3_1::image_span;
+using v3_1::image_span_within_span;
+using v3_1::imagesize_t;
+using v3_1::stride_t;
+#endif
 OIIO_NAMESPACE_END
