@@ -63,6 +63,8 @@
 //      any modifications that can be amended without breaking their ABIs
 //      (such as adding a non-virtual method). This also includes templated
 //      classes that to pass parameters or return values by OIIO's APIs.
+//    * Functions that were introduced in earlier versions and can simply
+//      be aliased into subsequent namespaces with `using`.
 //
 //    These live in the namespace of the version where they were first
 //    introduced. Later versions alias these into their namespaces with
@@ -71,6 +73,7 @@
 //        OIIO_NAMESPACE_3_1_BEGIN
 //            class Myclass { ... };
 //            template<class T> Mytemplate { ... }
+//            int standalone_func();
 //            namespace Group {
 //                int func_in_group();
 //            }
@@ -80,6 +83,7 @@
 //        OIIO_NAMESPACE_BEGIN
 //            using v3_1::Myclass;
 //            using v3_1::Mytemplate;
+//            using v3_1::standalone_func;
 //            namespace Group {
 //                using namespace v3_1::Group;
 //                // Makes EVERYTHING declared in v3_1::Group alias to
@@ -87,13 +91,12 @@
 //            }
 //        OIIO_NAMESPACE_END
 //
-//        OIIO_NAMESPACE_3_2_BEGIN
-//            // Same method of aliasing. Omitted for brevity.
-//        OIIO_NAMESPACE_3_2_END
-//
 // 3. Declarations that must be separately defined in each namespace.
 //
-//    * Standalone functions or globals that are not enclosed in a namespace.
+//    * Standalone functions or globals that are not enclosed in a namespace
+//      and for whatever reason can't simply be pulled into later namespaces
+//      with the `using` directive. (One example is if the return value of
+//      a function changes its type.)
 //    * Classes or functions whose definitions changed in an ABI-incompatible
 //      way.
 //
@@ -113,7 +116,7 @@
 //
 //        // Duplicate in subsequent version namespaces
 //        OIIO_NAMESPACE_BEGIN
-//            int myfunc();
+//            float myfunc();                   // changed return value
 //            class Myclass { float foo; ... }  // data layout changed
 //            int anotherfunc(Myclass& m);      // DIFFERENT Myclass!
 //        OIIO_NAMESPACE_END
@@ -122,16 +125,15 @@
 //
 //        OIIO_NAMESPACE_BEGIN
 //            // Current namespace gets a full implementation of myfunc:
-//            int myfunc() { ...full implementation... }
+//            float myfunc() { ... }
 //
 //            // New anotherfunc takes new definition of Myclass:
 //            int anotherfunc(Myclass& m) { ... }
 //        OIIO_NAMESPACE_END
 //
 //        OIIO_NAMESPACE_3_1_BEGIN
-//            // Duplicate myfunc in subsequent version namespaces for
-//            // link compatibility, but are just wrappers:
-//            int myfunc() { return OIIO::myfunc(); }
+//            // Old version
+//            int myfunc() { ... }
 //
 //            // Old anotherfunc takes old definition of Myclass:
 //            int anotherfunc(v3_1::Myclass& m) { ... }
