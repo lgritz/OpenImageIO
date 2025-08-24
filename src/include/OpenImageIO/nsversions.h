@@ -173,6 +173,7 @@ class ustring;
 class ustringhash;
 
 // libOpenImageIO
+class DeepData;
 class ImageBuf;
 class ImageBufImpl;
 class ImageSpec;
@@ -198,6 +199,7 @@ using v3_1::ustring;
 using v3_1::ustringhash;
 
 // libOpenImageIO
+using v3_1::DeepData;
 using v3_1::ImageBuf;
 using v3_1::ImageBufImpl;
 using v3_1::ImageSpec;

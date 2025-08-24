@@ -51,7 +51,6 @@ OIIO_NAMESPACE_3_1_END
 
 OIIO_NAMESPACE_BEGIN
 
-class DeepData;
 namespace Filesystem {
     using v3_1::Filesystem::IOProxy;
 }
