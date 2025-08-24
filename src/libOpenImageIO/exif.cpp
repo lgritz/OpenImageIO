@@ -119,7 +119,10 @@ TagMap::mapname() const
     return m_impl->m_mapname;
 }
 
+OIIO_NAMESPACE_END
 
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 const TagInfo*
 tag_lookup(string_view domain, int tag)
@@ -229,7 +232,10 @@ tiff_dir_data(const TIFFDirEntry& td, cspan<uint8_t> data)
     return cspan<uint8_t>(data.data() + begin, len);
 }
 
+OIIO_NAMESPACE_3_1_END
 
+
+OIIO_NAMESPACE_BEGIN
 
 #if DEBUG_EXIF_READ || DEBUG_EXIF_WRITE
 static bool
@@ -613,7 +619,10 @@ pvt::gps_tagmap_ref()
     return T;
 }
 
+OIIO_NAMESPACE_END
 
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 cspan<TagInfo>
 tag_table(string_view tablename)
@@ -626,6 +635,10 @@ tag_table(string_view tablename)
     return cspan<TagInfo>(tiff_tag_table);
 }
 
+OIIO_NAMESPACE_3_1_END
+
+
+OIIO_NAMESPACE_BEGIN
 
 
 /// Add one EXIF directory entry's data to spec under the given 'name'.
@@ -1152,6 +1165,10 @@ pvt::append_tiff_dir_entry(std::vector<TIFFDirEntry>& dirs,
 }
 
 
+OIIO_NAMESPACE_END
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 bool
 decode_exif(string_view exif, ImageSpec& spec)
@@ -1526,5 +1543,4 @@ exif_tag_lookup(string_view name, int& tag, int& tifftype, int& count)
     return true;
 }
 
-
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END
