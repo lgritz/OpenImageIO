@@ -1390,10 +1390,7 @@ wrap_mirror(int& coord, int origin, int width)
     return true;
 }
 
-OIIO_NAMESPACE_END
 
-
-OIIO_NAMESPACE_3_1_BEGIN
 
 /// Verify that the image_span has all its contents lying within the
 /// contiguous span.
@@ -1434,4 +1431,5 @@ image_span_within_span(const image_span<const std::byte>& ispan,
             && last < contiguous.data() + contiguous.size());
 }
 
-OIIO_NAMESPACE_3_1_END
+
+OIIO_NAMESPACE_END
