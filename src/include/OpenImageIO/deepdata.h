@@ -12,9 +12,6 @@
 
 OIIO_NAMESPACE_BEGIN
 
-class ImageSpec;
-
-
 
 /// A `DeepData` holds the contents of an image of ``deep'' pixels (multiple
 /// depth samples per pixel).

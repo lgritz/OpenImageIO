@@ -97,6 +97,10 @@ pvt::get_default_quantize(TypeDesc format, long long& quant_min,
     }
 }
 
+OIIO_NAMESPACE_END
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 ImageSpec::ImageSpec(TypeDesc format) noexcept
@@ -659,7 +663,10 @@ ImageSpec::channelindex(string_view name) const
     return -1;
 }
 
+OIIO_NAMESPACE_3_1_END
 
+
+OIIO_NAMESPACE_BEGIN
 
 std::string
 pvt::explain_justprint(const ParamValue& p, const void* extradata)
@@ -910,7 +917,10 @@ static ExplanationTableEntry explanation[] = {
 
 }  // namespace
 
+OIIO_NAMESPACE_END
 
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 std::string
 ImageSpec::metadata_val(const ParamValue& p, bool human)
@@ -1263,6 +1273,17 @@ ImageSpec::decode_compression_metadata(string_view defaultcomp,
 
 
 
+void
+ImageSpec::set_colorspace(string_view colorspace)
+{
+    ColorConfig::default_colorconfig().set_colorspace(*this, colorspace);
+}
+
+OIIO_NAMESPACE_3_1_END
+
+
+OIIO_NAMESPACE_BEGIN
+
 bool
 pvt::check_texture_metadata_sanity(ImageSpec& spec)
 {
@@ -1287,14 +1308,6 @@ pvt::check_texture_metadata_sanity(ImageSpec& spec)
         return true;
     }
     return false;
-}
-
-
-
-void
-ImageSpec::set_colorspace(string_view colorspace)
-{
-    ColorConfig::default_colorconfig().set_colorspace(*this, colorspace);
 }
 
 

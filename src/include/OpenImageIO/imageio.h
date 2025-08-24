@@ -223,6 +223,10 @@ inline constexpr ROI roi_intersection (const ROI &A, const ROI &B) noexcept {
 }
 
 
+OIIO_NAMESPACE_END
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 /// ImageSpec describes the data format of an image -- dimensions, layout,
 /// number and meanings of image channels.
@@ -946,8 +950,11 @@ public:
     }
 };
 
+OIIO_NAMESPACE_3_1_END
 
 
+
+OIIO_NAMESPACE_BEGIN
 
 /// ImageInput abstracts the reading of an image file in a file
 /// format-agnostic manner.
