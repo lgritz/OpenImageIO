@@ -949,11 +949,8 @@ public:
     }
 };
 
-OIIO_NAMESPACE_3_1_END
 
 
-
-OIIO_NAMESPACE_BEGIN
 
 /// ImageInput abstracts the reading of an image file in a file
 /// format-agnostic manner.
@@ -2337,10 +2334,15 @@ private:
     void append_error(string_view message) const; // add to error message
 
     /// declare friend heapsize and footprint definitions
-    template <typename T> friend size_t pvt::heapsize(const T&);
+    template <typename T> friend size_t OIIO::pvt::heapsize(const T&);
 };
 
 
+OIIO_NAMESPACE_3_1_END
+
+
+
+OIIO_NAMESPACE_BEGIN
 
 
 /// ImageOutput abstracts the writing of an image file in a file

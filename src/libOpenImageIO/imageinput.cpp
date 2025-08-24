@@ -22,8 +22,9 @@
 #include "imageio_pvt.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 using namespace pvt;
+using namespace OIIO::pvt;
 
 
 // store an error message per thread, for a specific ImageInput
@@ -1618,15 +1619,6 @@ ImageInput::valid_raw_span_size(cspan<std::byte> buf, const ImageSpec& spec,
 
 
 
-template<>
-inline size_t
-pvt::heapsize<ImageInput::Impl>(const ImageInput::Impl& impl)
-{
-    return impl.m_io_local ? sizeof(Filesystem::IOProxy) : 0;
-}
-
-
-
 size_t
 ImageInput::heapsize() const
 {
@@ -1641,6 +1633,19 @@ size_t
 ImageInput::footprint() const
 {
     return sizeof(ImageInput) + heapsize();
+}
+
+OIIO_NAMESPACE_3_1_END
+
+
+OIIO_NAMESPACE_BEGIN
+
+
+template<>
+inline size_t
+pvt::heapsize<ImageInput::Impl>(const ImageInput::Impl& impl)
+{
+    return impl.m_io_local ? sizeof(Filesystem::IOProxy) : 0;
 }
 
 

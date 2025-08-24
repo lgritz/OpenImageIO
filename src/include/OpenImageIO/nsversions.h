@@ -176,6 +176,7 @@ class ustringhash;
 class DeepData;
 class ImageBuf;
 class ImageBufImpl;
+class ImageInput;
 class ImageSpec;
 struct ROI;
 OIIO_NAMESPACE_3_1_END
@@ -202,6 +203,7 @@ using v3_1::ustringhash;
 using v3_1::DeepData;
 using v3_1::ImageBuf;
 using v3_1::ImageBufImpl;
+using v3_1::ImageInput;
 using v3_1::ImageSpec;
 using v3_1::ROI;
 OIIO_NAMESPACE_END

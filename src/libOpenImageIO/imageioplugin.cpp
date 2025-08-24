@@ -593,7 +593,10 @@ ImageOutput::create(string_view filename, Filesystem::IOProxy* ioproxy,
     return out;
 }
 
+OIIO_NAMESPACE_END
 
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 std::unique_ptr<ImageInput>
 ImageInput::create(string_view filename, bool do_open, const ImageSpec* config,
@@ -809,4 +812,4 @@ ImageInput::create(string_view filename, bool do_open, const ImageSpec* config,
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END
