@@ -174,13 +174,7 @@ private:
     bool m_recursive       = false;        // Allow thread pool recursion
 };
 
-OIIO_NAMESPACE_3_1_END
 
-
-OIIO_NAMESPACE_BEGIN
-using v3_1::parallel_options;
-using v3_1::paropt;
-using v3_1::SplitDir;
 
 /// Parallel "for" loop, chunked: for a task that takes an int64_t
 /// [begin,end) range, break it into non-overlapping sections that run in
@@ -301,6 +295,20 @@ parallel_for_2D(int64_t xbegin, int64_t xend, int64_t ybegin, int64_t yend,
                 std::function<void(int64_t x, int64_t y)>&& task,
                 paropt opt = 0);
 
+OIIO_NAMESPACE_3_1_END
 
 
+
+// Compatibility
+OIIO_NAMESPACE_BEGIN
+#ifndef OIIO_DOXYGEN
+using v3_1::parallel_for;
+using v3_1::parallel_for_2D;
+using v3_1::parallel_for_chunked;
+using v3_1::parallel_for_chunked_2D;
+using v3_1::parallel_for_range;
+using v3_1::parallel_options;
+using v3_1::paropt;
+using v3_1::SplitDir;
+#endif
 OIIO_NAMESPACE_END
