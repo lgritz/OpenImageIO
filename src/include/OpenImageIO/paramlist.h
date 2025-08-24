@@ -369,7 +369,7 @@ private:
                       FromUstring _from_ustring = FromUstring(false)) noexcept;
 
     /// declare a friend heapsize definition
-    template<typename T> friend size_t pvt::heapsize(const T&);
+    template<typename T> friend size_t OIIO::pvt::heapsize(const T&);
 };
 
 OIIO_NAMESPACE_3_1_END

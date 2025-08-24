@@ -10,7 +10,7 @@
 #include <OpenImageIO/thread.h>
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 
 namespace pvt {
 
@@ -35,11 +35,7 @@ void OIIO_UTIL_API
 {
 }
 
-OIIO_NAMESPACE_END
 
-
-
-OIIO_NAMESPACE_3_1_BEGIN
 
 double
 Benchmarker::iteration_overhead()
@@ -112,11 +108,7 @@ Benchmarker::compute_stats(std::vector<double>& times, size_t iterations)
     m_median /= iterations;
 }
 
-OIIO_NAMESPACE_3_1_END
 
-
-
-OIIO_NAMESPACE_BEGIN
 
 OIIO_UTIL_API
 std::ostream&
@@ -183,6 +175,11 @@ operator<<(std::ostream& out, const Benchmarker& bench)
     return out;
 }
 
+OIIO_NAMESPACE_END
+
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 OIIO_UTIL_API std::vector<double>
@@ -235,60 +232,6 @@ timed_thread_wedge(function_view<void(int)> task, int maxthreads,
     timed_thread_wedge(
         task, []() {}, []() {}, &std::cout, maxthreads, total_iterations,
         ntrials, threadcounts);
-}
-
-OIIO_NAMESPACE_END
-
-
-// Link compatibility
-OIIO_NAMESPACE_3_1_BEGIN
-
-namespace pvt {
-
-void OIIO_UTIL_API
-#if __has_attribute(__optnone__)
-    __attribute__((__optnone__))
-#endif
-    use_char_ptr(char const volatile*)
-{
-}
-
-}  // namespace pvt
-
-void OIIO_UTIL_API
-#if __has_attribute(__optnone__)
-    __attribute__((__optnone__))
-#endif
-    clobber(void*)
-{
-}
-
-OIIO_UTIL_API std::vector<double>
-timed_thread_wedge(function_view<void(int)> task, function_view<void()> pretask,
-                   function_view<void()> posttask, std::ostream* out,
-                   int maxthreads, int total_iterations, int ntrials,
-                   cspan<int> threadcounts)
-{
-    return OIIO::timed_thread_wedge(task, pretask, posttask, out, maxthreads,
-                                    total_iterations, ntrials, threadcounts);
-}
-
-// Simplified timed_thread_wedge without pre- and post-tasks, using
-// std::out for output, with a default set of thread counts, and not needing
-// to return the vector of times.
-OIIO_UTIL_API void
-timed_thread_wedge(function_view<void(int)> task, int maxthreads,
-                   int total_iterations, int ntrials, cspan<int> threadcounts)
-{
-    return OIIO::timed_thread_wedge(task, maxthreads, total_iterations, ntrials,
-                                    threadcounts);
-}
-
-OIIO_UTIL_API
-std::ostream&
-operator<<(std::ostream& out, const Benchmarker& bench)
-{
-    return OIIO::operator<<(out, bench);
 }
 
 OIIO_NAMESPACE_3_1_END
