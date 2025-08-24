@@ -520,9 +520,9 @@ OIIO_NAMESPACE_3_1_END
 #ifndef OIIO_DOXYGEN
 OIIO_NAMESPACE_BEGIN
 using v3_1::basic_string_view;
+using v3_1::c_str;
 using v3_1::string_view;
 using v3_1::wstring_view;
-OIIO_UTIL_API const char* c_str(string_view str);
 OIIO_NAMESPACE_END
 #endif
 

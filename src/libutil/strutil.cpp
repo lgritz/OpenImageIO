@@ -87,6 +87,7 @@ static _locale_t c_loc = _create_locale(LC_ALL, "C");
 
 };  // namespace
 
+OIIO_NAMESPACE_END
 
 
 // Locale-independent quickie ASCII digit and alphanum tests, good enough
@@ -113,6 +114,7 @@ isdigit(char c)
 }
 
 
+OIIO_NAMESPACE_3_1_BEGIN
 
 OIIO_NO_SANITIZE_ADDRESS const char*
 c_str(string_view str)
@@ -150,11 +152,7 @@ c_str(string_view str)
     return ustring(str).c_str();
 }
 
-OIIO_NAMESPACE_END
 
-
-
-OIIO_NAMESPACE_3_1_BEGIN
 
 void
 Strutil::sync_output(FILE* file, string_view str, bool flush)
@@ -2010,13 +2008,5 @@ Strutil::eval_as_bool(string_view value)
     }
 }
 
-
-
-// Backward ABI compatibility
-OIIO_NO_SANITIZE_ADDRESS const char*
-c_str(string_view str)
-{
-    return OIIO_CURRENT_NAMESPACE::c_str(str);
-}
 
 OIIO_NAMESPACE_3_1_END
