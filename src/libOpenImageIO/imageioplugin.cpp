@@ -518,6 +518,10 @@ pvt::is_procedural_plugin(const std::string& name)
     return procedural_plugins.find(name) != procedural_plugins.end();
 }
 
+OIIO_NAMESPACE_END
+
+
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 std::unique_ptr<ImageOutput>
@@ -593,10 +597,7 @@ ImageOutput::create(string_view filename, Filesystem::IOProxy* ioproxy,
     return out;
 }
 
-OIIO_NAMESPACE_END
 
-
-OIIO_NAMESPACE_3_1_BEGIN
 
 std::unique_ptr<ImageInput>
 ImageInput::create(string_view filename, bool do_open, const ImageSpec* config,

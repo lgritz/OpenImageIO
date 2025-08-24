@@ -25,8 +25,9 @@
 
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 using namespace pvt;
+using namespace OIIO::pvt;
 
 
 // store an error message per thread, for a specific ImageInput
@@ -1140,15 +1141,6 @@ ImageOutput::check_open(OpenMode mode, const ImageSpec& userspec, ROI range,
 
 
 
-template<>
-inline size_t
-pvt::heapsize<ImageOutput::Impl>(const ImageOutput::Impl& impl)
-{
-    return impl.m_io_local ? sizeof(Filesystem::IOProxy) : 0;
-}
-
-
-
 size_t
 ImageOutput::heapsize() const
 {
@@ -1163,6 +1155,20 @@ size_t
 ImageOutput::footprint() const
 {
     return sizeof(ImageOutput) + heapsize();
+}
+
+
+OIIO_NAMESPACE_3_1_END
+
+
+
+OIIO_NAMESPACE_BEGIN
+
+template<>
+inline size_t
+pvt::heapsize<ImageOutput::Impl>(const ImageOutput::Impl& impl)
+{
+    return impl.m_io_local ? sizeof(Filesystem::IOProxy) : 0;
 }
 
 

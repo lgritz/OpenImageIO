@@ -2338,11 +2338,6 @@ private:
 };
 
 
-OIIO_NAMESPACE_3_1_END
-
-
-
-OIIO_NAMESPACE_BEGIN
 
 
 /// ImageOutput abstracts the writing of an image file in a file
@@ -3660,10 +3655,15 @@ private:
     void append_error(string_view message) const; // add to m_errmessage
 
     /// declare friend heapsize and footprint definitions
-    template <typename T> friend size_t pvt::heapsize(const T&);
+    template <typename T> friend size_t OIIO::pvt::heapsize(const T&);
 };
 
 
+OIIO_NAMESPACE_3_1_END
+
+
+
+OIIO_NAMESPACE_BEGIN
 
 /// Memory tracking. Specializes the base memory tracking functions from memory.h.
 
