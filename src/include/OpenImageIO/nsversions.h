@@ -180,6 +180,11 @@ class ImageInput;
 class ImageOutput;
 class ImageSpec;
 struct ROI;
+class TextureOptBatch_v1;
+class TextureOpt_v2;
+using TextureOpt = TextureOpt_v2;
+class TextureSystem;
+class TextureSystemImpl;
 OIIO_NAMESPACE_3_1_END
 
 OIIO_NAMESPACE_BEGIN
@@ -208,6 +213,12 @@ using v3_1::ImageInput;
 using v3_1::ImageOutput;
 using v3_1::ImageSpec;
 using v3_1::ROI;
+using v3_1::TextureOptBatch_v1;
+using v3_1::TextureOpt_v2;
+using TextureOpt = v3_1::TextureOpt_v2;
+using TextureOptBatch = v3_1::TextureOptBatch_v1;
+using v3_1::TextureSystem;
+using v3_1::TextureSystemImpl;
 OIIO_NAMESPACE_END
 
 #endif /* defined(OPENIMAGEIO_NSVERSIONS_H) */
