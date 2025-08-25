@@ -36,6 +36,11 @@
 #define TILE_CACHE_SHARDS 128
 
 
+OIIO_NAMESPACE_BEGIN
+struct ImageCacheFootprint;
+OIIO_NAMESPACE_END
+
+
 OIIO_NAMESPACE_3_1_BEGIN
 namespace pvt {
 const char*
@@ -43,19 +48,10 @@ texture_format_name(TexFormat f);
 const char*
 texture_type_name(TexFormat f);
 }  // namespace pvt
-OIIO_NAMESPACE_3_1_END
 
 
-
-OIIO_NAMESPACE_BEGIN
 
 struct TileID;
-class ImageCacheImpl;
-struct ImageCacheFootprint;
-
-namespace pvt {
-using namespace v3_1::pvt;
-}  // namespace pvt
 
 
 
@@ -1401,7 +1397,7 @@ private:
 };
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END
 
 
 #endif  // OPENIMAGEIO_IMAGECACHE_PVT_H

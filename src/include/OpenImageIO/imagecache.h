@@ -25,12 +25,7 @@
 
 
 
-OIIO_NAMESPACE_BEGIN
-
-class ImageCachePerThreadInfo;
-class ImageCacheFile;
-class ImageCacheTile;
-class ImageCacheImpl;
+OIIO_NAMESPACE_3_1_BEGIN
 
 
 /// Define an API to an abstract class that manages image files,
@@ -1352,4 +1347,4 @@ private:
 };
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END

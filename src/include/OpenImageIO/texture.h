@@ -44,13 +44,7 @@
     OIIO_CONCAT_VERSION(TextureOptBatch_v, OIIO_TEXTUREOPTBATCH_VERSION)
 
 
-OIIO_NAMESPACE_BEGIN
-class ImageCache; // Forward declarations
-OIIO_NAMESPACE_END
-
-
 OIIO_NAMESPACE_3_1_BEGIN
-class TextureSystemImpl;
 
 namespace pvt {
 

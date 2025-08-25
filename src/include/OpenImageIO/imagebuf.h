@@ -38,8 +38,6 @@
 
 
 OIIO_NAMESPACE_BEGIN
-class ImageCache;
-class ImageCacheTile;
 
 
 /// Return pixel data window for this ImageSpec as a ROI.

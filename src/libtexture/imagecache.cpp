@@ -36,7 +36,7 @@
 #include "imageio_pvt.h"
 
 
-OIIO_NAMESPACE_BEGIN
+OIIO_NAMESPACE_3_1_BEGIN
 using namespace pvt;
 using ImageDims    = ImageCacheFile::ImageDims;
 using LevelInfo    = ImageCacheFile::LevelInfo;
@@ -1048,7 +1048,7 @@ ImageCacheFile::init_from_spec()
     }
 
     // Squash some problematic texture metadata if we suspect it's wrong
-    pvt::check_texture_metadata_sanity(this->spec(0));
+    OIIO::pvt::check_texture_metadata_sanity(this->spec(0));
 
     // See if there's a SHA-1 hash in the image description
     string_view fing = spec.get_string_attribute("oiio:SHA-1");
@@ -1505,13 +1505,13 @@ ImageCacheFile::mark_broken(string_view error)
 size_t
 ImageCacheFile::heapsize() const
 {
-    size_t size = pvt::heapsize(m_subimages);
-    size += pvt::heapsize(m_pool_specs);
-    size += pvt::heapsize(m_pool_dims);
-    size += pvt::heapsize(m_configspec);
-    size += pvt::heapsize(m_input);
-    size += pvt::heapsize(m_mipreadcount);
-    size += pvt::heapsize(m_udim_lookup);
+    size_t size = OIIO::pvt::heapsize(m_subimages);
+    size += OIIO::pvt::heapsize(m_pool_specs);
+    size += OIIO::pvt::heapsize(m_pool_dims);
+    size += OIIO::pvt::heapsize(m_configspec);
+    size += OIIO::pvt::heapsize(m_input);
+    size += OIIO::pvt::heapsize(m_mipreadcount);
+    size += OIIO::pvt::heapsize(m_udim_lookup);
     return size;
 }
 
@@ -2760,7 +2760,8 @@ ImageCacheImpl::getattribute(string_view name, TypeDesc type, void* val) const
 
     if (Strutil::starts_with(name, "stat:")) {
         // Stats we can just grab
-        ATTR_DECODE("stat:cache_footprint", long long, pvt::footprint(*this));
+        ATTR_DECODE("stat:cache_footprint", long long,
+                    OIIO::pvt::footprint(*this));
         ATTR_DECODE("stat:cache_memory_used", long long, m_mem_used);
         ATTR_DECODE("stat:tiles_created", int, m_stat_tiles_created);
         ATTR_DECODE("stat:tiles_current", int, m_stat_tiles_current);
@@ -2991,8 +2992,9 @@ ImageCacheImpl::resolve_filename(const std::string& filename) const
 {
     // Ask if the format can generate imagery procedurally. If so, don't
     // go looking for a file.
-    if (pvt::is_procedural_plugin(filename)
-        || pvt::is_procedural_plugin(Filesystem::extension(filename, false)))
+    if (OIIO::pvt::is_procedural_plugin(filename)
+        || OIIO::pvt::is_procedural_plugin(
+            Filesystem::extension(filename, false)))
         return filename;
     if (m_searchdirs.empty() || Filesystem::path_is_absolute(filename, true)) {
         // Don't bother with the searchpath_find call since it will do an
@@ -4950,4 +4952,4 @@ ImageCache::reset_stats()
 }
 
 
-OIIO_NAMESPACE_END
+OIIO_NAMESPACE_3_1_END
