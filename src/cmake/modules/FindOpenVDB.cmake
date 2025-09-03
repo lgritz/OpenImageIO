@@ -82,6 +82,18 @@ if (OpenVDB_FOUND)
     set(OPENVDB_LIBRARIES ${OPENVDB_LIBRARY})
     set(OPENVDB_INCLUDES ${OPENVDB_INCLUDE_DIR})
 
+    # Note: OpenVDB older than 12 needs Boost headers.
+    if (OpenVDB_VERSION VERSION_LESS 12.0)
+        find_package (Boost)
+        if (Boost_FOUND)
+            message (STATUS "Found Boost ${Boost_INCLUDE_DIRS}")
+            list(APPEND OPENVDB_INCLUDES ${Boost_INCLUDE_DIRS})
+        else()
+            message (STATUS "did NOT find Boost")
+    #     #     unset(OpenVDB_FOUND)
+        endif()
+    endif()
+
     if (NOT TARGET OpenVDB::openvdb)
         add_library(OpenVDB::openvdb UNKNOWN IMPORTED)
         set_target_properties(OpenVDB::openvdb PROPERTIES
@@ -89,18 +101,6 @@ if (OpenVDB_FOUND)
         set_property(TARGET OpenVDB::openvdb APPEND PROPERTY
             IMPORTED_LOCATION "${OPENVDB_LIBRARIES}")
     endif ()
-
-    # Note: OpenVDB older than 12 needs Boost headers.
-    if (OpenVDB_VERSION VERSION_LESS 12.0)
-        checked_find_package (Boost)
-        if (Boost_FOUND)
-            message (STATUS "Found Boost ${Boost_INCLUDE_DIRS}")
-    #         list(APPEND OPENVDB_INCLUDES ${Boost_INCLUDE_DIRS})
-        else()
-            message (STATUS "did NOT find Boost")
-    #     #     unset(OpenVDB_FOUND)
-        endif()
-    endif()
 endif ()
 
 MARK_AS_ADVANCED(
