@@ -273,7 +273,10 @@ public:
         return ioproxy->seek(offset, origin);
     }
     ojph::si64 tell() { return ioproxy->tell(); };
-    bool eof() { return ioproxy->tell() == ioproxy->size(); }
+    bool eof()
+    {
+        return ioproxy->tell() == static_cast<int64_t>(ioproxy->size());
+    }
     void close()
     {
         ioproxy->close();
@@ -385,17 +388,16 @@ Jpeg2000Input::ojph_read_image()
     // We are going to read the whole image into the buffer, since with openjph
     // its hard to easily grab part of the image.
     if (codestream.is_planar()) {
-        for (ojph::ui32 c = 0; c < ch; ++c)
-
-            for (ojph::ui32 i = 0; i < h; ++i) {
+        for (int c = 0; c < ch; ++c)
+            for (int i = 0; i < h; ++i) {
                 ojph::ui32 comp_num;
                 ojph::line_buf* line = codestream.pull(comp_num);
                 const ojph::si32* sp = line->i32;
-                assert(comp_num == c);
+                OIIO_DASSERT(int(comp_num) == c);
                 if (m_spec.format == TypeDesc::UCHAR) {
                     unsigned char* dout = &m_buf[i * w * ch];
                     dout += c;
-                    for (ojph::ui32 j = w; j > 0; j--, dout += ch) {
+                    for (int j = w; j > 0; j--, dout += ch) {
                         *dout = *sp++;
                     }
                 }
@@ -403,24 +405,23 @@ Jpeg2000Input::ojph_read_image()
                     unsigned short* dout
                         = (unsigned short*)&m_buf[buffer_bpp * (i * w * ch)];
                     dout += c;
-                    for (ojph::ui32 j = w; j > 0; j--, dout += ch) {
+                    for (int j = w; j > 0; j--, dout += ch) {
                         *dout = bit_range_convert(*sp++, file_bit_depth,
                                                   buffer_bpp * 8);
                     }
                 }
             }
-
     } else {
-        for (ojph::ui32 i = 0; i < h; ++i) {
-            for (ojph::ui32 c = 0; c < ch; ++c) {
+        for (int i = 0; i < h; ++i) {
+            for (int c = 0; c < ch; ++c) {
                 ojph::ui32 comp_num;
                 ojph::line_buf* line = codestream.pull(comp_num);
                 const ojph::si32* sp = line->i32;
-                assert(comp_num == c);
+                OIIO_DASSERT(int(comp_num) == c);
                 if (m_spec.format == TypeDesc::UCHAR) {
                     unsigned char* dout = &m_buf[i * w * ch];
                     dout += c;
-                    for (ojph::ui32 j = w; j > 0; j--, dout += ch) {
+                    for (int j = w; j > 0; j--, dout += ch) {
                         *dout = *sp++;
                     }
                 }
@@ -428,7 +429,7 @@ Jpeg2000Input::ojph_read_image()
                     unsigned short* dout
                         = (unsigned short*)&m_buf[buffer_bpp * (i * w * ch)];
                     dout += c;
-                    for (ojph::ui32 j = w; j > 0; j--, dout += ch) {
+                    for (int j = w; j > 0; j--, dout += ch) {
                         *dout = bit_range_convert(*sp++, file_bit_depth,
                                                   buffer_bpp * 8);
                     }
