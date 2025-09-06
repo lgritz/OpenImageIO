@@ -481,6 +481,7 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
     jph_infile* jphinfile              = new jph_infile(ioproxy());
     ojph_reader                        = true;
     ojph::message_error* default_error = ojph::get_error();
+    ojph::set_error_stream(nullptr);
 
     try {
         Oiio_Reader_Error_handler error_handler(default_error);
