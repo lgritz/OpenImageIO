@@ -27,7 +27,10 @@
 #    include <openjph/ojph_arg.h>
 #    include <openjph/ojph_codestream.h>
 #    include <openjph/ojph_file.h>
+OIIO_PRAGMA_WARNING_PUSH
+OIIO_GCC_PRAGMA(GCC diagnostic ignored "-Wdelete-incomplete")
 #    include <openjph/ojph_mem.h>
+OIIO_PRAGMA_WARNING_POP
 #    include <openjph/ojph_params.h>
 #endif
 
