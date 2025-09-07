@@ -268,6 +268,7 @@ jobs:
       ctest_test_timeout: ${{ matrix.ctest_test_timeout }}
       coverage: ${{ matrix.coverage || 0 }}
       sonar: ${{ matrix.sonar || 0 }}
+      build_2: ${{ matrix.build_2 }}
     strategy:
       fail-fast: false
       matrix:
@@ -551,6 +552,27 @@ jobs:
                             WEBP_VERSION=v1.6.0
                             FREETYPE_VERSION=VER-2-14-0
                             USE_OPENVDB=0
+          - desc: Linux ARM latest releases gcc14|clang18 C++20 py3.12 exr3.4 ocio2.4
+            nametag: linux-arm-latest-releases-all
+            runner: ubuntu-24.04-arm
+            cc_compiler: gcc-14
+            cxx_compiler: g++-14
+            cxx_std: 20
+            fmt_ver: 11.2.0
+            opencolorio_ver: v2.4.2
+            openexr_ver: v3.4.0
+            pybind11_ver: v3.0.0
+            python_ver: "3.12"
+            setenvs: export LIBJPEGTURBO_VERSION=3.1.1
+                            LIBRAW_VERSION=0.21.4
+                            LIBTIFF_VERSION=v4.7.0
+                            OPENJPEG_VERSION=v2.5.3
+                            PTEX_VERSION=v2.4.3
+                            PUGIXML_VERSION=v1.15
+                            WEBP_VERSION=v1.6.0
+                            FREETYPE_VERSION=VER-2-13-3
+                            USE_OPENVDB=0
+            build_2: export CC=clang-18 CXX=clang++-18
 
 
   #
@@ -587,6 +609,7 @@ jobs:
       ctest_test_timeout: ${{ matrix.ctest_test_timeout || '800' }}
       coverage: ${{ matrix.coverage || 0 }}
       sonar: ${{ matrix.sonar || 0 }}
+      build_2: ${{ matrix.build_2 }}
     strategy:
       fail-fast: false
       matrix:
@@ -653,6 +676,7 @@ jobs:
       ctest_test_timeout: ${{ matrix.ctest_test_timeout }}
       coverage: ${{ matrix.coverage || 0 }}
       sonar: ${{ matrix.sonar || 0 }}
+      build_2: ${{ matrix.build_2 }}
     strategy:
       fail-fast: false
       matrix:
