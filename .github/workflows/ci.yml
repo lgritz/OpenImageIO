@@ -60,26 +60,28 @@ jobs:
             opencolorio_ver: v2.3.0
             pybind11_ver: v2.9.0
             setenvs: export FREETYPE_VERSION=VER-2-12-0
-          - desc: VP2022 clang13/C++17 py39 avx2 exr3.1 ocio2.3
-            nametag: linux-vfx2022.clang13
-            runner: ubuntu-latest
-            container: aswf/ci-osl:2022-clang13
-            vfxyear: 2022
-            old_node: 1
-            cc_compiler: clang
-            cxx_compiler: clang++
-            cxx_std: 17
-            opencolorio_ver: v2.3.2
-            pybind11_ver: v2.8.1
-            python_ver: 3.9
-            simd: "avx2,f16c"
-            fmt_ver: 9.1.0
-            setenvs: export FREETYPE_VERSION=VER-2-12-0
-          - desc: oldest gcc9.3/C++17 py3.9 exr3.1 ocio2.3
+            # Do a second round build+test with clang
+            build_2: export CC=clang CXX=clang++
+          # - desc: VP2022 clang13/C++17 py39 avx2 exr3.1 ocio2.3
+          #   nametag: linux-vfx2022.clang13
+          #   runner: ubuntu-latest
+          #   container: aswf/ci-osl:2022-clang13
+          #   vfxyear: 2022
+          #   old_node: 1
+          #   cc_compiler: clang
+          #   cxx_compiler: clang++
+          #   cxx_std: 17
+          #   opencolorio_ver: v2.3.2
+          #   pybind11_ver: v2.8.1
+          #   python_ver: 3.9
+          #   simd: "avx2,f16c"
+          #   fmt_ver: 9.1.0
+          #   setenvs: export FREETYPE_VERSION=VER-2-12-0
+          - desc: oldest gcc9.3|clang10 C++17 py3.9 exr3.1 ocio2.3
             # Oldest gcc and versions of the dependencies that we support.
             nametag: linux-oldest
             runner: ubuntu-latest
-            container: aswf/ci-osl:2022
+            container: aswf/ci-osl:2022-clang10
             vfxyear: 2022
             old_node: 1
             cxx_std: 17
@@ -93,26 +95,28 @@ jobs:
                              WEBP_VERSION=v1.1.0
                              PUGIXML_VERSION=v1.8
             depcmds: sudo rm -rf /usr/local/include/OpenEXR
-          - desc: oldest clang10/C++17 py3.9 exr3.1 ocio2.3
-            # Oldest clang and versions of the dependencies that we support.
-            nametag: linux-oldest-clang
-            runner: ubuntu-latest
-            container: aswf/ci-osl:2022-clang10
-            vfxyear: 2021
-            old_node: 1
-            cc_compiler: clang
-            cxx_compiler: clang++
-            cxx_std: 17
-            fmt_ver: 7.0.1
-            opencolorio_ver: v2.3.0
-            openexr_ver: v3.1.0
-            pybind11_ver: v2.7.0
-            python_ver: 3.9
-            setenvs: export  CMAKE_VERSION=3.18.2
-                             PTEX_VERSION=v2.3.2
-                             WEBP_VERSION=v1.1.0
-                             PUGIXML_VERSION=v1.8
-            depcmds: sudo rm -rf /usr/local/include/OpenEXR
+            # Do a second round build+test with clang
+            build_2: export CC=clang CXX=clang++
+          # - desc: oldest clang10/C++17 py3.9 exr3.1 ocio2.3
+          #   # Oldest clang and versions of the dependencies that we support.
+          #   nametag: linux-oldest-clang
+          #   runner: ubuntu-latest
+          #   container: aswf/ci-osl:2022-clang10
+          #   vfxyear: 2021
+          #   old_node: 1
+          #   cc_compiler: clang
+          #   cxx_compiler: clang++
+          #   cxx_std: 17
+          #   fmt_ver: 7.0.1
+          #   opencolorio_ver: v2.3.0
+          #   openexr_ver: v3.1.0
+          #   pybind11_ver: v2.7.0
+          #   python_ver: 3.9
+          #   setenvs: export  CMAKE_VERSION=3.18.2
+          #                    PTEX_VERSION=v2.3.2
+          #                    WEBP_VERSION=v1.1.0
+          #                    PUGIXML_VERSION=v1.8
+          #   depcmds: sudo rm -rf /usr/local/include/OpenEXR
           - desc: hobbled gcc9.3/C++17 py3.9 exr-3.1 no-sse
             # Use the oldest supported versions of required dependencies, and
             # disable most optional dependencies and features (no SSE or
@@ -156,6 +160,7 @@ jobs:
       PYBIND11_VERSION: ${{matrix.pybind11_ver}}
       PYTHON_VERSION: ${{matrix.python_ver}}
       ABI_CHECK: ${{matrix.abi_check}}
+      BUILD_2: ${{matrix.build_2}}
     steps:
       # Install nodejs 20 with glibc 2.17, to work around the face that the
       # GHA runners are insisting on a node version that is too new for the
@@ -209,6 +214,26 @@ jobs:
         if: matrix.benchmark == '1'
         shell: bash
         run: src/build-scripts/ci-benchmark.bash
+      - name: Build Round 2 ${{ matrix.build_2 }}
+        if: ${{ !failure() && matrix.build_2 != '' }}
+        shell: bash
+        run: |
+            echo "BUILD_2 = ${BUILD_2}"
+            ${{matrix.build_2}}
+            source src/build-scripts/save-env.bash
+            rm -rf build dist || true
+            src/build-scripts/ci-build.bash
+      - name: ccache-save build2
+        if: ${{ matrix.build_2 != '' }}
+        id: ccache-save-build2
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{matrix.nametag}}-${{steps.ccache_cache_keys.outputs.date}}
+      - name: Testsuite Round 2
+        if: ${{ matrix.build_2 != '' && !failure() && matrix.skip_tests != '1' }}
+        shell: bash
+        run: src/build-scripts/ci-test.bash
       - name: Build Docs
         if: matrix.build_docs == '1'
         run: |
@@ -315,7 +340,7 @@ jobs:
                             UHDR_CMAKE_CXX_COMPILER=g++
             # Building libuhdr with icx results in test failures
             # so we force using gcc/g++.
-          - desc: VFX2024 gcc11/C++17 py3.11 exr3.2 ocio2.3
+          - desc: VFX2024 gcc11|clang C++17 py3.11 exr3.2 ocio2.3
             nametag: linux-vfx2024
             runner: ubuntu-latest
             container: aswf/ci-oiio:2024.2
@@ -326,19 +351,21 @@ jobs:
             pybind11_ver: v2.12.0
             benchmark: 1
             setenvs: export PUGIXML_VERSION=v1.14
-          - desc: VFX2024 clang/C++17 py3.11 exr3.2 ocio2.3
-            nametag: linux-vfx2024.clang
-            runner: ubuntu-latest
-            container: aswf/ci-oiio:2024.2
-            cc_compiler: clang
-            cxx_compiler: clang++
-            opencolorio_ver: v2.3.2
-            python_ver: "3.11"
-            simd: "avx2,f16c"
-            fmt_ver: 10.1.1
-            pybind11_ver: v2.12.0
-            benchmark: 1
-            setenvs: export PUGIXML_VERSION=v1.14
+            # Do a second round build+test with clang
+            build_2: export CC=clang CXX=clang++
+          # - desc: VFX2024 clang/C++17 py3.11 exr3.2 ocio2.3
+          #   nametag: linux-vfx2024.clang
+          #   runner: ubuntu-latest
+          #   container: aswf/ci-oiio:2024.2
+          #   cc_compiler: clang
+          #   cxx_compiler: clang++
+          #   opencolorio_ver: v2.3.2
+          #   python_ver: "3.11"
+          #   simd: "avx2,f16c"
+          #   fmt_ver: 10.1.1
+          #   pybind11_ver: v2.12.0
+          #   benchmark: 1
+          #   setenvs: export PUGIXML_VERSION=v1.14
           - desc: VFX2025 gcc11/C++17 py3.11 exr3.3 ocio2.4
             nametag: linux-vfx2025
             runner: ubuntu-latest
@@ -512,7 +539,47 @@ jobs:
             depcmds: |
               sudo rm -rf /usr/local/include/OpenEXR
               sudo rm -rf /usr/local/lib64/cmake/{IlmBase,OpenEXR}
-          - desc: Linux ARM latest releases gcc14 C++20 py3.12 exr3.4 ocio2.4
+          # - desc: Linux ARM latest releases gcc14 C++20 py3.12 exr3.4 ocio2.4
+          #   nametag: linux-arm-latest-releases
+          #   runner: ubuntu-24.04-arm
+          #   cc_compiler: gcc-14
+          #   cxx_compiler: g++-14
+          #   cxx_std: 20
+          #   fmt_ver: 11.2.0
+          #   opencolorio_ver: v2.4.2
+          #   openexr_ver: v3.4.0
+          #   pybind11_ver: v3.0.0
+          #   python_ver: "3.12"
+          #   setenvs: export LIBJPEGTURBO_VERSION=3.1.1
+          #                   LIBRAW_VERSION=0.21.4
+          #                   LIBTIFF_VERSION=v4.7.0
+          #                   OPENJPEG_VERSION=v2.5.3
+          #                   PTEX_VERSION=v2.4.3
+          #                   PUGIXML_VERSION=v1.15
+          #                   WEBP_VERSION=v1.6.0
+          #                   FREETYPE_VERSION=VER-2-13-3
+          #                   USE_OPENVDB=0
+          # - desc: Linux ARM latest releases clang18 C++20 py3.12 exr3.4 ocio2.4
+          #   nametag: linux-arm-latest-releases-clang
+          #   runner: ubuntu-24.04-arm
+          #   cc_compiler: clang-18
+          #   cxx_compiler: clang++-18
+          #   cxx_std: 20
+          #   fmt_ver: 11.2.0
+          #   opencolorio_ver: v2.4.2
+          #   openexr_ver: v3.4.0
+          #   pybind11_ver: v3.0.0
+          #   python_ver: "3.12"
+          #   setenvs: export LIBJPEGTURBO_VERSION=3.1.0
+          #                   LIBRAW_VERSION=0.21.4
+          #                   LIBTIFF_VERSION=v4.7.0
+          #                   OPENJPEG_VERSION=v2.5.3
+          #                   PTEX_VERSION=v2.4.3
+          #                   PUGIXML_VERSION=v1.15
+          #                   WEBP_VERSION=v1.6.0
+          #                   FREETYPE_VERSION=VER-2-13-3
+          #                   USE_OPENVDB=0
+          - desc: Linux ARM latest releases gcc14|clang18 C++20 py3.12 exr3.4 ocio2.4
             nametag: linux-arm-latest-releases
             runner: ubuntu-24.04-arm
             cc_compiler: gcc-14
@@ -532,46 +599,7 @@ jobs:
                             WEBP_VERSION=v1.6.0
                             FREETYPE_VERSION=VER-2-14-0
                             USE_OPENVDB=0
-          - desc: Linux ARM latest releases clang18 C++20 py3.12 exr3.4 ocio2.4
-            nametag: linux-arm-latest-releases-clang
-            runner: ubuntu-24.04-arm
-            cc_compiler: clang-18
-            cxx_compiler: clang++-18
-            cxx_std: 20
-            fmt_ver: 11.2.0
-            opencolorio_ver: v2.4.2
-            openexr_ver: v3.4.0
-            pybind11_ver: v3.0.0
-            python_ver: "3.12"
-            setenvs: export LIBJPEGTURBO_VERSION=3.1.0
-                            LIBRAW_VERSION=0.21.4
-                            LIBTIFF_VERSION=v4.7.0
-                            OPENJPEG_VERSION=v2.5.3
-                            PTEX_VERSION=v2.4.3
-                            PUGIXML_VERSION=v1.15
-                            WEBP_VERSION=v1.6.0
-                            FREETYPE_VERSION=VER-2-14-0
-                            USE_OPENVDB=0
-          - desc: Linux ARM latest releases gcc14|clang18 C++20 py3.12 exr3.4 ocio2.4
-            nametag: linux-arm-latest-releases-all
-            runner: ubuntu-24.04-arm
-            cc_compiler: gcc-14
-            cxx_compiler: g++-14
-            cxx_std: 20
-            fmt_ver: 11.2.0
-            opencolorio_ver: v2.4.2
-            openexr_ver: v3.4.0
-            pybind11_ver: v3.0.0
-            python_ver: "3.12"
-            setenvs: export LIBJPEGTURBO_VERSION=3.1.1
-                            LIBRAW_VERSION=0.21.4
-                            LIBTIFF_VERSION=v4.7.0
-                            OPENJPEG_VERSION=v2.5.3
-                            PTEX_VERSION=v2.4.3
-                            PUGIXML_VERSION=v1.15
-                            WEBP_VERSION=v1.6.0
-                            FREETYPE_VERSION=VER-2-13-3
-                            USE_OPENVDB=0
+            # Do a second round build+test with clang
             build_2: export CC=clang-18 CXX=clang++-18
 
 

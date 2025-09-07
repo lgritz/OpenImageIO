@@ -104,7 +104,7 @@ jobs:
       ABI_CHECK: ${{inputs.abi_check}}
       ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-      BUILD_2: ${{ inputs.build_2 }}
+      BUILD_2: ${{inputs.build_2}}
 
     steps:
       - name: Checkout repo
