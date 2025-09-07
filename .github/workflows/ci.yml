@@ -203,6 +203,8 @@ jobs:
         run: src/build-scripts/ci-build.bash
       - name: ccache-save
         id: ccache-save
+        # Only save cache now if there's no round 2
+        if: ${{ inputs.build_2 == '' }}
         uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: ${{ env.CCACHE_DIR }}
@@ -340,7 +342,7 @@ jobs:
                             UHDR_CMAKE_CXX_COMPILER=g++
             # Building libuhdr with icx results in test failures
             # so we force using gcc/g++.
-          - desc: VFX2024 gcc11|clang C++17 py3.11 exr3.2 ocio2.3
+          - desc: VFX2024 gcc11|clang16 C++17 py3.11 exr3.2 ocio2.3
             nametag: linux-vfx2024
             runner: ubuntu-latest
             container: aswf/ci-oiio:2024.2
