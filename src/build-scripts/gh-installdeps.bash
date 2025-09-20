@@ -40,6 +40,9 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
     if [[ "${USE_LIBRAW:-0}" != "0" ]] ; then
         time sudo yum install -y LibRaw LibRaw-devel || true
     fi
+    if [[ "${USE_OPENJPG}" != "0" ]] ; then
+        time sudo yum install -y openjph-devel || true
+    fi
     if [[ "${EXTRA_DEP_PACKAGES}" != "" ]] ; then
         time sudo yum install -y ${EXTRA_DEP_PACKAGES} || true
     fi
@@ -102,6 +105,7 @@ else
             dcmtk libopenvdb-dev \
             libfreetype6-dev \
             libopencolorio-dev \
+            openjph-devel \
             libtbb-dev || true
     fi
     if [[ "${USE_OPENCV}" != "0" ]] && [[ "${INSTALL_OPENCV}" != "0" ]] ; then
