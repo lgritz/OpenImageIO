@@ -53,6 +53,18 @@ export TESTSUITE_CLEANUP_ON_SUCCESS=${TESTSUITE_CLEANUP_ON_SUCCESS:=1}
 # For CI, default to building missing dependencies automatically
 export OpenImageIO_BUILD_MISSING_DEPS=${OpenImageIO_BUILD_MISSING_DEPS:=all}
 
+# For CI, require all dependencies to be present. This ensures that we don't
+# accidentally have a situation in which we think we are building against and
+# testing an optional dependency, but in fact are not.
+#
+# However, some dependencies are unreasonable to expect to be present (or to
+# shoulder the expense of building) on some or all platforms or test jobs. So
+# it is expected that individual jobs explicitly set OpenImageIO_OPTIONAL_DEPS
+# to the list of dependencies that they believe are not to be tested for that
+# job.
+# export OpenImageIO_REQUIRED_DEPS="all"
+# export OpenImageIO_OPTIONAL_DEPS="all"
+
 # Sonar
 export BUILD_WRAPPER_OUT_DIR="${PWD}/bw_output"
 export BW_OUTPUT_DIR="${PWD}/bw_output"
