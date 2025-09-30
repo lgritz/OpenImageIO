@@ -166,7 +166,7 @@ jobs:
           # pass GITHUB_ACTIONS through to the build container so that custom
           # processes can tell they are running in CI.
           CIBW_ENVIRONMENT_PASS_LINUX: GITHUB_ACTIONS
-          CIBW_BEFORE_BUILD: "yum makecache && yum install -y ccache || true; which ccache"
+          CIBW_BEFORE_BUILD: "src/build-scripts/build_ccache.bash"
           CIBW_BUILD: ${{ matrix.python }}
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux }}
