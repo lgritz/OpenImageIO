@@ -64,7 +64,7 @@ if [[ `uname` == "Linux" && `uname -m` == "x86_64" ]] ; then
     popd
     ls ${CCACHE_INSTALL_DIR}
     ls ${CCACHE_INSTALL_DIR}/bin
-    ls /home/runner
+    ls /home/runner || true
     echo "CCACHE_DIR=$CCACHE_DIR"
     ls $CCACHE_DIR || true
 fi
