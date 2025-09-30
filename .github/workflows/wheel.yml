@@ -164,6 +164,7 @@ jobs:
         shell: bash
         run: |
           echo "HOME=$HOME"
+          (cd ~ ; pwd)
 
       - name: Build wheels
         # Note: the version of cibuildwheel should be kept in sync with src/python/stubs/CMakeLists.txt
@@ -171,12 +172,14 @@ jobs:
         env:
           # pass GITHUB_ACTIONS through to the build container so that custom
           # processes can tell they are running in CI.
-          CIBW_ENVIRONMENT_PASS_LINUX: GITHUB_ACTIONS
+          CIBW_ENVIRONMENT_PASS_LINUX: GITHUB_ACTIONS CCACHE_DIR
           CIBW_BEFORE_BUILD: "src/build-scripts/build_ccache.bash"
-          CIBW_BEFORE_TEST: "ext/dist/bin/ccache -s"
+          CIBW_BEFORE_TEST: "echo HOME=$HOME"
+          # CIBW_BEFORE_TEST: "ext/dist/bin/ccache -s"
           CIBW_BUILD: ${{ matrix.python }}
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux }}
+          CCACHE_DIR: "/home/runner/.ccache"
 
       - name: ccache-save
         id: ccache-save
