@@ -244,7 +244,6 @@ endif ()
 # not found on the system, it will simply be silently not used.
 option (USE_CCACHE "Use ccache if found" ON)
 if (USE_CCACHE)
-    message (STATUS "CCACHE_PATH ${CCACHE_PATH} ENV $ENV{CCACHE_PATH}")
     find_program (CCACHE_EXE ccache
                   HINTS "${PROJECT_SOURCE_DIR}/ext/bin")
     if (CCACHE_EXE)
