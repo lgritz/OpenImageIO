@@ -4,8 +4,7 @@
 
 if (WebP_FOUND)
     add_oiio_plugin (webpinput.cpp webpoutput.cpp
-                     LINK_LIBRARIES WebP::webp WebP::webpdemux WebP::libwebpmux
-                     DEFINITIONS "USE_WEBP=1")
+                     LINK_LIBRARIES WebP::webp WebP::webpdemux WebP::libwebpmux)
 else ()
     message (STATUS "WebP plugin will not be built")
 endif()

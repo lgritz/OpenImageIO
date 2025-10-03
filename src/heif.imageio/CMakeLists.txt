@@ -27,8 +27,7 @@ if (Libheif_FOUND)
 
     add_oiio_plugin (heifinput.cpp heifoutput.cpp
                      INCLUDE_DIRS ${LIBHEIF_INCLUDES}
-                     LINK_LIBRARIES ${LIBHEIF_LIBRARIES}
-                     DEFINITIONS "USE_HEIF=1")
+                     LINK_LIBRARIES ${LIBHEIF_LIBRARIES})
 else ()
     message (WARNING "heif plugin will not be built")
 endif ()

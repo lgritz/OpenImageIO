@@ -8,6 +8,5 @@ if (Ptex_FOUND)
         set(ptex_target Ptex::Ptex_static)
     endif()
     add_oiio_plugin (ptexinput.cpp
-                     LINK_LIBRARIES ${ptex_target} ZLIB::ZLIB
-                     DEFINITIONS "USE_PTEX")
+                     LINK_LIBRARIES ${ptex_target} ZLIB::ZLIB)
 endif ()

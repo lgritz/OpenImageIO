@@ -74,8 +74,7 @@ set (OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH OFF CACHE BOOL
 
 # JPEG -- prefer JPEG-Turbo to regular libjpeg
 checked_find_package (libjpeg-turbo
-                      VERSION_MIN 2.1
-                      DEFINITIONS USE_JPEG_TURBO=1)
+                      VERSION_MIN 2.1)
 if (TARGET libjpeg-turbo::jpeg) # Try to find the non-turbo version
     # Doctor it so libjpeg-turbo is aliased as JPEG::JPEG
     alias_library_if_not_exists (JPEG::JPEG libjpeg-turbo::jpeg)
@@ -97,8 +96,7 @@ alias_library_if_not_exists (TIFF::TIFF TIFF::tiff)
 # JPEG XL
 option (USE_JXL "Enable JPEG XL support" ON)
 checked_find_package (JXL
-                      VERSION_MIN 0.10.1
-                      DEFINITIONS USE_JXL=1)
+                      VERSION_MIN 0.10.1)
 
 # Pugixml setup.  Normally we just use the version bundled with oiio, but
 # some linux distros are quite particular about having separate packages so we
@@ -133,8 +131,7 @@ elseif (TARGET PNG::PNG)
 endif ()
 
 checked_find_package (Freetype
-                      VERSION_MIN 2.10.0
-                      DEFINITIONS USE_FREETYPE=1 )
+                      VERSION_MIN 2.10.0)
 
 checked_find_package (OpenColorIO REQUIRED
                       VERSION_MIN 2.3
@@ -145,8 +142,7 @@ if (NOT OPENCOLORIO_INCLUDES)
 endif ()
 include_directories(BEFORE ${OPENCOLORIO_INCLUDES})
 
-checked_find_package (OpenCV 4.0
-                      DEFINITIONS USE_OPENCV=1)
+checked_find_package (OpenCV 4.0)
 
 # Intel TBB
 set (TBB_USE_DEBUG_BUILD OFF)
@@ -180,8 +176,7 @@ checked_find_package (openjph VERSION_MIN 0.21.2)
 
 checked_find_package (OpenVDB
                       VERSION_MIN  9.0
-                      DEPS         TBB
-                      DEFINITIONS  USE_OPENVDB=1)
+                      DEPS         TBB)
 
 checked_find_package (Ptex PREFER_CONFIG)
 if (NOT Ptex_FOUND OR NOT Ptex_VERSION)

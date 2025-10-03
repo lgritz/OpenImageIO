@@ -29,8 +29,7 @@ if (FFmpeg_FOUND)
                      INCLUDE_DIRS ${FFMPEG_INCLUDES}
                      LINK_LIBRARIES ${FFMPEG_LIBRARIES}
                                     ${BZIP2_LIBRARIES}
-                     DEFINITIONS "USE_FFMPEG"
-                                 "-DOIIO_FFMPEG_VERSION=\"${FFMPEG_VERSION}\"")
+                     PLUGIN_DEFINITIONS "OIIO_FFMPEG_VERSION=\"${FFMPEG_VERSION}\"")
 else()
     message (STATUS "FFmpeg not found: ffmpeg plugin will not be built")
 endif()

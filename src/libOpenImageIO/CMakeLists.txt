@@ -106,6 +106,39 @@ if (EMBEDPLUGINS)
     endforeach ()
 endif ()
 
+
+# Add individual dependency-related definitions just where they're needed. By
+# limiting it to just the files where they are necessary, it increases the
+# chance of ccache reusing previous results from other runs and
+# configurations.
+set_property (SOURCE imageioplugin.cpp
+              APPEND PROPERTY COMPILE_DEFINITIONS
+                 $<$<BOOL:DCMTK_FOUND>:USE_DCMTK=1>
+                 $<$<BOOL:FFMPEG_FOUND>:USE_FFMPEG=1>
+                 $<$<BOOL:GIF_FOUND>:USE_GIF=1>
+                 $<$<BOOL:JXL_FOUND>:USE_JXL=1>
+                 $<$<BOOL:Libheif_FOUND>:USE_HEIF=1>
+                 $<$<BOOL:LIBRAW_FOUND>:USE_LIBRAW=1>
+                 $<$<BOOL:OPENVDB_FOUND>:USE_OPENVDB=1>
+                 $<$<BOOL:Ptex_FOUND>:USE_PTEX=1>
+                 $<$<BOOL:WebP_FOUND>:USE_WEBP=1>
+             )
+set_property (SOURCE imagebufalgo_draw.cpp
+              APPEND PROPERTY COMPILE_DEFINITIONS
+                 $<$<BOOL:USE_FREETYPE>:USE_FREETYPE=1>
+             )
+set_property (SOURCE imagebufalgo_test.cpp
+              APPEND PROPERTY COMPILE_DEFINITIONS
+                 $<$<BOOL:USE_OPENCV>:USE_OPENCV=1>
+             )
+# And the ones we had to remember in embedded_plugin_compile_definitions
+while (embedded_plugin_compile_definitions)
+    list (POP_FRONT embedded_plugin_compile_definitions epcd_file epcd_def)
+    set_property (SOURCE ${epcd_file} APPEND PROPERTY COMPILE_DEFINITIONS ${epcd_def})
+    # message (STATUS "set_property (SOURCE ${epcd_file} APPEND PROPERTY COMPILE_DEFINITIONS ${epcd_def}")
+endwhile ()
+
+
 # Enable default use of OpenEXR core library for versions of the library
 # new enough to support DWA compression in exrcore.
 if (OPENEXR_VERSION VERSION_GREATER_EQUAL 3.1.10)
@@ -119,13 +152,12 @@ else ()
 endif ()
 
 # Some extra definitions we need to retrieve build related attributes.
-target_compile_definitions(OpenImageIO
-              PRIVATE
-                  OIIO_FREETYPE_VERSION="${FREETYPE_VERSION_STRING}"
-                  OIIO_PYTHON_VERSION="${Python3_VERSION}"
-                  OIIO_QT_VERSION="${Qt6_VERSION}${Qt5_VERSION}"
-                  OIIO_TBB_VERSION="${TBB_VERSION}"
-             )
+# target_compile_definitions(OpenImageIO
+#               PRIVATE
+#                   OIIO_PYTHON_VERSION="${Python3_VERSION}"
+#                   OIIO_QT_VERSION="${Qt6_VERSION}${Qt5_VERSION}"
+#                   OIIO_TBB_VERSION="${TBB_VERSION}"
+#              )
 
 # Source groups for libutil and libtexture
 source_group ("libutil"    REGULAR_EXPRESSION ".+/libutil/.+")

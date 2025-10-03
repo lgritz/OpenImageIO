@@ -361,22 +361,22 @@ catalog_builtin_plugins()
 #if !defined(DISABLE_DDS)
     DECLAREPLUG_RO (dds);
 #endif
-#if defined(USE_DCMTK) && !defined(DISABLE_DICOM)
+#if defined(USE_DCMTK)
     DECLAREPLUG_RO (dicom);
 #endif
 #if !defined(DISABLE_DPX)
     DECLAREPLUG (dpx);
 #endif
-#if defined(USE_FFMPEG) && !defined(DISABLE_FFMPEG)
+#if defined(USE_FFMPEG)
     DECLAREPLUG_RO (ffmpeg);
 #endif
 #if !defined(DISABLE_FITS)
     DECLAREPLUG (fits);
 #endif
-#if defined(USE_GIF) && !defined(DISABLE_GIF)
+#if defined(USE_GIF)
     DECLAREPLUG (gif);
 #endif
-#if defined(USE_HEIF) && !defined(DISABLE_HEIF)
+#if defined(USE_HEIF)
     DECLAREPLUG (heif);
 #endif
 #if !defined(DISABLE_HDR)
@@ -388,7 +388,7 @@ catalog_builtin_plugins()
 #if !defined(DISABLE_IFF)
     DECLAREPLUG (iff);
 #endif
-#if defined(USE_OPENJPEG) && !defined(DISABLE_JPEG2000)
+#if defined(USE_OPENJPEG)
     DECLAREPLUG (jpeg2000);
 #endif
 #if defined(USE_JXL)
@@ -397,7 +397,7 @@ catalog_builtin_plugins()
 #if !defined(DISABLE_NULL)
     DECLAREPLUG (null);
 #endif
-#if defined(USE_OPENVDB) && !defined(DISABLE_OPENVDB)
+#if defined(USE_OPENVDB)
     DECLAREPLUG_RO (openvdb);
 #endif
 #if !defined(DISABLE_PNG)
@@ -409,13 +409,13 @@ catalog_builtin_plugins()
 #if !defined(DISABLE_PSD)
     DECLAREPLUG_RO (psd);
 #endif
-#if defined(USE_PTEX) && !defined(DISABLE_PTEX)
+#if defined(USE_PTEX)
     DECLAREPLUG_RO (ptex);
 #endif
-#if defined(USE_R3DSDK) && !defined(DISABLE_R3D)
+#if defined(USE_R3DSDK)
     DECLAREPLUG_RO (r3d);
 #endif
-#if defined(USE_LIBRAW) && !defined(DISABLE_RAW)
+#if defined(USE_LIBRAW)
     DECLAREPLUG_RO (raw);
 #endif
 #if !defined(DISABLE_RLA)
@@ -433,7 +433,7 @@ catalog_builtin_plugins()
 #if !defined(DISABLE_TERM)
     DECLAREPLUG_WO (term);
 #endif
-#if defined(USE_WEBP) && !defined(DISABLE_WEBP)
+#if defined(USE_WEBP)
     DECLAREPLUG (webp);
 #endif
 #if !defined(DISABLE_ZFILE)
