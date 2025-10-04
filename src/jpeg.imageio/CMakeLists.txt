@@ -15,5 +15,5 @@ add_oiio_plugin (jpeginput.cpp jpegoutput.cpp
                      $<TARGET_NAME_IF_EXISTS:libjpeg-turbo::jpeg>
                      $<TARGET_NAME_IF_EXISTS:JPEG::JPEG>
                      $<TARGET_NAME_IF_EXISTS:libuhdr::libuhdr>
-                 DEFINITIONS "${UHDR_DEFS}"
-                 )
+                 PLUGIN_DEFINITIONS "${UHDR_DEFS}"
+                )

@@ -119,6 +119,7 @@ set_property (SOURCE imageioplugin.cpp
                  $<$<BOOL:JXL_FOUND>:USE_JXL=1>
                  $<$<BOOL:Libheif_FOUND>:USE_HEIF=1>
                  $<$<BOOL:LIBRAW_FOUND>:USE_LIBRAW=1>
+                 $<$<BOOL:OPENJPEG_FOUND>:USE_OPENJPEG=1>
                  $<$<BOOL:OPENVDB_FOUND>:USE_OPENVDB=1>
                  $<$<BOOL:Ptex_FOUND>:USE_PTEX=1>
                  $<$<BOOL:WebP_FOUND>:USE_WEBP=1>
@@ -130,6 +131,10 @@ set_property (SOURCE imagebufalgo_draw.cpp
 set_property (SOURCE imagebufalgo_test.cpp
               APPEND PROPERTY COMPILE_DEFINITIONS
                  $<$<BOOL:USE_OPENCV>:USE_OPENCV=1>
+             )
+set_property (SOURCE imageio.cpp
+              APPEND PROPERTY COMPILE_DEFINITIONS
+                 $<$<BOOL:OIIO_USE_EXR_C_API>:OIIO_USE_EXR_C_API=1>
              )
 # And the ones we had to remember in embedded_plugin_compile_definitions
 while (embedded_plugin_compile_definitions)

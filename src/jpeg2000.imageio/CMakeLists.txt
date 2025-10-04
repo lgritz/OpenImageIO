@@ -17,7 +17,7 @@ if (OPENJPEG_FOUND)
         LINK_DIRECTORIES ${_jpeg2000_lib_dirs}
         LINK_LIBRARIES ${_jpeg2000_libs}
                        $<TARGET_NAME_IF_EXISTS:openjph>
-        DEFINITIONS ${_jpeg2000_defs}
+        PLUGIN_DEFINITIONS ${_jpeg2000_defs}
     )
 else()
     message (WARNING "Jpeg-2000 plugin will not be built")
