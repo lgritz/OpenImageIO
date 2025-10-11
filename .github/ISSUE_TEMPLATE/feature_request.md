@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: I have a concrete idea about how to improve OpenImageIO.
-title: "[FEATURE REQUEST]"
+title: "feat:"
 labels: ''
 assignees: ''
 
