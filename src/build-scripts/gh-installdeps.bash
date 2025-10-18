@@ -9,6 +9,32 @@
 set -ex
 
 
+function installdnf()
+{
+    retry_count=0
+    max_retries=10
+    delay=10
+    until [ $retry_count -ge $max_retries ]; do
+        echo "Installing $@ attempt $((retry_count + 1)) of $max_retries"
+        if dnf install -y $@ ; then
+            break
+        else
+            retry_count=$((retry_count + 1))
+            if [ $retry_count -lt $max_retries ]; then
+                echo "Attempt $retry_count failed. Retrying in $delay seconds..."
+                sleep $delay
+                delay=$((delay + 15))
+            fi
+        fi
+    done
+    if [ $retry_count -ge $max_retries ]; then
+        echo "Failed to install dependencies after $max_retries attempts"
+        exit 1
+    fi
+}
+
+
+
 #
 # Install system packages when those are acceptable for dependencies.
 #
@@ -31,8 +57,8 @@ if [[ "$ASWF_ORG" != ""  ]] ; then
     if [[ "${USE_OPENCV}" != "0" ]] ; then
         time sudo yum install -y opencv opencv-devel || true
     fi
-    if [[ "${USE_FFMPEG}" != "0" ]] ; then
-        time sudo dnf install -y ffmpeg ffmpeg-devel || true
+    if [[ "${USE_FFMPEG:-1}" != "0" ]] ; then
+        installdnf ffmpeg ffmpeg-devel
     fi
     if [[ "${USE_FREETYPE:-1}" != "0" ]] ; then
         time sudo yum install -y freetype freetype-devel || true
