@@ -431,6 +431,7 @@ jobs:
       depcmds: ${{ matrix.depcmds }}
       extra_artifacts: ${{ matrix.extra_artifacts }}
       fmt_ver: ${{ matrix.fmt_ver }}
+      llvm_action_ver: ${{ matrix.llvm_action_ver }}
       opencolorio_ver: ${{ matrix.opencolorio_ver }}
       openexr_ver: ${{ matrix.openexr_ver }}
       pybind11_ver: ${{ matrix.pybind11_ver }}
@@ -483,6 +484,33 @@ jobs:
             cxx_compiler: g++-13
             cxx_std: 20
             fmt_ver: 12.0.0
+            opencolorio_ver: v2.5.0
+            openexr_ver: v3.4.0
+            pybind11_ver: v3.0.1
+            python_ver: "3.12"
+            simd: avx2,f16c
+            setenvs: export LIBJPEGTURBO_VERSION=3.1.2
+                            LIBPNG_VERSION=v1.6.50
+                            LIBRAW_VERSION=0.21.4
+                            LIBTIFF_VERSION=v4.7.1
+                            OPENJPEG_VERSION=v2.5.4
+                            PTEX_VERSION=v2.4.3
+                            PUGIXML_VERSION=v1.15
+                            WEBP_VERSION=v1.6.0
+                            FREETYPE_VERSION=VER-2-14-0
+                            USE_OPENVDB=0
+            # Ensure we are testing all the deps we think we are. We would
+            # like this test to have minimal missing dependencies.
+            required_deps: all
+            optional_deps: 'CUDAToolkit;DCMTK;JXL;Nuke;OpenCV;OpenGL;OpenVDB;R3DSDK'
+          - desc: latest releases clang21 C++20 py3.12 avx2 exr3.4 ocio2.4
+            nametag: linux-latest-releases-clang
+            runner: ubuntu-24.04
+            cc_compiler: clang
+            cxx_compiler: clang++
+            cxx_std: 20
+            fmt_ver: 12.0.0
+            llvm_action_ver: "21.1.3"
             opencolorio_ver: v2.5.0
             openexr_ver: v3.4.0
             pybind11_ver: v3.0.1

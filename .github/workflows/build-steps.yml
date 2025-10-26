@@ -40,6 +40,8 @@ on:
         type: string
       python_ver:
         type: string
+      llvm_action_ver:
+        type: string
       setenvs:
         type: string
       simd:
@@ -133,6 +135,11 @@ jobs:
           # path: ./ccache
           key: ${{inputs.nametag}}-${{steps.ccache_cache_keys.outputs.date}}
           restore-keys: ${{inputs.nametag}}
+      - name: Install LLVM and Clang
+        if: inputs.llvm_action_ver != ''
+        uses: KyleMayes/install-llvm-action@98e68e10c96dffcb7bfed8b2144541a66b49aa02 # v2.0.8
+        with:
+          version: ${{ inputs.llvm_action_ver }}
       - name: Dependencies
         shell: bash
         run: |
