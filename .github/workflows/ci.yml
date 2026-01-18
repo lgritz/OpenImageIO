@@ -320,7 +320,8 @@ jobs:
             python_ver: "3.11"
             simd: "avx2,f16c"
             fmt_ver: 11.2.0
-            pybind11_ver: v2.13.6
+            # pybind11_ver: v2.13.6
+            pybind11_ver: da6e0710846
             setenvs: export PUGIXML_VERSION=v1.15
             optional_deps_append: "openjph;Qt6"
           # - desc: VFX2025 Static gcc11/C++17 py3.11 exr3.3 ocio2.4
@@ -482,7 +483,7 @@ jobs:
             fmt_ver: master
             opencolorio_ver: main
             openexr_ver: main
-            pybind11_ver: master
+            pybind11_ver: e44aae2268d4
             python_ver: "3.12"
             simd: avx2,f16c
             benchmark: 1
