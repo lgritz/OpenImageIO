@@ -13,6 +13,7 @@
 #include <OpenImageIO/timer.h>
 #include <OpenImageIO/unittest.h>
 
+#include <chrono>
 #include <iostream>
 
 using namespace OIIO;
@@ -50,6 +51,19 @@ main(int argc, char** argv)
         std::cout << "Out of " << n << " queries, " << zeroes
                   << " had no time\n";
         std::cout << "Longest was " << Timer::seconds(biggest) << " s.\n";
+    }
+
+    // For comparison, compute and print how expensive a high_resolution_clock
+    // based begin/end is, in cycles per second.
+    {
+        Timer timer;
+        int n = 10000000;
+        for (int i = 0; i < n; ++i) {
+            std::chrono::high_resolution_clock t;
+            OIIO_MAYBE_UNUSED auto ticks = t.now();
+        }
+        std::cout << "std::chrono::high_resolution_clock begin/end cost is "
+                  << double(n) / timer() << " /sec\n";
     }
 
     const int interval = 100000;  // 1/10 sec
