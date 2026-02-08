@@ -1141,18 +1141,19 @@ TIFFOutput::write_exif_data()
             if (tifftype == TIFF_ASCII) {
                 ok = TIFFSetField(m_tif, tag, *(char**)p.data());
             } else if ((tifftype == TIFF_SHORT || tifftype == TIFF_LONG)
-                       && p.type() == TypeDesc::SHORT) {
+                       && count == 1 && p.type() == TypeDesc::SHORT) {
                 ok = TIFFSetField(m_tif, tag, (int)*(short*)p.data());
             } else if ((tifftype == TIFF_SHORT || tifftype == TIFF_LONG)
-                       && p.type() == TypeDesc::INT) {
+                       && count == 1 && p.type() == TypeDesc::INT) {
                 ok = TIFFSetField(m_tif, tag, *(int*)p.data());
             } else if ((tifftype == TIFF_RATIONAL || tifftype == TIFF_SRATIONAL)
-                       && p.type() == TypeDesc::FLOAT) {
+                       && count == 1 && p.type() == TypeDesc::FLOAT) {
                 ok = TIFFSetField(m_tif, tag, *(float*)p.data());
             } else if ((tifftype == TIFF_RATIONAL || tifftype == TIFF_SRATIONAL)
-                       && p.type() == TypeDesc::DOUBLE) {
+                       && count == 1 && p.type() == TypeDesc::DOUBLE) {
                 ok = TIFFSetField(m_tif, tag, *(double*)p.data());
             }
+            // NOTE: We are not handling arrays of values, just scalars.
             if (!ok) {
                 // std::cout << "Unhandled EXIF " << p.name() << " " << p.type() << "\n";
             }
