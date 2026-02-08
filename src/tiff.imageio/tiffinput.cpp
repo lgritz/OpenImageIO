@@ -671,7 +671,7 @@ static std::pair<int, const char*>  tiff_input_compressions[] = {
     { COMPRESSION_NEXT,          "next" },        // NeXT 2-bit RLE
     { COMPRESSION_CCITTRLEW,     "ccittrle2" },   // #1 w/ word alignment
     { COMPRESSION_PACKBITS,      "packbits" },    // Macintosh RLE
-    { COMPRESSION_THUNDERSCAN,   "thunderscan" }, // ThundeScan RLE
+    { COMPRESSION_THUNDERSCAN,   "thunderscan" }, // ThunderScan RLE
     { COMPRESSION_IT8CTPAD,      "IT8CTPAD" },    // IT8 CT w/ patting
     { COMPRESSION_IT8LW,         "IT8LW" },       // IT8 linework RLE
     { COMPRESSION_IT8MP,         "IT8MP" },       // IT8 monochrome picture
@@ -772,7 +772,7 @@ TIFFInput::open(const std::string& name, ImageSpec& newspec,
     // for testing whether configurations are received properly from other
     // OIIO components.
     if (config.get_int_attribute("oiio:DebugOpenConfig!", 0))
-        m_testopenconfig = true;
+         m_testopenconfig = true;
     return open(name, newspec);
 }
 

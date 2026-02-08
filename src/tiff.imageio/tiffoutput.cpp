@@ -956,6 +956,20 @@ TIFFOutput::open(const std::string& name, const ImageSpec& userspec,
 
 
 
+inline int
+resunit_to_code(string_view s)
+{
+    if (Strutil::iequals(s, "none"))
+        return RESUNIT_NONE;
+    else if (Strutil::iequals(s, "in") || Strutil::iequals(s, "inch"))
+        return RESUNIT_INCH;
+    else if (Strutil::iequals(s, "cm"))
+        return RESUNIT_CENTIMETER;
+    return 0;
+}
+
+
+
 bool
 TIFFOutput::put_parameter(const std::string& name, TypeDesc type,
                           const void* data)
@@ -1005,17 +1019,11 @@ TIFFOutput::put_parameter(const std::string& name, TypeDesc type,
         return true;
     }
     if (Strutil::iequals(name, "ResolutionUnit") && type == TypeDesc::STRING) {
-        const char* s = *(char**)data;
-        bool ok       = true;
-        if (Strutil::iequals(s, "none"))
-            TIFFSetField(m_tif, TIFFTAG_RESOLUTIONUNIT, RESUNIT_NONE);
-        else if (Strutil::iequals(s, "in") || Strutil::iequals(s, "inch"))
-            TIFFSetField(m_tif, TIFFTAG_RESOLUTIONUNIT, RESUNIT_INCH);
-        else if (Strutil::iequals(s, "cm"))
-            TIFFSetField(m_tif, TIFFTAG_RESOLUTIONUNIT, RESUNIT_CENTIMETER);
-        else
-            ok = false;
-        return ok;
+        if (int r = resunit_to_code(*(char**)data)) {
+            TIFFSetField(m_tif, TIFFTAG_RESOLUTIONUNIT, r);
+            return true;
+        }
+        return false;
     }
     if (Strutil::iequals(name, "tiff:RowsPerStrip")
         && !m_spec.tile_width /* don't set rps for tiled files */
@@ -1134,28 +1142,77 @@ TIFFOutput::write_exif_data()
         int tag, tifftype, count;
         if (exif_tag_lookup(p.name(), tag, tifftype, count)
             && tifftype != TIFF_NOTYPE) {
+            bool ok      = false;
+            bool handled = false;
+            // Some special cases first
             if (tag == EXIF_SECURITYCLASSIFICATION || tag == EXIF_IMAGEHISTORY
-                || tag == EXIF_PHOTOGRAPHICSENSITIVITY)
+                || tag == EXIF_PHOTOGRAPHICSENSITIVITY) {
                 continue;  // libtiff doesn't understand these
-            bool ok = false;
-            if (tifftype == TIFF_ASCII) {
-                ok = TIFFSetField(m_tif, tag, *(char**)p.data());
-            } else if ((tifftype == TIFF_SHORT || tifftype == TIFF_LONG)
-                       && count == 1 && p.type() == TypeDesc::SHORT) {
-                ok = TIFFSetField(m_tif, tag, (int)*(short*)p.data());
-            } else if ((tifftype == TIFF_SHORT || tifftype == TIFF_LONG)
-                       && count == 1 && p.type() == TypeDesc::INT) {
-                ok = TIFFSetField(m_tif, tag, *(int*)p.data());
+            }
+            if (tag == TIFFTAG_RESOLUTIONUNIT && p.type() == TypeString) {
+                // OIIO stores resolution unit as a string, but libtiff wants
+                // it as a short code, so we have to convert.
+                if (int r = resunit_to_code(p.get_string())) {
+                    ok = TIFFSetField(m_tif, TIFFTAG_RESOLUTIONUNIT, r);
+                }
+                handled = true;
+            } else if ((tag == EXIF_EXIFVERSION || tag == EXIF_FLASHPIXVERSION)
+                       && p.type() == TypeString) {
+                // These tags are a 4-byte array of chars, but we
+                // allow users to set it as a string. Convert it if needed.
+                std::string version = p.get_string();
+                if (version.size() >= 4) {
+                    ok = TIFFSetField(m_tif, tag, version.c_str());
+                }
+                handled = true;
+            }
+            // General cases...
+            else if (tifftype == TIFF_ASCII) {
+                ok      = TIFFSetField(m_tif, tag, p.get_string().c_str());
+                handled = true;
+            } else if (tifftype == TIFF_SHORT || tifftype == TIFF_SSHORT
+                       || tifftype == TIFF_LONG || tifftype == TIFF_SLONG) {
+                if ((p.type() == TypeInt16 || p.type() == TypeInt32
+                     || p.type() == TypeUInt16 || p.type() == TypeUInt32)
+                    && count == 1) {
+                    // Passing our kinda-int as TIFF kinda-int
+                    ok      = TIFFSetField(m_tif, tag, p.get_int());
+                    handled = true;
+                } else if (p.type() == TypeString && count == 1) {
+                    // Passing our string as TIFF kinda-int -- convert as long
+                    // as the string looks like an int.
+                    std::string s = p.get_string();
+                    if (Strutil::string_is_int(s)) {
+                        int val = Strutil::stoi(s);
+                        ok      = TIFFSetField(m_tif, tag, val);
+                        handled = true;
+                    }
+                }
+                // } else if ((tifftype == TIFF_SHORT || tifftype == TIFF_LONG)
+                //            && count == 1 && p.type() == TypeDesc::INT) {
+                //     ok = TIFFSetField(m_tif, tag, *(int*)p.data());
             } else if ((tifftype == TIFF_RATIONAL || tifftype == TIFF_SRATIONAL)
-                       && count == 1 && p.type() == TypeDesc::FLOAT) {
-                ok = TIFFSetField(m_tif, tag, *(float*)p.data());
-            } else if ((tifftype == TIFF_RATIONAL || tifftype == TIFF_SRATIONAL)
-                       && count == 1 && p.type() == TypeDesc::DOUBLE) {
-                ok = TIFFSetField(m_tif, tag, *(double*)p.data());
+                       && (p.type() == TypeFloat || p.type() == TypeDesc::DOUBLE
+                           || p.type() == TypeUInt16 || p.type() == TypeUInt32
+                           || p.type() == TypeInt16 || p.type() == TypeInt32
+                           || p.type() == TypeRational
+                           || p.type() == TypeURational)
+                       && count == 1) {
+                // If the tag is a rational, there are a number of types we
+                // can force into that form by converting to and then passing
+                // a float.
+                ok      = TIFFSetField(m_tif, tag, p.get_float());
+                handled = true;
+            }
+            if (!handled) {
+                print("Unhandled EXIF {} ({}) / tag {} tifftype {} count {}\n",
+                      p.name(), p.type(), tag, tifftype, count);
             }
             // NOTE: We are not handling arrays of values, just scalars.
             if (!ok) {
-                // std::cout << "Unhandled EXIF " << p.name() << " " << p.type() << "\n";
+                // print(
+                //     "Error handling EXIF {} ({}) / tag {} tifftype {} count {}\n",
+                //     p.name(), p.type(), tag, tifftype, count);
             }
         }
     }
