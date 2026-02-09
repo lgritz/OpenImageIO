@@ -7,6 +7,8 @@
 #include <functional>
 #include <iostream>
 
+#define OIIO_NEED_FMT_STD_H
+
 #include <OpenImageIO/argparse.h>
 #include <OpenImageIO/benchmark.h>
 #include <OpenImageIO/parallel.h>
@@ -16,10 +18,6 @@
 #include <OpenImageIO/timer.h>
 #include <OpenImageIO/unittest.h>
 #include <OpenImageIO/ustring.h>
-
-#if FMT_VERSION >= 90000
-#    include <OpenImageIO/detail/fmt/std.h>
-#endif
 
 
 using namespace OIIO;

@@ -64,9 +64,25 @@ OIIO_PRAGMA_WARNING_PUSH
 #    pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#undef FMT_BEGIN_NAMESPACE
+#undef FMT_END_NAMESPACE
+#define OIIO_FMT_BEGIN_NAMESPACE \
+    namespace fmt {              \
+        inline namespace oiiofmt {
+#define OIIO_FMT_END_NAMESPACE \
+    }                          \
+    }
+#define FMT_BEGIN_NAMESPACE OIIO_FMT_BEGIN_NAMESPACE
+#define FMT_END_NAMESPACE OIIO_FMT_END_NAMESPACE
+#define OIIO_FMT_NAMESPACE fmt::oiiofmt
 #include <OpenImageIO/detail/fmt/format.h>
 #include <OpenImageIO/detail/fmt/ostream.h>
 #include <OpenImageIO/detail/fmt/printf.h>
+#if defined(OIIO_NEED_FMT_STD_H) && FMT_VERSION >= 90000
+#    include <OpenImageIO/detail/fmt/std.h>
+#endif
+#undef FMT_BEGIN_NAMESPACE
+#undef FMT_END_NAMESPACE
 
 OIIO_PRAGMA_WARNING_POP
 

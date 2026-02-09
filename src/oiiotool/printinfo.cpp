@@ -39,9 +39,9 @@ using namespace ImageBufAlgo;
 #if defined(FMT_VERSION) && !defined(OIIO_HALF_FORMATTER)
 #if FMT_VERSION >= 100000
 #define OIIO_HALF_FORMATTER
-FMT_BEGIN_NAMESPACE
+OIIO_FMT_BEGIN_NAMESPACE
 template<> struct formatter<half> : ostream_formatter { };
-FMT_END_NAMESPACE
+OIIO_FMT_END_NAMESPACE
 #endif
 #endif
 // clang-format on

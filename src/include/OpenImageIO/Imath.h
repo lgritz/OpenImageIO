@@ -23,7 +23,7 @@
 
 /// Custom fmtlib formatters for Imath types.
 
-FMT_BEGIN_NAMESPACE
+OIIO_FMT_BEGIN_NAMESPACE
 template<> struct formatter<Imath::V2f>
     : OIIO::pvt::array_formatter<Imath::V2f, float, 2> {};
 template<> struct formatter<Imath::V3f>
@@ -36,6 +36,6 @@ template<> struct formatter<Imath::M33f>
     : OIIO::pvt::array_formatter<Imath::M33f, float, 9> {};
 template<> struct formatter<Imath::M44f>
     : OIIO::pvt::array_formatter<Imath::M44f, float, 16> {};
-FMT_END_NAMESPACE
+OIIO_FMT_END_NAMESPACE
 
 #endif // !defined(OIIO_IMATH_H_INCLUDED)

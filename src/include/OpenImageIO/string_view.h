@@ -173,7 +173,7 @@ public:
 #ifdef FMT_VERSION
     // Convert an OIIO::string_view to a fmt::string_view. This enables
     // fmt::format() and friends to accept an OIIO::string_view.
-    constexpr operator fmt::string_view() const noexcept { return { data(), size() }; }
+    constexpr operator OIIO_FMT_NAMESPACE::string_view() const noexcept { return { data(), size() }; }
 #endif
 
     // iterators
@@ -536,14 +536,14 @@ OIIO_NAMESPACE_END
 
 
 #if FMT_VERSION >= 100000
-FMT_BEGIN_NAMESPACE
+OIIO_FMT_BEGIN_NAMESPACE
 template <> struct formatter<OIIO::string_view> : formatter<string_view>
 {
     auto format(OIIO::string_view c, format_context& ctx) const {
         return formatter<string_view>::format(string_view(c), ctx);
     }
 };
-FMT_END_NAMESPACE
+OIIO_FMT_END_NAMESPACE
 #endif
 
 

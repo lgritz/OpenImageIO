@@ -1142,7 +1142,7 @@ template<> struct hash<OIIO::ustringhash> {
 
 
 // Supply a fmtlib compatible custom formatter for ustring and ustringhash.
-FMT_BEGIN_NAMESPACE
+OIIO_FMT_BEGIN_NAMESPACE
 
 template<> struct formatter<OIIO::ustring> : formatter<fmt::string_view, char> {
     template<typename FormatContext>
@@ -1166,4 +1166,4 @@ struct formatter<OIIO::ustringhash> : formatter<fmt::string_view, char> {
     }
 };
 
-FMT_END_NAMESPACE
+OIIO_FMT_END_NAMESPACE
