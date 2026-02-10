@@ -127,6 +127,12 @@ target_compile_definitions(OpenImageIO
                   OIIO_TBB_VERSION="${TBB_VERSION}"
              )
 
+if (MSVC AND fmt_VERSION VERSION_GREATER_EQUAL 11.0)
+    # For MSVC, Unicode support requires compiling with /utf-8, and fmt
+    # needs this. This line adapted from fmt's CMakeLists.txt file.
+    target_compile_options(OpenImageIO INTERFACE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/utf-8>)
+endif ()
+
 # Source groups for libutil and libtexture
 source_group ("libutil"    REGULAR_EXPRESSION ".+/libutil/.+")
 source_group ("libtexture" REGULAR_EXPRESSION ".+/libtexture/.+")
