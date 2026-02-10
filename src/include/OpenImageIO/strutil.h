@@ -87,7 +87,7 @@ void OIIO_UTIL_API sync_output (std::ostream& file, string_view str,
 template<typename Str, typename... Args>
 std::string sprintf(const Str& fmt, Args&&... args);
 #else
-using ::fmt::sprintf;
+using ::OIIO_FMT_NAMESPACE::sprintf;
 #endif
 
 
@@ -122,7 +122,7 @@ template<typename Str, typename... Args>
 OIIO_NODISCARD
 inline std::string format(const Str& fmt, Args&&... args)
 {
-    return ::fmt::vformat(fmt, ::fmt::make_format_args(args...));
+    return ::OIIO_FMT_NAMESPACE::vformat(fmt, ::OIIO_FMT_NAMESPACE::make_format_args(args...));
 }
 } // namespace fmt
 
@@ -155,10 +155,10 @@ using old::format;
 
 
 // More things we wrap from fmt library
-using ::fmt::format_args;
-using ::fmt::make_format_args;
-using ::fmt::format_to;
-using ::fmt::format_to_n;
+using ::OIIO_FMT_NAMESPACE::format_args;
+using ::OIIO_FMT_NAMESPACE::make_format_args;
+using ::OIIO_FMT_NAMESPACE::format_to;
+using ::OIIO_FMT_NAMESPACE::format_to_n;
 
 
 /// Strutil::printf (fmt, ...)
@@ -208,19 +208,19 @@ namespace sync {
 template<typename Str, typename... Args>
 inline void print (FILE *file, const Str& fmt, Args&&... args)
 {
-    sync_output (file, ::fmt::vformat(fmt, ::fmt::make_format_args(args...)));
+    sync_output (file, ::OIIO_FMT_NAMESPACE::vformat(fmt, ::OIIO_FMT_NAMESPACE::make_format_args(args...)));
 }
 
 template<typename Str, typename... Args>
 inline void print (const Str& fmt, Args&&... args)
 {
-    sync_output(stdout, ::fmt::vformat(fmt, ::fmt::make_format_args(args...)));
+    sync_output(stdout, ::OIIO_FMT_NAMESPACE::vformat(fmt, ::OIIO_FMT_NAMESPACE::make_format_args(args...)));
 }
 
 template<typename Str, typename... Args>
 inline void print (std::ostream &file, const Str& fmt, Args&&... args)
 {
-    sync_output (file, ::fmt::vformat(fmt, ::fmt::make_format_args(args...)));
+    sync_output (file, ::OIIO_FMT_NAMESPACE::vformat(fmt, ::OIIO_FMT_NAMESPACE::make_format_args(args...)));
 }
 
 #else
@@ -228,7 +228,7 @@ inline void print (std::ostream &file, const Str& fmt, Args&&... args)
 template<typename... Args>
 inline void print (FILE *file, const char* fmt, Args&&... args)
 {
-    sync_output (file, ::fmt::format(fmt, std::forward<Args>(args)...));
+    sync_output (file, ::OIIO_FMT_NAMESPACE::format(fmt, std::forward<Args>(args)...));
 }
 
 template<typename... Args>
@@ -240,7 +240,7 @@ inline void print (const char* fmt, Args&&... args)
 template<typename... Args>
 inline void print (std::ostream &file, const char* fmt, Args&&... args)
 {
-    sync_output (file, ::fmt::format(fmt, std::forward<Args>(args)...));
+    sync_output (file, ::OIIO_FMT_NAMESPACE::format(fmt, std::forward<Args>(args)...));
 }
 #endif
 } // namespace sync
@@ -276,7 +276,7 @@ template<typename... Args>
 void print (std::ostream &file, const char* fmt, const Args&... args);
 
 #elif FMT_VERSION >= 70000 && !OIIO_PRINT_IS_SYNCHRONIZED
-using ::fmt::print;
+using ::OIIO_FMT_NAMESPACE::print;
 #else
 using sync::print;
 #endif
@@ -708,7 +708,7 @@ template<> inline unsigned short from_string<unsigned short>(string_view s) {
 /// can be overloaded if there is a better method for particular types.
 template<typename T>
 inline std::string to_string (const T& value) {
-    return ::fmt::to_string(value);
+    return ::OIIO_FMT_NAMESPACE::to_string(value);
 }
 
 // Some special pass-through cases
