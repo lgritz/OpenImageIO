@@ -54,7 +54,8 @@ function (setup_oiio_util_library targetname)
     if (MSVC AND fmt_VERSION VERSION_GREATER_EQUAL 11.0)
         # For MSVC, Unicode support requires compiling with /utf-8, and fmt
         # needs this. This line adapted from fmt's CMakeLists.txt file.
-        target_compile_options(${targetname} INTERFACE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/utf-8>)
+        # target_compile_options(${targetname} INTERFACE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/utf-8>)
+        target_compile_options(${targetname} PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/utf-8>)
     endif ()
 
     target_include_directories (${targetname}
