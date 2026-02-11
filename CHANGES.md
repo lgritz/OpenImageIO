@@ -2,6 +2,8 @@ Release 3.2 (target: Sept 2026?) -- compared to 3.1
 ---------------------------------------------------
 
 ### New minimum dependencies and compatibility changes:
+  - **fmt**: Minimum required version is now 9.0 (was 7.0).
+
 ### ⛰️  New features and public API changes:
 * *New image file format support:*
 * *oiiotool new features and major improvements*:
