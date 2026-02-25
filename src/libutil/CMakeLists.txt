@@ -68,8 +68,8 @@ function (setup_oiio_util_library targetname)
             PUBLIC
                 $<TARGET_NAME_IF_EXISTS:Threads::Threads>
                 ${GCC_ATOMIC_LIBRARIES}
-                Imath::Imath
             PRIVATE
+                Imath::Imath
                 $<TARGET_NAME_IF_EXISTS:TBB::tbb>
                 ${CMAKE_DL_LIBS}
             )
