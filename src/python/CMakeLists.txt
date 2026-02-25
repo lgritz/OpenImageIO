@@ -9,7 +9,7 @@ setup_python_module (TARGET    PyOpenImageIO
                      MODULE    OpenImageIO
                      SOURCES   ${python_srcs}
                      LIBS      OpenImageIO
-                               ${OPENIMAGEIO_IMATH_TARGETS}
+                               Imath::Imath
                     )
 
 # Unity builds: If in unity group mode, make the python bindings one group. If

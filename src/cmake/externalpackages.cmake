@@ -62,7 +62,6 @@ checked_find_package (OpenEXR CONFIG REQUIRED
 # the right Imath/OpenEXR version, not some older version in the system
 # library.
 include_directories(BEFORE ${IMATH_INCLUDES} ${OPENEXR_INCLUDES})
-set (OPENIMAGEIO_IMATH_TARGETS Imath::Imath)
 set (OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH OFF CACHE BOOL
      "Exclude find_dependency(Imath) from the exported OpenImageIOConfig.cmake")
 

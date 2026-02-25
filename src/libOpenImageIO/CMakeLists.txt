@@ -151,8 +151,8 @@ target_link_directories (OpenImageIO PRIVATE ${format_plugin_lib_dirs})
 target_link_libraries (OpenImageIO
         PUBLIC
             OpenImageIO_Util
-            ${OPENIMAGEIO_IMATH_TARGETS}
         PRIVATE
+            Imath::Imath
             OpenEXR::OpenEXR
             ${format_plugin_libs} # Add all the target link libraries from the plugins
             OpenColorIO::OpenColorIO
@@ -265,8 +265,8 @@ if (OIIO_BUILD_TESTS AND BUILD_TESTING)
                                 ${ROBINMAP_INCLUDES}
                                 ${OpenCV_INCLUDES}            
                           LINK_LIBRARIES OpenImageIO
+                                         Imath::Imath
                                          ${OpenCV_LIBRARIES}
-                                         ${OPENIMAGEIO_IMATH_TARGETS}
                           FOLDER "Unit Tests" NO_INSTALL)
     add_test (unit_imagebufalgo ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/imagebufalgo_test)
 

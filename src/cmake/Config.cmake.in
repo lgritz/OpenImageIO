@@ -7,10 +7,11 @@
 include(CMakeFindDependencyMacro)
 
 # add here all the find_dependency() whenever switching to config based dependencies
-if (NOT @OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH@ AND NOT OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH)
-    find_dependency(Imath @Imath_VERSION@
-                    HINTS @Imath_DIR@)
-endif ()
+
+# if (NOT @OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH@ AND NOT OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH)
+#     find_dependency(Imath @Imath_VERSION@
+#                     HINTS @Imath_DIR@)
+# endif ()
 
 if (NOT @fmt_LOCAL_BUILD@ AND NOT @OIIO_INTERNALIZE_FMT@)
     find_dependency(fmt)
