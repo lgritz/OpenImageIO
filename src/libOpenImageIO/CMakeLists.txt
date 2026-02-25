@@ -108,7 +108,7 @@ endif ()
 
 # Enable default use of OpenEXR core library for versions of the library
 # new enough to support DWA compression in exrcore.
-if (OPENEXR_VERSION VERSION_GREATER_EQUAL 3.1.10)
+if (OpenEXR_VERSION VERSION_GREATER_EQUAL 3.1.10)
     target_compile_definitions(OpenImageIO
                                PRIVATE OIIO_OPENEXR_CORE_DEFAULT=1)
     message (STATUS "OpenEXR core library will be used by default")
@@ -134,8 +134,6 @@ source_group ("libtexture" REGULAR_EXPRESSION ".+/libtexture/.+")
 target_include_directories (OpenImageIO
                             PUBLIC
                                 $<INSTALL_INTERFACE:include>
-                            ${OPENIMAGEIO_IMATH_DEPENDENCY_VISIBILITY}
-                                ${OPENEXR_INCLUDES}
                             PRIVATE
                                 ${ROBINMAP_INCLUDES}
                             )
@@ -153,10 +151,9 @@ target_link_directories (OpenImageIO PRIVATE ${format_plugin_lib_dirs})
 target_link_libraries (OpenImageIO
         PUBLIC
             OpenImageIO_Util
-            ${OPENIMAGEIO_IMATH_DEPENDENCY_VISIBILITY}
             ${OPENIMAGEIO_IMATH_TARGETS}
         PRIVATE
-            ${OPENIMAGEIO_OPENEXR_TARGETS}
+            OpenEXR::OpenEXR
             ${format_plugin_libs} # Add all the target link libraries from the plugins
             OpenColorIO::OpenColorIO
             $<TARGET_NAME_IF_EXISTS:OpenColorIO::OpenColorIOHeaders>

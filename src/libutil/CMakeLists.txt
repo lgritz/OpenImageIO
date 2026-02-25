@@ -68,7 +68,6 @@ function (setup_oiio_util_library targetname)
             PUBLIC
                 $<TARGET_NAME_IF_EXISTS:Threads::Threads>
                 ${GCC_ATOMIC_LIBRARIES}
-                ${OPENIMAGEIO_IMATH_DEPENDENCY_VISIBILITY}
                 ${OPENIMAGEIO_IMATH_TARGETS}
             PRIVATE
                 $<TARGET_NAME_IF_EXISTS:TBB::tbb>
@@ -237,13 +236,13 @@ if (OIIO_BUILD_TESTS AND BUILD_TESTING)
     fancy_add_executable (NAME typedesc_test SRC typedesc_test.cpp
                           NO_INSTALL  FOLDER "Unit Tests"
                           LINK_LIBRARIES OpenImageIO_Util
-                                         ${OPENIMAGEIO_OPENEXR_TARGETS})
+                                         OpenEXR::OpenEXR)
     add_test (unit_typedesc ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/typedesc_test)
 
     fancy_add_executable (NAME type_traits_test SRC type_traits_test.cpp
                           NO_INSTALL  FOLDER "Unit Tests"
                           LINK_LIBRARIES OpenImageIO_Util
-                                         ${OPENIMAGEIO_OPENEXR_TARGETS})
+                                         Imath::Imath)
     add_test (unit_type_traits ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/type_traits_test)
 
 endif ()

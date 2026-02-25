@@ -49,26 +49,20 @@ if (NOT TARGET CMath::CMath)
     endif ()
 endif ()
 
-# IlmBase & OpenEXR
-checked_find_package (Imath REQUIRED
-    VERSION_MIN 3.1
-    PRINT IMATH_INCLUDES OPENEXR_INCLUDES Imath_VERSION
-)
+# Imath & OpenEXR
+checked_find_package (Imath CONFIG REQUIRED
+    VERSION_MIN 3.1)
+get_target_property(IMATH_INCLUDES Imath::Imath INTERFACE_INCLUDE_DIRECTORIES)
 
-checked_find_package (OpenEXR REQUIRED
+checked_find_package (OpenEXR CONFIG REQUIRED
     VERSION_MIN 3.1
-    NO_FP_RANGE_CHECK
-    PRINT IMATH_INCLUDES OPENEXR_INCLUDES Imath_VERSION
-    )
+    NO_FP_RANGE_CHECK)
 
 # Force Imath includes to be before everything else to ensure that we have
 # the right Imath/OpenEXR version, not some older version in the system
 # library.
 include_directories(BEFORE ${IMATH_INCLUDES} ${OPENEXR_INCLUDES})
 set (OPENIMAGEIO_IMATH_TARGETS Imath::Imath)
-set (OPENIMAGEIO_OPENEXR_TARGETS OpenEXR::OpenEXR)
-set (OPENIMAGEIO_IMATH_DEPENDENCY_VISIBILITY "PRIVATE" CACHE STRING
-     "Should we expose Imath library dependency as PUBLIC or PRIVATE")
 set (OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH OFF CACHE BOOL
      "Exclude find_dependency(Imath) from the exported OpenImageIOConfig.cmake")
 
