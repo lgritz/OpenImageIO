@@ -75,6 +75,7 @@ macro (oiio_add_tests)
     # For OCIO 2.2+, have the testsuite use the default built-in config
     list (APPEND _ats_ENVIRONMENT "OCIO=ocio://default"
                                   "OIIO_TESTSUITE_OCIOCONFIG=ocio://default")
+    list (APPEND _ats_ENVIRONMENT "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
     if (_test_disabled)
         message (STATUS "Skipping test(s) ${_ats_UNPARSED_ARGUMENTS} because of disabled ${_ats_ENABLEVAR}")
     elseif (_test_notfound)
