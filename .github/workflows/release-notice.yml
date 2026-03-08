@@ -23,4 +23,4 @@ jobs:
         slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
         slack_channel: "#release-announcements"
         project_logo: "https://artwork.aswf.io/projects/openimageio/icon/color/openimageio-icon-color.png"
-      uses: jmertic/slack-release-notifier@main
+      uses: jmertic/slack-release-notifier@47d4d5d1ac1e3111896e7c94deef2c038f858d8e # 0.1
