@@ -2011,10 +2011,12 @@ TIFFInput::read_native_scanline_locked(int subimage, int miplevel, int y,
     size_t input_bytes = plane_bytes * m_inputchannels;
     // Where to read?  Directly into user data if no channel shuffling, bit
     // shifting, or CMYK conversion is needed, otherwise into scratch space.
-    unsigned char* readbuf = reinterpret_cast<unsigned char*>(data.data());
-    if (need_bit_convert || m_separate
-        || (m_photometric == PHOTOMETRIC_SEPARATED && !m_raw_color))
-        readbuf = &m_scratch[0];
+    bool use_scratch
+        = (need_bit_convert || m_separate || m_inputchannels != m_spec.nchannels
+           || (m_photometric == PHOTOMETRIC_SEPARATED && !m_raw_color));
+    unsigned char* readbuf = use_scratch ? &m_scratch[0]
+                                         : reinterpret_cast<unsigned char*>(
+                                               data.data());
     // Perform the reads.  Note that for contig, planes==1, so it will
     // only do one TIFFReadScanline.
     for (int c = 0; c < planes; ++c) { /* planes==1 for contig */
@@ -2025,39 +2027,16 @@ TIFFInput::read_native_scanline_locked(int subimage, int miplevel, int y,
     }
 
     // Handle less-than-full bit depths
-    if (m_bitspersample < 8) {
+    if (need_bit_convert) {
         // m_scratch now holds nvals n-bit values, contig or separate
+        OIIO_ASSERT(use_scratch);
         m_scratch2.resize(input_bytes);
-        m_scratch.swap(m_scratch2);
+        int bits = ceil2(std::max(int(m_bitspersample), 8));
         for (int c = 0; c < planes; ++c) /* planes==1 for contig */
             bit_convert(m_separate ? m_spec.width : nvals,
-                        &m_scratch2[plane_bytes * c], m_bitspersample,
-                        m_separate
-                            ? &m_scratch[plane_bytes * c]
-                            : (unsigned char*)data.data() + plane_bytes * c,
-                        8);
-    } else if (m_bitspersample > 8 && m_bitspersample < 16) {
-        // m_scratch now holds nvals n-bit values, contig or separate
-        m_scratch2.resize(input_bytes);
+                        &m_scratch[plane_bytes * c], m_bitspersample,
+                        &m_scratch2[plane_bytes * c], bits);
         m_scratch.swap(m_scratch2);
-        for (int c = 0; c < planes; ++c) /* planes==1 for contig */
-            bit_convert(m_separate ? m_spec.width : nvals,
-                        &m_scratch2[plane_bytes * c], m_bitspersample,
-                        m_separate
-                            ? &m_scratch[plane_bytes * c]
-                            : (unsigned char*)data.data() + plane_bytes * c,
-                        16);
-    } else if (m_bitspersample > 16 && m_bitspersample < 32) {
-        // m_scratch now holds nvals n-bit values, contig or separate
-        m_scratch2.resize(input_bytes);
-        m_scratch.swap(m_scratch2);
-        for (int c = 0; c < planes; ++c) /* planes==1 for contig */
-            bit_convert(m_separate ? m_spec.width : nvals,
-                        &m_scratch2[plane_bytes * c], m_bitspersample,
-                        m_separate
-                            ? &m_scratch[plane_bytes * c]
-                            : (unsigned char*)data.data() + plane_bytes * c,
-                        32);
     }
 
     // Handle "separate" planarconfig
@@ -2065,6 +2044,7 @@ TIFFInput::read_native_scanline_locked(int subimage, int miplevel, int y,
         // Convert from separate (RRRGGGBBB) to contiguous (RGBRGBRGB).
         // We know the data is in m_scratch at this point, so
         // contiguize it into the user data area.
+        OIIO_ASSERT(use_scratch);
         if (m_photometric == PHOTOMETRIC_SEPARATED && !m_raw_color) {
             // CMYK->RGB means we need temp storage.
             m_scratch2.resize(input_bytes);
@@ -2078,11 +2058,13 @@ TIFFInput::read_native_scanline_locked(int subimage, int miplevel, int y,
             separate_to_contig(planes, m_spec.width,
                                as_bytes(make_span(m_scratch)), data);
         }
+        use_scratch = false;  // no longer in scratch
     }
 
     // Handle CMYK
     if (m_photometric == PHOTOMETRIC_SEPARATED && !m_raw_color) {
-        // The CMYK will be in m_scratch.
+        // The CMYK will be in m_scratch. As we convert back to RGB,
+        // copy back to the user's data area.
         if (spec().format == TypeDesc::UINT8) {
             cmyk_to_rgb(m_spec.width, (unsigned char*)&m_scratch[0],
                         m_inputchannels, (unsigned char*)data.data(),
@@ -2095,8 +2077,18 @@ TIFFInput::read_native_scanline_locked(int subimage, int miplevel, int y,
             errorfmt("CMYK only supported for UINT8, UINT16");
             return false;
         }
+        use_scratch = false;  // no longer in scratch
     }
 
+    if (use_scratch) {
+        // Somehow the data is still in the scratch vector, and needs to
+        // be copied back to the user's data area.
+        OIIO_DASSERT(m_scratch.size() >= data.size());
+        spancpy(data, make_span(m_scratch.data(), data.size()));
+        use_scratch = false;
+    }
+
+    OIIO_ASSERT(use_scratch == false);  // better not be still in scratch
     if (m_photometric == PHOTOMETRIC_MINISWHITE)
         invert_photometric(nvals, data.data());
 
