@@ -43,3 +43,5 @@ iconvert ERROR copying "src/crash-cmyk-e12b.tif" to "out.tif" :
 	Decoding error at scanline 0, invalid distance too far back
 Comparing "check1.tif" and "ref/check1.tif"
 PASS
+Comparing "cmyk-bits.tif" and "ref/cmyk-bits.tif"
+PASS

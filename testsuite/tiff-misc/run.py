@@ -32,4 +32,7 @@ command += info_command ("gps.tif", safematch=True, hash=False)
 # Test bug with corrupt cmyk file
 command += iconvert ("src/crash-cmyk-e12b.tif out.tif", failureok=True)
 
-outputs = [ "check1.tif", "out.txt" ]
+# Test bug with cmyk + non-full bit depths
+command += iconvert ("src/crash-cmyk-bits.tif cmyk-bits.tif")
+
+outputs = [ "check1.tif", "cmyk-bits.tif", "out.txt" ]
