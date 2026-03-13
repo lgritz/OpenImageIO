@@ -165,8 +165,8 @@ RLAInput::open(const std::string& name, ImageSpec& newspec)
         return false;
     ioseek(0);
 
-    // set a bogus subimage index so that seek_subimage actually seeks
-    m_subimage = 1;
+    // initialize m_subimage so that seek_subimage actually seeks
+    m_subimage = -1;
 
     bool ok = seek_subimage(0, 0);
     newspec = spec();
@@ -308,6 +308,9 @@ RLAInput::seek_subimage(int subimage, int miplevel)
     m_spec.full_depth  = 1;
     m_spec.full_x      = m_rla.WindowLeft;
     m_spec.full_y      = m_spec.full_height - 1 - m_rla.WindowTop;
+
+    if (!check_open(m_spec, { 0, 1 << 16, 0, 1 << 16, 0, 1, 0, 3 + 3 + 256 }))
+        return false;
 
     // set channel formats and stride
     int z_channel = -1;
