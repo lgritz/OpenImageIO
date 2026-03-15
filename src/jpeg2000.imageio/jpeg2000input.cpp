@@ -104,9 +104,9 @@ public:
 private:
     std::string m_filename;
     std::vector<int> m_bpp;  // per channel bpp
-    opj_image_t* m_image;
-    opj_codec_t* m_codec;
-    opj_stream_t* m_stream;
+    opj_image_t* m_image   = nullptr;
+    opj_codec_t* m_codec   = nullptr;
+    opj_stream_t* m_stream = nullptr;
     bool m_keep_unassociated_alpha;  // Do not convert unassociated alpha
 
     void init(void);
@@ -115,13 +115,28 @@ private:
     static bool is_j2k_header(const uint8_t header[5]);
 
     opj_codec_t* create_decompressor();
-    void destroy_decompressor();
+
+    void destroy_decompressor()
+    {
+        if (m_codec) {
+            opj_destroy_codec(m_codec);
+            m_codec = NULL;
+        }
+    }
 
     void destroy_stream()
     {
         if (m_stream) {
             opj_stream_destroy(m_stream);
             m_stream = NULL;
+        }
+    }
+
+    void destroy_image()
+    {
+        if (m_image) {
+            opj_image_destroy(m_image);
+            m_image = nullptr;
         }
     }
 
@@ -231,9 +246,9 @@ OIIO_PLUGIN_EXPORTS_END
 void
 Jpeg2000Input::init(void)
 {
-    m_image                   = NULL;
-    m_codec                   = NULL;
-    m_stream                  = NULL;
+    destroy_image();
+    destroy_decompressor();
+    destroy_stream();
     m_keep_unassociated_alpha = false;
     ioproxy_clear();
 }
@@ -701,12 +716,6 @@ Jpeg2000Input::read_native_scanline(int subimage, int miplevel, int y, int z,
 inline bool
 Jpeg2000Input::close(void)
 {
-    if (m_image) {
-        opj_image_destroy(m_image);
-        m_image = NULL;
-    }
-    destroy_decompressor();
-    destroy_stream();
     init();
     return true;
 }
@@ -743,17 +752,6 @@ Jpeg2000Input::create_decompressor()
     }
     return opj_create_decompress(is_jp2_header(header) ? OPJ_CODEC_JP2
                                                        : OPJ_CODEC_J2K);
-}
-
-
-
-void
-Jpeg2000Input::destroy_decompressor()
-{
-    if (m_codec) {
-        opj_destroy_codec(m_codec);
-        m_codec = NULL;
-    }
 }
 
 
