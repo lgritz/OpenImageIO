@@ -333,11 +333,11 @@ jobs:
           - desc: Sanitizers
             nametag: sanitizer
             runner: ubuntu-latest
-            container: aswf/ci-oiio:2024.6
+            container: aswf/ci-oiio:2025.5
             cc_compiler: clang
             cxx_compiler: clang++
             build_type: Debug
-            opencolorio_ver: v2.4.2
+            # opencolorio_ver: v2.4.2
             python_ver: "3.11"
             ctest_test_timeout: "1200"
             setenvs: export SANITIZE=address,undefined
