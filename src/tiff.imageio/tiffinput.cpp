@@ -238,8 +238,10 @@ private:
     // like we think the file is hopelessly corrupted.
     bool readspec(bool read_meta = true);
 
-    // Figure out all the photometric-related aspects of the header
-    void readspec_photometric();
+    // Figure out all the photometric-related aspects of the header.
+    // Return true if all is fine, false if something really bad happens,
+    // like we think the file is invalid or hopelessly corrupted.
+    bool readspec_photometric();
 
     // Convert planar separate to contiguous data format
     void separate_to_contig(size_t nplanes, size_t nvals,
@@ -1254,7 +1256,10 @@ TIFFInput::readspec(bool read_meta)
         else
             m_spec.set_format(TypeDesc::UNKNOWN);
         break;
-    default: m_spec.set_format(TypeDesc::UNKNOWN); break;
+    default:
+        m_spec.set_format(TypeDesc::UNKNOWN);
+        errorfmt("Invalid bits per sample ({})", m_bitspersample);
+        return false;
     }
 
     // Use the table for all the obvious things that can be mindlessly
@@ -1278,7 +1283,8 @@ TIFFInput::readspec(bool read_meta)
     TIFFGetField(m_tif, TIFFTAG_PHOTOMETRIC, &m_photometric);
     m_spec.attribute("tiff:PhotometricInterpretation", (int)m_photometric);
 
-    readspec_photometric();
+    if (!readspec_photometric())
+        return false;
 
     TIFFGetFieldDefaulted(m_tif, TIFFTAG_PLANARCONFIG, &m_planarconfig);
     m_separate = (m_planarconfig == PLANARCONFIG_SEPARATE
@@ -1579,7 +1585,7 @@ TIFFInput::readspec(bool read_meta)
 
 
 
-void
+bool
 TIFFInput::readspec_photometric()
 {
     switch (m_photometric) {
@@ -1651,6 +1657,12 @@ TIFFInput::readspec_photometric()
         m_spec.attribute("tiff:ColorSpace", "LOGLUV");
         break;
     case PHOTOMETRIC_PALETTE: {
+        if (m_bitspersample > 16) {
+            errorfmt(
+                "Palette images only support <= 16 bits per sample (was {})",
+                m_bitspersample);
+            return false;
+        }
         m_spec.attribute("tiff:ColorSpace", "palette");
         // Read the color map
         unsigned short *r = NULL, *g = NULL, *b = NULL;
@@ -1710,6 +1722,8 @@ TIFFInput::readspec_photometric()
         m_spec.attribute("oiio:ColorSpace",
                          m_spec.get_string_attribute("tiff:ColorSpace"));
     }
+
+    return true;
 }
 
 
