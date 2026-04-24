@@ -361,8 +361,7 @@ is_aces_container_attributes_non_empty(const OIIO::ImageSpec& spec,
     };
 
     for (const auto& label : nonEmptyAttribs) {
-        const ParamValue* found = spec.find_attribute(label,
-                                                      OIIO::TypeDesc::STRING);
+        const ParamValue* found = spec.find_attribute(label);
         if (found
             && (found->type() != TypeString || found->get_string(1).empty())) {
             non_compliant_attr = label;
@@ -424,19 +423,15 @@ is_aces_container_compliant(const OIIO::ImageSpec& spec, std::string& reason)
     }
 
     // Check chromaticities
-    float chromaticities[8] = { 0., 0., 0., 0., 0., 0., 0., 0. };
-    bool chroms_found
-        = spec.getattribute("chromaticities",
-                            OIIO::TypeDesc(OIIO::TypeDesc::FLOAT, 8),
-                            chromaticities);
-    bool chroms_equal = std::equal(std::begin(chromaticities),
-                                   std::end(chromaticities),
-                                   std::begin(ACES_AP0_chromaticities));
-
-    if (chroms_found && !chroms_equal) {
-        reason
-            = "Chromaticities are not set to AP0 chromaticities as required for an ACES Container.";
-        return false;
+    if (const auto chroms = spec.find_attrribute("chromaticities")) {
+        float chromaticities[8] = { 0., 0., 0., 0., 0., 0., 0., 0. };
+        if (chroms->type() != OIIO::TypeDesc(OIIO::TypeDesc::FLOAT, 8)
+            || !std::equal(std::begin(chromaticities), std::end(chromaticities),
+                           std::begin(ACES_AP0_chromaticities))) {
+            reason
+                = "Chromaticities are not set to AP0 chromaticities as required for an ACES Container.";
+            return false;
+        }
     }
 
     return true;
