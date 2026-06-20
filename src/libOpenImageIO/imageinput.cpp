@@ -116,8 +116,10 @@ ImageInput::valid_file(const std::string& filename) const
     } else {
         ImageSpec tmpspec;
         bool ok = self->open(filename, tmpspec);
-        if (ok)
-            self->close();
+        // Always close, even if open() failed: a failed open may have left
+        // the ImageInput in a state that needs a close() before it can be
+        // reused for another open() (as can happen after valid_file()).
+        self->close();
         (void)geterror();  // Clear any errors
         return ok;
     }
@@ -136,9 +138,10 @@ ImageInput::valid_file(Filesystem::IOProxy* ioproxy) const
 
     ImageSpec config, tmpspec;
     bool ok = self->open("", tmpspec, config);
-    if (ok) {
-        self->close();
-    }
+    // Always close, even if open() failed: a failed open may have left the
+    // ImageInput in a state that needs a close() before it can be reused for
+    // another open() (as can happen after valid_file()).
+    self->close();
     self->ioproxy_clear();
 
     (void)geterror();  // Clear any errors

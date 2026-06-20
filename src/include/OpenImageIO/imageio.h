@@ -1180,6 +1180,15 @@ public:
     ///
     /// @returns
     ///         `true` if the file was found and opened successfully.
+    ///
+    /// Regarding the need to call `close()`: If this `ImageInput` will be
+    /// discarded (destroyed) and not reused, it is never strictly necessary
+    /// to call `close()` yourself, regardless of whether the `open()`
+    /// succeeded or failed -- the destructor will close the file if it is
+    /// still open. But if you intend to reuse the same `ImageInput` object
+    /// to `open()` a different file, you are expected to call `close()`
+    /// before reopening, regardless of whether the prior `open()` succeeded
+    /// or failed.
     OIIO_NODISCARD_ERROR virtual bool open (const std::string& name,
                                             ImageSpec &newspec) = 0;
 
