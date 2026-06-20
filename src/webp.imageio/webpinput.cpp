@@ -136,20 +136,17 @@ WebpInput::open(const std::string& name, ImageSpec& spec,
     std::vector<uint8_t> image_header;
     image_header.resize(std::min(m_image_size, (uint64_t)64), 0);
     if (!io->pread(image_header.data(), image_header.size(), 0)) {
-        close();
         return false;
     }
 
     if (!valid_file(io)) {
         errorfmt("{} is not a WebP image file", m_filename);
-        close();
         return false;
     }
 
     // Read actual data and decode.
     m_encoded_image.reset(new uint8_t[m_image_size]);
     if (!io->pread(m_encoded_image.get(), m_image_size, 0)) {
-        close();
         return false;
     }
 
@@ -158,7 +155,6 @@ WebpInput::open(const std::string& name, ImageSpec& spec,
     m_demux = WebPDemux(&bitstream);
     if (!m_demux) {
         errorfmt("Couldn't decode");
-        close();
         return false;
     }
     uint32_t w             = WebPDemuxGetI(m_demux, WEBP_FF_CANVAS_WIDTH);

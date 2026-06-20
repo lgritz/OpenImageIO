@@ -93,7 +93,6 @@ CineonInput::open(const std::string& name, ImageSpec& newspec)
     int nchannels = m_cin.header.NumberOfElements();
     if (nchannels < 1 || nchannels > 8) {
         errorfmt("Invalid number of channels {} (must be 1-8)", nchannels);
-        close();
         return false;
     }
 

@@ -99,7 +99,6 @@ SoftimageInput::open(const std::string& name, ImageSpec& spec)
     // Try read the header
     if (!m_pic_header.read_header(m_fd)) {
         errorfmt("\"{}\": failed to read header", m_filename);
-        close();
         return false;
     }
 
@@ -108,7 +107,6 @@ SoftimageInput::open(const std::string& name, ImageSpec& spec)
         errorfmt(
             "\"{}\" is not a Softimage Pic file, magic number of 0x{:x} is not Pic",
             m_filename, m_pic_header.magic);
-        close();
         return false;
     }
 
@@ -120,18 +118,15 @@ SoftimageInput::open(const std::string& name, ImageSpec& spec)
         if (fread(&curPacket, 1, sizeof(ChannelPacket), m_fd)
             != sizeof(ChannelPacket)) {
             errorfmt("Unexpected end of file \"{}\".", m_filename);
-            close();
             return false;
         }
         // Some validity checking
         if (curPacket.size != 8 && curPacket.size != 16) {
             errorfmt("Unsupported bits per channel {}", curPacket.size);
-            close();
             return false;
         }
         if (curPacket.channelCode == 0) {
             errorfmt("Channel packet with no channels");
-            close();
             return false;
         }
         m_channel_packets.push_back(curPacket);
@@ -140,7 +135,6 @@ SoftimageInput::open(const std::string& name, ImageSpec& spec)
 
         if (m_channel_packets.size() > 4) {
             errorfmt("Too many channel packets");
-            close();
             return false;
         }
     } while (curPacket.chained);
@@ -164,7 +158,6 @@ SoftimageInput::open(const std::string& name, ImageSpec& spec)
                        chanType);
 
     if (!check_open(m_spec, { 0, 65535, 0, 65535, 0, 1, 0, 4 })) {
-        close();
         return false;
     }
 

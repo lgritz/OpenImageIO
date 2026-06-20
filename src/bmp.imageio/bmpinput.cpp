@@ -159,12 +159,10 @@ BmpInput::open(const std::string& name, ImageSpec& newspec,
     // we read header of the file that we think is BMP file
     if (!m_bmp_header.read_header(ioproxy())) {
         errorfmt("\"{}\": wrong bmp header size", name);
-        close();
         return false;
     }
     if (!m_bmp_header.isBmp()) {
         errorfmt("\"{}\" is not a BMP file, magic number doesn't match", name);
-        close();
         return false;
     }
     // Strutil::print(
@@ -174,7 +172,6 @@ BmpInput::open(const std::string& name, ImageSpec& newspec,
     //     m_bmp_header.res2, m_bmp_header.offset);
     if (!m_dib_header.read_header(ioproxy())) {
         errorfmt("\"{}\": wrong bitmap header size", name);
-        close();
         return false;
     }
     // Strutil::print(
@@ -284,7 +281,6 @@ BmpInput::open(const std::string& name, ImageSpec& newspec,
         || m_dib_header.compression == RLE8_COMPRESSION) {
         if (!read_rle_image()) {
             errorfmt("BMP error reading rle-compressed image");
-            close();
             return false;
         }
     }

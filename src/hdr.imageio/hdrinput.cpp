@@ -241,7 +241,6 @@ HdrInput::open(const std::string& name, ImageSpec& newspec)
     m_spec = ImageSpec(1, 1, 3, TypeDesc::FLOAT);
 
     if (!RGBE_ReadHeader()) {
-        close();
         return false;
     }
     m_spec.full_width  = m_spec.width;

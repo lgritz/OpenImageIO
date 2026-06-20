@@ -160,7 +160,6 @@ GIFInput::open(const std::string& name, ImageSpec& newspec)
         newspec = spec();
         return true;
     } else {
-        close();
         return false;
     }
 }

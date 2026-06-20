@@ -517,7 +517,6 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
     m_codec = create_decompressor();
     if (!m_codec) {
         errorfmt("Could not create Jpeg2000 stream decompressor");
-        close();
         return false;
     }
 
@@ -539,7 +538,6 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
     m_stream = opj_stream_default_create(true /* is_input */);
     if (!m_stream) {
         errorfmt("Could not create Jpeg2000 stream");
-        close();
         return false;
     }
 
@@ -567,7 +565,6 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
     destroy_stream();
 
     if (has_error()) {
-        close();
         return false;
     }
     OIIO_ASSERT(m_image != nullptr);
@@ -577,7 +574,6 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
     if (channelCount != 1 && channelCount != 3 && channelCount != 4) {
         errorfmt(
             "Only images with one, three or four components are supported");
-        close();
         return false;
     }
 
@@ -586,7 +582,6 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
         if (!comp.data) {
             errorfmt("Could not read Jpeg2000 component, no channel data {}",
                      c);
-            close();
             return false;
         }
     }
@@ -628,7 +623,6 @@ Jpeg2000Input::open(const std::string& name, ImageSpec& p_spec)
     if (!check_open(m_spec,
                     { 0, std::numeric_limits<int>::max(), 0,
                       std::numeric_limits<int>::max(), 0, 1, 0, 16384 })) {
-        close();
         return false;
     }
 

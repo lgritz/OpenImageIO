@@ -159,7 +159,6 @@ PNGInput::open(const std::string& name, ImageSpec& newspec)
 
     std::string s = PNG_pvt::create_read_struct(m_png, m_info, this);
     if (s.length()) {
-        close();
         if (!has_error())
             errorfmt("{}", s);
         return false;
@@ -173,7 +172,6 @@ PNGInput::open(const std::string& name, ImageSpec& newspec)
                                  m_keep_unassociated_alpha);
     if (!ok || m_err
         || !check_open(m_spec, { 0, 1 << 20, 0, 1 << 20, 0, 1, 0, 4 })) {
-        close();
         return false;
     }
 

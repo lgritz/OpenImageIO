@@ -146,15 +146,12 @@ DPXInput::open(const std::string& name, ImageSpec& newspec)
     m_dpx.SetInStream(m_stream);
     if (!m_dpx.ReadHeader()) {
         errorfmt("Could not read header");
-        close();
         return false;
     }
 
     bool ok = seek_subimage(0, 0);
     if (ok)
         newspec = spec();
-    else
-        close();
     return ok;
 }
 

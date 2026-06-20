@@ -123,7 +123,6 @@ SgiInput::open(const std::string& name, ImageSpec& spec)
     if (m_sgi_header.magic != sgi_pvt::SGI_MAGIC) {
         errorfmt("\"{}\" is not a SGI file, magic number doesn't match",
                  m_filename);
-        close();
         return false;
     }
 
@@ -144,14 +143,12 @@ SgiInput::open(const std::string& name, ImageSpec& spec)
         break;
     default:
         errorfmt("Bad dimension: {}", m_sgi_header.dimension);
-        close();
         return false;
     }
 
     if (m_sgi_header.colormap == sgi_pvt::COLORMAP
         || m_sgi_header.colormap == sgi_pvt::SCREEN) {
         errorfmt("COLORMAP and SCREEN color map types aren't supported");
-        close();
         return false;
     }
 
@@ -160,7 +157,6 @@ SgiInput::open(const std::string& name, ImageSpec& spec)
                                              : TypeDesc::UINT16);
 
     if (!check_open(m_spec, { 0, 65535, 0, 65535, 0, 1, 0, 4 })) {
-        close();
         return false;
     }
 

@@ -635,8 +635,6 @@ PSDInput::open(const std::string& name, ImageSpec& newspec)
         ok &= seek_subimage(0, 0);
     if (ok)
         newspec = spec();
-    else
-        close();
     return ok;
 }
 

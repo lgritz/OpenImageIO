@@ -206,7 +206,6 @@ IffInput::open(const std::string& name, ImageSpec& spec)
     // we read header of the file that we think is IFF file
     if (!read_header()) {
         errorfmt("IFF error could not read header");
-        close();
         return false;
     }
 
@@ -245,7 +244,6 @@ IffInput::open(const std::string& name, ImageSpec& spec)
         m_spec.tile_depth = 1;
     } else {
         errorfmt("\"{}\": wrong tile size", m_filename);
-        close();
         return false;
     }
 

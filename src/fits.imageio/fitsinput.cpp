@@ -70,7 +70,6 @@ FitsInput::open(const std::string& name, ImageSpec& spec)
     char magic[6] = { 0 };
     if (fread(magic, 1, 6, m_fd) != 6 || strncmp(magic, "SIMPLE", 6)) {
         errorfmt("{} isn't a FITS file", m_filename);
-        close();
         return false;
     }
     // moving back to the start of the file

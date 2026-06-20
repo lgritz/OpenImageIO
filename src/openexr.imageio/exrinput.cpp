@@ -317,8 +317,6 @@ OpenEXRInput::open(const std::string& name, ImageSpec& newspec,
     bool ok = seek_subimage(0, 0);
     if (ok)
         newspec = m_spec;
-    else
-        close();
     return ok;
 }
 
