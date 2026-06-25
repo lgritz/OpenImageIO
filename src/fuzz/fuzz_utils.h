@@ -36,13 +36,14 @@ oiio_fuzz_read(const uint8_t* data, size_t size, const char* fake_filename)
     OIIO::Filesystem::IOMemReader mem(data, size);
     auto inp = OIIO::ImageInput::open(fake_filename, nullptr, &mem);
     if (!inp) {
-        OIIO::geterror();
+        (void)OIIO::geterror();
         return;
     }
     const OIIO::ImageSpec& spec = inp->spec();
     if (spec.image_pixels() > 0 && spec.image_pixels() < 64 * 1024 * 1024) {
         std::vector<uint8_t> buf(spec.image_pixels() * spec.nchannels);
-        inp->read_image(0, 0, 0, spec.nchannels, OIIO::TypeUInt8, buf.data());
+        (void)inp->read_image(0, 0, 0, spec.nchannels, OIIO::TypeUInt8,
+                              buf.data());
     }
     inp->close();
 }
@@ -58,15 +59,15 @@ oiio_fuzz_read_multi(const uint8_t* data, size_t size,
     OIIO::Filesystem::IOMemReader mem(data, size);
     auto inp = OIIO::ImageInput::open(fake_filename, nullptr, &mem);
     if (!inp) {
-        OIIO::geterror();  // discard any errors
+        (void)OIIO::geterror();  // discard any errors
         return;
     }
     do {
         const OIIO::ImageSpec& spec = inp->spec();
         if (spec.image_pixels() > 0 && spec.image_pixels() < 64 * 1024 * 1024) {
             std::vector<uint8_t> buf(spec.image_pixels() * spec.nchannels);
-            inp->read_image(inp->current_subimage(), 0, 0, spec.nchannels,
-                            OIIO::TypeUInt8, buf.data());
+            (void)inp->read_image(inp->current_subimage(), 0, 0, spec.nchannels,
+                                  OIIO::TypeUInt8, buf.data());
         }
     } while (inp->seek_subimage(inp->current_subimage() + 1, 0));
     inp->close();
@@ -105,13 +106,14 @@ oiio_fuzz_read_dispatch(const uint8_t* data, size_t size,
     // Open and read via the normal public API.
     auto inp = OIIO::ImageInput::open(tmppath);
     if (!inp) {
-        OIIO::geterror();  // discard any errors
+        (void)OIIO::geterror();  // discard any errors
         return;
     }
     const OIIO::ImageSpec& spec = inp->spec();
     if (spec.image_pixels() > 0 && spec.image_pixels() < 64 * 1024 * 1024) {
         std::vector<uint8_t> buf(spec.image_pixels() * spec.nchannels);
-        inp->read_image(0, 0, 0, spec.nchannels, OIIO::TypeUInt8, buf.data());
+        (void)inp->read_image(0, 0, 0, spec.nchannels, OIIO::TypeUInt8,
+                              buf.data());
     }
     inp->close();
 }
