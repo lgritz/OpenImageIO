@@ -88,4 +88,6 @@ jobs:
       setenvs: export SANITIZE=address,undefined
                       USE_PYTHON=0
                       OIIO_BUILD_FUZZ_TARGETS=ON
-                      OIIO_CMAKE_FLAGS='-DBUILD_TESTING=OFF'
+                      INSTALL_DOCS=OFF
+                      OIIO_BUILD_TOOLS=OFF
+                      OIIO_BUILD_TESTS=OFF

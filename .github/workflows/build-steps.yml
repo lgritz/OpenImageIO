@@ -267,7 +267,7 @@ jobs:
       - name: Build fuzz target
         if: inputs.fuzz_format != ''
         shell: bash
-        run: cmake --build build --target fuzz_image
+        run: cmake --build build --target all_fuzz_targets
 
       - name: Checkout oiio-images for fuzz seeding
         if: inputs.fuzz_format != ''
