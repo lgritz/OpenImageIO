@@ -238,6 +238,9 @@ private:
     bool validate_header();
     static bool validate_signature(const char signature[4]);
     bool validate_resolution(string_view name, uint32_t width, uint32_t height);
+    bool validate_resolution(string_view name, uint32_t top, uint32_t left,
+                             uint32_t bottom, uint32_t right, uint32_t& width,
+                             uint32_t& height);
 
     //Color Mode Data
     bool load_color_data();
@@ -972,14 +975,28 @@ PSDInput::validate_signature(const char signature[4])
 bool
 PSDInput::validate_resolution(string_view name, uint32_t width, uint32_t height)
 {
-    if (width < 1 || width > m_maxres) {
-        errorfmt("[{}] invalid image width {}", name, width);
+    if (width < 1 || width > m_maxres || height < 1 || height > m_maxres) {
+        errorfmt("[{}] invalid image size {}x{}", name, width, height);
         return false;
     }
-    if (height < 1 || height > m_maxres) {
-        errorfmt("[{}] invalid image height {}", name, height);
+    return true;
+}
+
+
+
+bool
+PSDInput::validate_resolution(string_view name, uint32_t top, uint32_t left,
+                              uint32_t bottom, uint32_t right, uint32_t& width,
+                              uint32_t& height)
+{
+    int64_t w = int64_t(right) - int64_t(left);
+    int64_t h = int64_t(bottom) - int64_t(top);
+    if (w < 1 || w > m_maxres || h < 1 || h > m_maxres) {
+        errorfmt("[{}] invalid image size {}x{}", name, w, h);
         return false;
     }
+    width  = uint32_t(w);
+    height = uint32_t(h);
     return true;
 }
 
@@ -1525,9 +1542,9 @@ PSDInput::load_layer(Layer& layer)
     if (!ok)
         return false;
 
-    layer.width  = std::abs((int)layer.right - (int)layer.left);
-    layer.height = std::abs((int)layer.bottom - (int)layer.top);
-    if (!validate_resolution("Layer Record", layer.width, layer.height))
+    if (!validate_resolution("Layer Record", layer.top, layer.left,
+                             layer.bottom, layer.right, layer.width,
+                             layer.height))
         return false;
     layer.channel_info.resize(layer.channel_count);
     for (uint16_t channel = 0; channel < layer.channel_count; channel++) {
@@ -1654,16 +1671,14 @@ PSDInput::load_layer_channel(Layer& layer, ChannelInfo& channel_info)
     // Use mask_data size when channel_id is -2
     uint32_t width, height;
     if (channel_info.channel_id == ChannelID_LayerMask) {
-        width  = (uint32_t)std::abs((int)layer.mask_data.right
-                                    - (int)layer.mask_data.left);
-        height = (uint32_t)std::abs((int)layer.mask_data.bottom
-                                    - (int)layer.mask_data.top);
+        if (!validate_resolution("layer_channel", layer.mask_data.top,
+                                 layer.mask_data.left, layer.mask_data.bottom,
+                                 layer.mask_data.right, width, height))
+            return false;
     } else {
         width  = layer.width;
         height = layer.height;
     }
-    if (!validate_resolution("layer_channel", width, height))
-        return false;
     channel_info.width  = width;
     channel_info.height = height;
 
