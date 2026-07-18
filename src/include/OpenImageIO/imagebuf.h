@@ -431,6 +431,50 @@ public:
                stride_t xstride = AutoStride, stride_t ystride = AutoStride,
                stride_t zstride = AutoStride);
 
+    /// For an ImageBuf that is the in-memory representation of a file (is not
+    /// writable and is not a copy or computed image from another ImageBuf),
+    /// advance to the next subimage in the file.
+    ///
+    /// There are three possibilitie for the outcome:
+    /// - The ImageBuf successfully advances to the next subimage (returns
+    ///   `true`).
+    /// - It was previously on the last subimage of the file (returns `false`
+    ///   but `ImageBuf::has_error()` will return false).
+    /// - There was an error reading the next subimage, or the ImageBuf does
+    ///   not represent an unaltered file image (returns `false`, and an
+    ///   error message can be retrieved via `has_error()` and `geterror()`).
+    ///
+    /// @returns
+    ///             Returns `true` if the ImageBuf has advanced to the next
+    ///             subimage, or `false` if it was already representing the
+    ///             last subimage of the file, if there was an error reading
+    ///             the next subimage, or the image is not representing an
+    ///             unaltered file.
+    ///
+    bool next_subimage();
+
+    /// For an ImageBuf that is the in-memory representation of a file (is not
+    /// writable and is not a copy or computed image from another ImageBuf),
+    /// advance to the next MIP level of the current subimage of the file.
+    ///
+    /// There are three possibilitie for the outcome:
+    /// - The ImageBuf successfully advances to the next MIP level of the
+    ///   current subimage (returns `true`).
+    /// - It was previously on the last MIP level of the subimage (returns
+    ///   `false` but `ImageBuf::has_error()` will return false).
+    /// - There was an error reading the MIP level, or the ImageBuf does
+    ///   not represent an unaltered file image (returns `false`, and an
+    ///   error message can be retrieved via `has_error()` and `geterror()`).
+    ///
+    /// @returns
+    ///             Returns `true` if the ImageBuf has advanced to the next
+    ///             MIP level of the current subimage, or `false` if it was
+    ///             already representing the last subimage of the file, if 
+    ///             here was an error reading the next subimage, or the image
+    ///             is not representing an unaltered file.
+    ///
+    bool next_miplevel();
+
     /// Make the ImageBuf be writable. That means that if it was previously
     /// backed by an ImageCache (storage was `IMAGECACHE`), it will force a
     /// full read so that the whole image is in local memory. This will
@@ -1357,6 +1401,9 @@ public:
     /// The data type of the pixels stored in the buffer (equivalent to
     /// `spec().format`).
     TypeDesc pixeltype() const;
+
+    /// Return true if this ImageBuf is an unaltred representation of a file.
+    bool from_file(void) const;
 
     /// Return a raw pointer to "local" pixel memory, if they are fully in
     /// RAM and not backed by an ImageCache, or `nullptr` otherwise.  You

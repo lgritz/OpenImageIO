@@ -208,6 +208,14 @@ public:
     {
         return m_spec_valid && m_storage != ImageBuf::UNINITIALIZED;
     }
+    bool from_file() const
+    {
+        if (m_from_file) {
+            OIIO_CONTRACT_ASSERT(!m_name.empty());
+        }
+        return m_from_file;
+    }
+
     bool cachedpixels() const { return m_storage == ImageBuf::IMAGECACHE; }
     void* localpixels() const { return m_bufspan.data(); }
 
@@ -353,7 +361,8 @@ private:
     mutable bool m_pixels_valid = false;  // Image is valid
     mutable bool m_pixels_read = false;  // Is file already in the local pixels?
     bool m_readonly            = true;   // The bufspan is read-only
-    bool m_badfile             = false;  // File not found
+    bool m_from_file           = false;  // The IB represents an unaltered file
+    bool m_badfile             = false;  // File not found (default: no)
     float m_pixelaspect        = 1.0f;   // Pixel aspect ratio of the image
     bool m_contiguous          = false;  // Full image is contiguous in memory
     bool m_contiguous_scanline = false;  // Scanlines are contiguous in memory
@@ -513,6 +522,7 @@ ImageBufImpl::ImageBufImpl(const ImageBufImpl& src)
     , m_spec(src.m_spec)
     , m_nativespec(src.m_nativespec)
     , m_readonly(src.m_readonly)
+    , m_from_file(src.m_from_file)
     , m_badfile(src.m_badfile)
     , m_pixelaspect(src.m_pixelaspect)
     , m_contiguous(src.m_contiguous)
@@ -875,6 +885,7 @@ ImageBufImpl::clear()
     m_pixels_valid        = false;
     m_badfile             = false;
     m_pixels_read         = false;
+    m_from_file           = false;
     m_pixelaspect         = 1;
     m_contiguous          = false;
     m_contiguous_scanline = false;
@@ -932,6 +943,7 @@ ImageBufImpl::reset(string_view filename, int subimage, int miplevel,
             read(subimage, miplevel);
         else
             init_spec(m_name, subimage, miplevel, DoLock(true));
+        m_from_file = true;
     }
 }
 
@@ -1054,6 +1066,44 @@ ImageBuf::reset(const ImageSpec& spec, span<std::byte> buffer,
                      ystride, zstride);
     OIIO_ASSERT(image_span_within_span(ispan, buffer));
     m_impl->reset("", spec, nullptr, ispan, false /*readonly*/);
+}
+
+
+
+bool
+ImageBuf::next_subimage()
+{
+    if (!from_file()) {
+        // Not a file-representing ImageBuf
+        errorfmt("next_subimage(): not a file image");
+        return false;
+    }
+    if (subimage() >= nsubimages()) {
+        // On the last MIP level: return false but not an error
+        return false;
+    }
+    reset(name(), subimage() + 1, 0, m_impl->m_imagecache,
+          m_impl->m_configspec.get(), m_impl->m_rioproxy);
+    return !has_error();
+}
+
+
+
+bool
+ImageBuf::next_miplevel()
+{
+    if (!from_file()) {
+        // Not a file-representing ImageBuf
+        errorfmt("next_miplevel(): not a file image");
+        return false;
+    }
+    if (miplevel() >= nmiplevels()) {
+        // On the last MIP level: return false but not an error
+        return false;
+    }
+    reset(name(), subimage(), miplevel() + 1, m_impl->m_imagecache,
+          m_impl->m_configspec.get(), m_impl->m_rioproxy);
+    return !has_error();
 }
 
 
@@ -2138,6 +2188,14 @@ TypeDesc
 ImageBuf::pixeltype() const
 {
     return m_impl->pixeltype();
+}
+
+
+
+bool
+ImageBuf::from_file() const
+{
+    return m_impl->from_file();
 }
 
 
