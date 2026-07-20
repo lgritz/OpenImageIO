@@ -388,15 +388,15 @@ private:
         = ImageBuf::UNINITIALIZED;  // Pixel storage class
     ustring m_name;                 // Filename of the image
     ustring m_fileformat;           // File format name
-    int m_nsubimages       = 0;     // How many subimages are there,
-                                     //   or -1 if not yet known (see nsubimages())
-    int m_current_subimage = 0;     // Current subimage we're viewing
-    int m_current_miplevel = 0;     // Current miplevel we're viewing
-    int m_nmiplevels       = 0;     // # of MIP levels in current subimage,
-                                     //   or -1 if not yet known (see nmiplevels())
-    mutable int m_threads  = 0;     // thread policy for this image
-    ImageSpec m_spec;               // Describes the image (size, etc)
-    ImageSpec m_nativespec;         // Describes the true native image
+    int m_nsubimages = 0;           // How many subimages are there,
+    //   or -1 if not yet known (see nsubimages())
+    int m_current_subimage = 0;  // Current subimage we're viewing
+    int m_current_miplevel = 0;  // Current miplevel we're viewing
+    int m_nmiplevels       = 0;  // # of MIP levels in current subimage,
+                                 //   or -1 if not yet known (see nmiplevels())
+    mutable int m_threads = 0;   // thread policy for this image
+    ImageSpec m_spec;            // Describes the image (size, etc)
+    ImageSpec m_nativespec;      // Describes the true native image
     std::unique_ptr<char[]> m_pixels;  // Pixel data, if local and we own it
     image_span<std::byte> m_bufspan;   // Bounded buffer for local pixels
     typedef std::recursive_mutex mutex_t;
@@ -3077,7 +3077,7 @@ ImageBuf::set_deep_samples(int x, int y, int z, int samps)
     if (!deep())
         return;
     m_impl->m_from_file = false;
-    int p = m_impl->pixelindex(x, y, z);
+    int p               = m_impl->pixelindex(x, y, z);
     m_impl->m_deepdata.set_samples(p, samps);
 }
 
@@ -3089,7 +3089,7 @@ ImageBuf::deep_insert_samples(int x, int y, int z, int samplepos, int nsamples)
     if (!deep())
         return;
     m_impl->m_from_file = false;
-    int p = m_impl->pixelindex(x, y, z);
+    int p               = m_impl->pixelindex(x, y, z);
     m_impl->m_deepdata.insert_samples(p, samplepos, nsamples);
 }
 
@@ -3101,7 +3101,7 @@ ImageBuf::deep_erase_samples(int x, int y, int z, int samplepos, int nsamples)
     if (!deep())
         return;
     m_impl->m_from_file = false;
-    int p = m_impl->pixelindex(x, y, z);
+    int p               = m_impl->pixelindex(x, y, z);
     m_impl->m_deepdata.erase_samples(p, samplepos, nsamples);
 }
 
@@ -3114,7 +3114,7 @@ ImageBuf::set_deep_value(int x, int y, int z, int c, int s, float value)
     if (!deep())
         return;
     m_impl->m_from_file = false;
-    int p = m_impl->pixelindex(x, y, z);
+    int p               = m_impl->pixelindex(x, y, z);
     return m_impl->m_deepdata.set_deep_value(p, c, s, value);
 }
 
@@ -3127,7 +3127,7 @@ ImageBuf::set_deep_value(int x, int y, int z, int c, int s, uint32_t value)
     if (!deep())
         return;
     m_impl->m_from_file = false;
-    int p = m_impl->pixelindex(x, y, z);
+    int p               = m_impl->pixelindex(x, y, z);
     return m_impl->m_deepdata.set_deep_value(p, c, s, value);
 }
 
@@ -3142,8 +3142,8 @@ ImageBuf::copy_deep_pixel(int x, int y, int z, const ImageBuf& src, int srcx,
     if (!deep() || !src.deep())
         return false;
     m_impl->m_from_file = false;
-    int p    = pixelindex(x, y, z);
-    int srcp = src.pixelindex(srcx, srcy, srcz);
+    int p               = pixelindex(x, y, z);
+    int srcp            = src.pixelindex(srcx, srcy, srcz);
     return m_impl->m_deepdata.copy_deep_pixel(p, *src.deepdata(), srcp);
 }
 

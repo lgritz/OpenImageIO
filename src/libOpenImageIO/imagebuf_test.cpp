@@ -417,7 +417,7 @@ test_next_subimage_and_miplevel()
         A.geterror();  // clear it
         OIIO_CHECK_ASSERT(!A.next_miplevel());
         OIIO_CHECK_ASSERT(A.has_error());
-        A.geterror();  // clear it
+        A.geterror();                        // clear it
         OIIO_CHECK_ASSERT(A.initialized());  // still intact
     }
 
@@ -525,7 +525,7 @@ test_from_file_tracking()
 
     // Direct pixel write via setpixel() (goes through ImageBuf::Iterator).
     {
-        ImageBuf A = reload();
+        ImageBuf A   = reload();
         float pix[3] = { 1, 1, 1 };
         A.setpixel(0, 0, 0, make_span(pix));
         OIIO_CHECK_ASSERT(!A.from_file());
@@ -543,7 +543,7 @@ test_from_file_tracking()
 
     // set_pixels().
     {
-        ImageBuf A = reload();
+        ImageBuf A       = reload();
         float newdata[3] = { 1, 2, 3 };
         A.set_pixels(ROI(0, 1, 0, 1, 0, 1), make_span(newdata));
         OIIO_CHECK_ASSERT(!A.from_file());
@@ -591,7 +591,7 @@ test_from_file_tracking()
     // An ImageBufAlgo function writing in-place into an already-initialized,
     // file-backed dst (the common `ImageBufAlgo::foo(buf, buf, ...)` idiom).
     {
-        ImageBuf A = reload();
+        ImageBuf A         = reload();
         float fillcolor[3] = { 1, 1, 1 };
         ImageBufAlgo::fill(A, make_span(fillcolor));
         OIIO_CHECK_ASSERT(!A.from_file());
