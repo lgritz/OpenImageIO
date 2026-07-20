@@ -435,7 +435,7 @@ public:
     /// writable and is not a copy or computed image from another ImageBuf),
     /// advance to the next subimage in the file.
     ///
-    /// There are three possibilitie for the outcome:
+    /// There are three possibilities for the outcome:
     /// - The ImageBuf successfully advances to the next subimage (returns
     ///   `true`).
     /// - It was previously on the last subimage of the file (returns `false`
@@ -457,7 +457,7 @@ public:
     /// writable and is not a copy or computed image from another ImageBuf),
     /// advance to the next MIP level of the current subimage of the file.
     ///
-    /// There are three possibilitie for the outcome:
+    /// There are three possibilities for the outcome:
     /// - The ImageBuf successfully advances to the next MIP level of the
     ///   current subimage (returns `true`).
     /// - It was previously on the last MIP level of the subimage (returns
@@ -469,9 +469,9 @@ public:
     /// @returns
     ///             Returns `true` if the ImageBuf has advanced to the next
     ///             MIP level of the current subimage, or `false` if it was
-    ///             already representing the last subimage of the file, if 
-    ///             here was an error reading the next subimage, or the image
-    ///             is not representing an unaltered file.
+    ///             already representing the last MIP level of the subimage,
+    ///             if there was an error reading the next MIP level, or the
+    ///             image is not representing an unaltered file.
     ///
     bool next_miplevel();
 
@@ -1402,7 +1402,7 @@ public:
     /// `spec().format`).
     TypeDesc pixeltype() const;
 
-    /// Return true if this ImageBuf is an unaltred representation of a file.
+    /// Return true if this ImageBuf is an unaltered representation of a file.
     bool from_file(void) const;
 
     /// Return a raw pointer to "local" pixel memory, if they are fully in

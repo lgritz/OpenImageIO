@@ -351,6 +351,161 @@ test_open_with_config()
 
 
 
+// Write a multi-subimage TIFF, one small solid-color image per subimage,
+// each subimage a different size so we can distinguish them on readback.
+static void
+write_multisubimage_tiff(string_view filename, cspan<int> sizes)
+{
+    std::vector<ImageSpec> specs;
+    for (int size : sizes)
+        specs.emplace_back(size, size, 3, TypeDesc::FLOAT);
+    auto out = ImageOutput::create(filename);
+    OIIO_CHECK_ASSERT(out != nullptr);
+    for (size_t i = 0; i < specs.size(); ++i) {
+        bool ok = (i == 0) ? out->open(filename, specs[i])
+                           : out->open(filename, specs[i],
+                                       ImageOutput::AppendSubimage);
+        OIIO_CHECK_ASSERT(ok);
+        std::vector<float> pixels(specs[i].image_pixels() * specs[i].nchannels,
+                                  float(i));
+        OIIO_CHECK_ASSERT(out->write_image(TypeDesc::FLOAT, pixels.data()));
+    }
+    OIIO_CHECK_ASSERT(out->close());
+}
+
+
+
+// Write a MIP-mapped TIFF: a sequence of halving-resolution subimages
+// marked as a texture (so the TIFF reader treats them as MIP levels of a
+// single subimage rather than independent subimages).
+static void
+write_miplevel_tiff(string_view filename, cspan<int> sizes)
+{
+    std::vector<ImageSpec> specs;
+    for (int size : sizes) {
+        specs.emplace_back(size, size, 3, TypeDesc::FLOAT);
+        specs.back().attribute("textureformat", "Plain Texture");
+    }
+    auto out = ImageOutput::create(filename);
+    OIIO_CHECK_ASSERT(out != nullptr);
+    for (size_t i = 0; i < specs.size(); ++i) {
+        bool ok = (i == 0) ? out->open(filename, specs[i])
+                           : out->open(filename, specs[i],
+                                       ImageOutput::AppendSubimage);
+        OIIO_CHECK_ASSERT(ok);
+        std::vector<float> pixels(specs[i].image_pixels() * specs[i].nchannels,
+                                  float(i));
+        OIIO_CHECK_ASSERT(out->write_image(TypeDesc::FLOAT, pixels.data()));
+    }
+    OIIO_CHECK_ASSERT(out->close());
+}
+
+
+
+void
+test_next_subimage_and_miplevel()
+{
+    std::cout << "\nTesting next_subimage() and next_miplevel():\n";
+
+    // A plain (non-file) ImageBuf isn't a file image at all: both methods
+    // should fail with an error, and leave the buffer untouched.
+    {
+        ImageBuf A(ImageSpec(4, 4, 3, TypeDesc::FLOAT));
+        OIIO_CHECK_ASSERT(!A.from_file());
+        OIIO_CHECK_ASSERT(!A.next_subimage());
+        OIIO_CHECK_ASSERT(A.has_error());
+        A.geterror();  // clear it
+        OIIO_CHECK_ASSERT(!A.next_miplevel());
+        OIIO_CHECK_ASSERT(A.has_error());
+        A.geterror();  // clear it
+        OIIO_CHECK_ASSERT(A.initialized());  // still intact
+    }
+
+    // next_subimage(): walk a 3-subimage TIFF, opened without an
+    // ImageCache (the common/default construction path).
+    {
+        const int sizes[] = { 4, 6, 8 };
+        write_multisubimage_tiff("next_subimage_test.tif", sizes);
+
+        ImageBuf A("next_subimage_test.tif");
+        OIIO_CHECK_ASSERT(A.from_file());
+        OIIO_CHECK_EQUAL(A.nsubimages(), 3);
+        for (int i = 0; i < 3; ++i) {
+            OIIO_CHECK_EQUAL(A.subimage(), i);
+            OIIO_CHECK_EQUAL(A.spec().width, sizes[i]);
+            OIIO_CHECK_EQUAL(A.getchannel(0, 0, 0, 0), float(i));
+            bool more = A.next_subimage();
+            OIIO_CHECK_EQUAL(more, i < 2);
+            OIIO_CHECK_ASSERT(!A.has_error());
+        }
+        // We're on the last subimage. Calling again must not clobber the
+        // ImageBuf or raise an error.
+        OIIO_CHECK_ASSERT(!A.next_subimage());
+        OIIO_CHECK_ASSERT(!A.has_error());
+        OIIO_CHECK_EQUAL(A.subimage(), 2);
+        OIIO_CHECK_EQUAL(A.spec().width, sizes[2]);
+
+        // Once made writable (and thus potentially altered), next_subimage()
+        // should refuse to run rather than silently discarding edits.
+        A.make_writable();
+        OIIO_CHECK_ASSERT(!A.from_file());
+        OIIO_CHECK_ASSERT(!A.next_subimage());
+        OIIO_CHECK_ASSERT(A.has_error());
+        A.geterror();
+    }
+
+    // next_miplevel(): walk a 3-level MIP-mapped TIFF, again opened without
+    // an ImageCache, so nmiplevels() must be discovered lazily by probing.
+    {
+        const int sizes[] = { 8, 4, 2 };
+        write_miplevel_tiff("next_miplevel_test.tif", sizes);
+
+        ImageBuf A("next_miplevel_test.tif");
+        OIIO_CHECK_ASSERT(A.from_file());
+        OIIO_CHECK_EQUAL(A.nmiplevels(), 3);
+        for (int i = 0; i < 3; ++i) {
+            OIIO_CHECK_EQUAL(A.miplevel(), i);
+            OIIO_CHECK_EQUAL(A.spec().width, sizes[i]);
+            bool more = A.next_miplevel();
+            OIIO_CHECK_EQUAL(more, i < 2);
+            OIIO_CHECK_ASSERT(!A.has_error());
+        }
+        OIIO_CHECK_ASSERT(!A.next_miplevel());
+        OIIO_CHECK_ASSERT(!A.has_error());
+        OIIO_CHECK_EQUAL(A.miplevel(), 2);
+        OIIO_CHECK_EQUAL(A.spec().width, sizes[2]);
+    }
+
+    // Same two files again, but backed by an explicit ImageCache, to make
+    // sure the IC-backed path (which already knew nsubimages/nmiplevels
+    // eagerly, before this feature was added) still agrees.
+    {
+        auto ic = ImageCache::create(false);
+        ImageBuf A("next_subimage_test.tif", 0, 0, ic);
+        OIIO_CHECK_EQUAL(A.nsubimages(), 3);
+        int count = 1;
+        while (A.next_subimage())
+            ++count;
+        OIIO_CHECK_EQUAL(count, 3);
+        OIIO_CHECK_ASSERT(!A.has_error());
+        A.clear();  // don't outlive our private ImageCache
+
+        ImageBuf B("next_miplevel_test.tif", 0, 0, ic);
+        OIIO_CHECK_EQUAL(B.nmiplevels(), 3);
+        count = 1;
+        while (B.next_miplevel())
+            ++count;
+        OIIO_CHECK_EQUAL(count, 3);
+        OIIO_CHECK_ASSERT(!B.has_error());
+        B.clear();
+    }
+
+    Filesystem::remove("next_subimage_test.tif");
+    Filesystem::remove("next_miplevel_test.tif");
+}
+
+
+
 void
 test_empty_iterator()
 {
@@ -837,6 +992,7 @@ main(int argc, char* argv[])
     ImageBuf_test_appbuffer();
     ImageBuf_test_appbuffer_strided();
     test_open_with_config();
+    test_next_subimage_and_miplevel();
     test_read_channel_subset();
 
     test_set_get_pixels();

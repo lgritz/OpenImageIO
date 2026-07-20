@@ -100,6 +100,9 @@ Getting and setting information about an ImageBuf
 .. doxygenfunction:: OIIO::ImageBuf::nsubimages
 .. doxygenfunction:: OIIO::ImageBuf::miplevel
 .. doxygenfunction:: OIIO::ImageBuf::nmiplevels
+.. doxygenfunction:: OIIO::ImageBuf::next_subimage
+.. doxygenfunction:: OIIO::ImageBuf::next_miplevel
+.. doxygenfunction:: OIIO::ImageBuf::from_file
 .. doxygenfunction:: OIIO::ImageBuf::nchannels
 
 

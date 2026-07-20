@@ -216,6 +216,43 @@ public:
         return m_from_file;
     }
 
+    // Number of subimages and MIP levels. For a non-ImageCache-backed file
+    // image, neither is known for free at open time -- getting an accurate
+    // count requires extra seeks to probe the file. So we don't pay for it
+    // unless somebody asks: m_nsubimages/m_nmiplevels are left as -1
+    // ("unknown") and computed lazily here, once, on demand.
+    int nsubimages() const
+    {
+        validate_spec();
+        if (m_nsubimages < 0) {
+            lock_t lock(m_mutex);
+            if (m_nsubimages < 0) {
+                ImageBufImpl* imp = const_cast<ImageBufImpl*>(this);
+                imp->m_nsubimages = imp->compute_nsubimages();
+            }
+        }
+        return m_nsubimages;
+    }
+
+    int nmiplevels() const
+    {
+        validate_spec();
+        if (m_nmiplevels < 0) {
+            lock_t lock(m_mutex);
+            if (m_nmiplevels < 0) {
+                ImageBufImpl* imp = const_cast<ImageBufImpl*>(this);
+                imp->m_nmiplevels = imp->compute_nmiplevels();
+            }
+        }
+        return m_nmiplevels;
+    }
+
+    // Probe the file to count how many subimages/MIP levels it has, for a
+    // non-ImageCache-backed file image. Only called lazily, from
+    // nsubimages()/nmiplevels(), the first time the count is actually needed.
+    int compute_nsubimages() const;
+    int compute_nmiplevels() const;
+
     bool cachedpixels() const { return m_storage == ImageBuf::IMAGECACHE; }
     void* localpixels() const { return m_bufspan.data(); }
 
@@ -345,10 +382,12 @@ private:
         = ImageBuf::UNINITIALIZED;  // Pixel storage class
     ustring m_name;                 // Filename of the image
     ustring m_fileformat;           // File format name
-    int m_nsubimages       = 0;     // How many subimages are there?
+    int m_nsubimages       = 0;     // How many subimages are there,
+                                     //   or -1 if not yet known (see nsubimages())
     int m_current_subimage = 0;     // Current subimage we're viewing
     int m_current_miplevel = 0;     // Current miplevel we're viewing
-    int m_nmiplevels       = 0;     // # of MIP levels in the current subimage
+    int m_nmiplevels       = 0;     // # of MIP levels in current subimage,
+                                     //   or -1 if not yet known (see nmiplevels())
     mutable int m_threads  = 0;     // thread policy for this image
     ImageSpec m_spec;               // Describes the image (size, etc)
     ImageSpec m_nativespec;         // Describes the true native image
@@ -569,6 +608,7 @@ ImageBufImpl::ImageBufImpl(const ImageBufImpl& src)
         m_current_subimage = 0;
         m_current_miplevel = 0;
         m_nmiplevels       = 0;
+        m_from_file        = false;
         m_spec.erase_attribute("oiio:subimages");
         m_nativespec.erase_attribute("oiio:subimages");
         m_pixels_read = true;
@@ -1078,8 +1118,8 @@ ImageBuf::next_subimage()
         errorfmt("next_subimage(): not a file image");
         return false;
     }
-    if (subimage() >= nsubimages()) {
-        // On the last MIP level: return false but not an error
+    if (subimage() + 1 >= nsubimages()) {
+        // Already on the last subimage: return false but not an error
         return false;
     }
     reset(name(), subimage() + 1, 0, m_impl->m_imagecache,
@@ -1097,8 +1137,8 @@ ImageBuf::next_miplevel()
         errorfmt("next_miplevel(): not a file image");
         return false;
     }
-    if (miplevel() >= nmiplevels()) {
-        // On the last MIP level: return false but not an error
+    if (miplevel() + 1 >= nmiplevels()) {
+        // Already on the last MIP level: return false but not an error
         return false;
     }
     reset(name(), subimage(), miplevel() + 1, m_impl->m_imagecache,
@@ -1325,9 +1365,19 @@ ImageBufImpl::init_spec(string_view filename, int subimage, int miplevel,
         m_blackpixel.resize(
             round_to_multiple(m_spec.pixel_bytes(), OIIO_SIMD_MAX_SIZE_BYTES));
         // ^^^ NB make it big enough for SIMD
-        m_nsubimages = input->supports("multiimage")
-                           ? m_spec.get_int_attribute("oiio:subimages")
-                           : 1;
+        if (!input->supports("multiimage")) {
+            m_nsubimages = 1;
+        } else if (int n = m_spec.get_int_attribute("oiio:subimages", 0)) {
+            // Some formats advertise the count directly in the spec.
+            m_nsubimages = n;
+        } else {
+            // Not known for free -- finding it requires probing the file
+            // with extra seeks. Leave it as "unknown" and let nsubimages()
+            // compute it lazily on demand.
+            m_nsubimages = -1;
+        }
+        // Same story for MIP levels.
+        m_nmiplevels = -1;
 
         // Go ahead and read any thumbnail that exists. Is that bad?
         if (m_spec["thumbnail_width"].get<int>()
@@ -1343,6 +1393,50 @@ ImageBufImpl::init_spec(string_view filename, int subimage, int miplevel,
         atomic_fetch_add(OIIO::pvt::IB_total_open_time, float(timer()));
     }
     return !m_badfile;
+}
+
+
+
+int
+ImageBufImpl::compute_nsubimages() const
+{
+    OIIO_DASSERT(!m_imagecache);  // IC-backed files already know their count
+    if (!m_spec_valid)
+        return 0;
+    // Some formats advertise the count directly in the spec.
+    int ns = m_spec.get_int_attribute("oiio:subimages", 0);
+    if (ns > 0)
+        return ns;
+    auto input = ImageInput::open(m_name.string(), m_configspec.get(),
+                                  m_rioproxy);
+    if (!input || !input->supports("multiimage"))
+        return 1;
+    ns = 0;
+    while (input->seek_subimage(ns, 0))
+        ++ns;
+    return ns > 0 ? ns : 1;
+}
+
+
+
+int
+ImageBufImpl::compute_nmiplevels() const
+{
+    OIIO_DASSERT(!m_imagecache);  // IC-backed files already know their count
+    if (m_current_subimage < 0 || !m_spec_valid)
+        return 0;
+    // Some formats advertise the count directly in the spec.
+    int nmip = m_spec.get_int_attribute("oiio:miplevels", 0);
+    if (nmip > 0)
+        return nmip;
+    auto input = ImageInput::open(m_name.string(), m_configspec.get(),
+                                  m_rioproxy);
+    if (!input || !input->supports("mipmap"))
+        return 1;
+    nmip = 0;
+    while (input->seek_subimage(m_current_subimage, nmip))
+        ++nmip;
+    return nmip > 0 ? nmip : 1;
 }
 
 
@@ -1879,6 +1973,9 @@ ImageBuf::write(string_view _filename, TypeDesc dtype, string_view _fileformat,
 bool
 ImageBuf::make_writable(bool keep_cache_type)
 {
+    // Calling this is the caller's declaration of intent to mutate pixels,
+    // so this is no longer an unaltered representation of the file.
+    m_impl->m_from_file = false;
     if (storage() == IMAGECACHE) {
         return read(subimage(), miplevel(), 0, -1, true /*force*/,
                     keep_cache_type ? m_impl->m_cachedpixeltype : TypeDesc());
@@ -2123,8 +2220,7 @@ ImageBuf::subimage() const
 int
 ImageBuf::nsubimages() const
 {
-    m_impl->validate_spec();
-    return m_impl->m_nsubimages;
+    return m_impl->nsubimages();
 }
 
 
@@ -2138,8 +2234,7 @@ ImageBuf::miplevel() const
 int
 ImageBuf::nmiplevels() const
 {
-    m_impl->validate_spec();
-    return m_impl->m_nmiplevels;
+    return m_impl->nmiplevels();
 }
 
 
@@ -2428,6 +2523,7 @@ ImageBuf::copy_pixels(const ImageBuf& src)
     m_impl->m_current_subimage = 0;
     m_impl->m_current_miplevel = 0;
     m_impl->m_nmiplevels       = 0;
+    m_impl->m_from_file        = false;
     m_impl->m_spec.erase_attribute("oiio:subimages");
     m_impl->m_nativespec.erase_attribute("oiio:subimages");
 

@@ -1873,6 +1873,51 @@ awaiting a call to `reset()` or `copy()` before it is useful.
     level, and the total numbers thereof in the file.
 
 
+.. py:attribute:: ImageBuf.from_file
+
+    `True` if this ImageBuf is the unaltered in-memory representation of a
+    file (it has not been made writable, and is not a copy or a computed
+    image derived from another ImageBuf), otherwise `False`.
+
+
+.. py:method:: ImageBuf.next_subimage()
+
+    For an ImageBuf that is the unaltered in-memory representation of a
+    file, advance to the next subimage in the file.
+
+    Returns `True` if the ImageBuf successfully advanced to the next
+    subimage. Returns `False` if it was already on the last subimage of the
+    file (in which case `ImageBuf.has_error` will be `False`), or if there
+    was an error reading the next subimage or the ImageBuf does not
+    represent an unaltered file image (in which case `ImageBuf.has_error`
+    will be `True` and `ImageBuf.geterror()` will describe the problem).
+
+    Example: visit every subimage of a multi-part file:
+
+    .. code-block:: python
+
+        buf = ImageBuf ("multipart.exr")
+        while True:
+            print ("Subimage", buf.subimage, ":",
+                   buf.spec().width, "x", buf.spec().height)
+            if not buf.next_subimage():
+                break
+
+
+.. py:method:: ImageBuf.next_miplevel()
+
+    For an ImageBuf that is the unaltered in-memory representation of a
+    file, advance to the next MIP level of the current subimage in the
+    file.
+
+    Returns `True` if the ImageBuf successfully advanced to the next MIP
+    level. Returns `False` if it was already on the last MIP level of the
+    subimage (in which case `ImageBuf.has_error` will be `False`), or if
+    there was an error reading the next MIP level or the ImageBuf does not
+    represent an unaltered file image (in which case `ImageBuf.has_error`
+    will be `True` and `ImageBuf.geterror()` will describe the problem).
+
+
 .. py:attribute:: ImageBuf.xbegin
                ImageBuf.xend
                ImageBuf.ybegin

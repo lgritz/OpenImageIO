@@ -419,6 +419,19 @@ declare_imagebuf(py::module& m)
         .def_property_readonly("nsubimages", &ImageBuf::nsubimages)
         .def_property_readonly("miplevel", &ImageBuf::miplevel)
         .def_property_readonly("nmiplevels", &ImageBuf::nmiplevels)
+        .def_property_readonly("from_file", &ImageBuf::from_file)
+        .def(
+            "next_subimage",
+            [](ImageBuf& self) {
+                py::gil_scoped_release gil;
+                return self.next_subimage();
+            })
+        .def(
+            "next_miplevel",
+            [](ImageBuf& self) {
+                py::gil_scoped_release gil;
+                return self.next_miplevel();
+            })
         .def_property_readonly("nchannels", &ImageBuf::nchannels)
         .def_property("orientation", &ImageBuf::orientation,
                       &ImageBuf::set_orientation)
