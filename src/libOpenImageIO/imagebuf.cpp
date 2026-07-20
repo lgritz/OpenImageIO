@@ -322,9 +322,15 @@ public:
         validate_spec();
         return m_nativespec;
     }
+    // Handing out a writable spec reference is a declaration of intent to
+    // alter it, so it's no longer an unaltered file image. This is the
+    // single choke point for spec mutation, so every caller (the public
+    // ImageBuf::specmod(), set_orientation/origin/full, copy_metadata,
+    // merge_metadata, etc.) gets covered here rather than at each site.
     ImageSpec& specmod()
     {
         validate_spec();
+        m_from_file = false;
         return m_spec;
     }
 
@@ -2299,7 +2305,10 @@ void*
 ImageBuf::localpixels()
 {
     m_impl->validate_pixels();
-    return m_impl->localpixels();
+    void* p = m_impl->localpixels();
+    if (p)
+        m_impl->m_from_file = false;
+    return p;
 }
 
 
@@ -2315,7 +2324,10 @@ ImageBuf::localpixels_as_byte_image_span() const
 image_span<std::byte>
 ImageBuf::localpixels_as_writable_byte_image_span()
 {
-    return m_impl->m_readonly ? image_span<std::byte>() : m_impl->m_bufspan;
+    if (m_impl->m_readonly)
+        return {};
+    m_impl->m_from_file = false;
+    return m_impl->m_bufspan;
 }
 
 
@@ -2397,7 +2409,10 @@ ImageBuf::deep() const
 DeepData*
 ImageBuf::deepdata()
 {
-    return m_impl->deepdata();
+    DeepData* dd = m_impl->deepdata();
+    if (dd)
+        m_impl->m_from_file = false;
+    return dd;
 }
 
 
@@ -3061,6 +3076,7 @@ ImageBuf::set_deep_samples(int x, int y, int z, int samps)
 {
     if (!deep())
         return;
+    m_impl->m_from_file = false;
     int p = m_impl->pixelindex(x, y, z);
     m_impl->m_deepdata.set_samples(p, samps);
 }
@@ -3072,6 +3088,7 @@ ImageBuf::deep_insert_samples(int x, int y, int z, int samplepos, int nsamples)
 {
     if (!deep())
         return;
+    m_impl->m_from_file = false;
     int p = m_impl->pixelindex(x, y, z);
     m_impl->m_deepdata.insert_samples(p, samplepos, nsamples);
 }
@@ -3083,6 +3100,7 @@ ImageBuf::deep_erase_samples(int x, int y, int z, int samplepos, int nsamples)
 {
     if (!deep())
         return;
+    m_impl->m_from_file = false;
     int p = m_impl->pixelindex(x, y, z);
     m_impl->m_deepdata.erase_samples(p, samplepos, nsamples);
 }
@@ -3095,6 +3113,7 @@ ImageBuf::set_deep_value(int x, int y, int z, int c, int s, float value)
     m_impl->validate_pixels();
     if (!deep())
         return;
+    m_impl->m_from_file = false;
     int p = m_impl->pixelindex(x, y, z);
     return m_impl->m_deepdata.set_deep_value(p, c, s, value);
 }
@@ -3107,6 +3126,7 @@ ImageBuf::set_deep_value(int x, int y, int z, int c, int s, uint32_t value)
     m_impl->validate_pixels();
     if (!deep())
         return;
+    m_impl->m_from_file = false;
     int p = m_impl->pixelindex(x, y, z);
     return m_impl->m_deepdata.set_deep_value(p, c, s, value);
 }
@@ -3121,6 +3141,7 @@ ImageBuf::copy_deep_pixel(int x, int y, int z, const ImageBuf& src, int srcx,
     src.m_impl->validate_pixels();
     if (!deep() || !src.deep())
         return false;
+    m_impl->m_from_file = false;
     int p    = pixelindex(x, y, z);
     int srcp = src.pixelindex(srcx, srcy, srcz);
     return m_impl->m_deepdata.copy_deep_pixel(p, *src.deepdata(), srcp);
@@ -3395,7 +3416,10 @@ ImageBuf::pixeladdr(int x, int y, int z, int ch) const
 void*
 ImageBuf::pixeladdr(int x, int y, int z, int ch)
 {
-    return m_impl->pixeladdr(x, y, z, ch);
+    void* p = m_impl->pixeladdr(x, y, z, ch);
+    if (p)
+        m_impl->m_from_file = false;
+    return p;
 }
 
 
@@ -3693,9 +3717,12 @@ void
 ImageBuf::IteratorBase::make_writable()
 {
     std::lock_guard<const ImageBuf> lock(*m_ib);
-    if (m_ib->storage() != IMAGECACHE)
-        return;  // already done
+    bool was_cache = (m_ib->storage() == IMAGECACHE);
+    // Always call through: even when the storage doesn't need to change,
+    // this is what clears from_file() now that a write is happening.
     const_cast<ImageBuf*>(m_ib)->make_writable(true);
+    if (!was_cache)
+        return;  // no backing-store change, nothing else to fix up
     OIIO_DASSERT(m_ib->storage() != IMAGECACHE);
     if (m_tile)
         release_tile();

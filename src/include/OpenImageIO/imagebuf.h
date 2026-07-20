@@ -1899,10 +1899,14 @@ public:
         // about ImageCache.
         void OIIO_API release_tile();
 
-        // Check if the IB is writable, make it so if it isn't.
+        // Check if the IB is writable, make it so if it isn't. Also covers
+        // the case where the IB is already writable local memory but is
+        // still flagged as an unaltered file image (from_file()) -- that
+        // flag needs to be cleared the moment a write actually happens.
         OIIO_FORCEINLINE void ensure_writable()
         {
-            if (OIIO_UNLIKELY(m_ib->storage() == IMAGECACHE))
+            if (OIIO_UNLIKELY(m_ib->storage() == IMAGECACHE
+                              || m_ib->from_file()))
                 make_writable();
         }
         // Do the dirty work of making the IB writable.

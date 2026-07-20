@@ -506,6 +506,131 @@ test_next_subimage_and_miplevel()
 
 
 
+// Verify that every facility that can mutate a file-backed ImageBuf's
+// pixels or metadata in place clears from_file(), so that a subsequent
+// next_subimage()/next_miplevel() call refuses (with an error) rather than
+// silently discarding the caller's edits by re-reading from disk.
+void
+test_from_file_tracking()
+{
+    std::cout << "\nTesting from_file() is cleared by mutation:\n";
+
+    auto reload = [&]() {
+        ImageBuf A("next_subimage_test.tif");
+        OIIO_CHECK_ASSERT(A.from_file());
+        return A;
+    };
+    const int sizes[] = { 4, 6, 8 };
+    write_multisubimage_tiff("next_subimage_test.tif", sizes);
+
+    // Direct pixel write via setpixel() (goes through ImageBuf::Iterator).
+    {
+        ImageBuf A = reload();
+        float pix[3] = { 1, 1, 1 };
+        A.setpixel(0, 0, 0, make_span(pix));
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+
+    // Direct pixel write via a mutable Iterator (storage is already local,
+    // not IMAGECACHE, so this only works if ensure_writable() also checks
+    // from_file() and not just storage()).
+    {
+        ImageBuf A = reload();
+        ImageBuf::Iterator<float> p(A, 0, 0, 0);
+        p[0] = 1.0f;
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+
+    // set_pixels().
+    {
+        ImageBuf A = reload();
+        float newdata[3] = { 1, 2, 3 };
+        A.set_pixels(ROI(0, 1, 0, 1, 0, 1), make_span(newdata));
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+
+    // specmod() -- and, transitively, set_orientation()/set_origin()/
+    // set_full()/set_roi_full()/copy_metadata()/merge_metadata(), which
+    // all route through it.
+    {
+        ImageBuf A = reload();
+        A.specmod().attribute("ImageDescription", "edited");
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+    {
+        ImageBuf A = reload();
+        A.set_orientation(3);
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+    {
+        ImageBuf A = reload();
+        A.set_origin(1, 1, 0);
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+
+    // make_writable(), including via the non-IMAGECACHE early-out path.
+    {
+        ImageBuf A = reload();
+        A.make_writable();
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+
+    // A raw writable pointer handed out by localpixels()/pixeladdr() is
+    // treated as a declaration of intent to write.
+    {
+        ImageBuf A = reload();
+        OIIO_CHECK_ASSERT(A.localpixels() != nullptr);
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+    {
+        ImageBuf A = reload();
+        OIIO_CHECK_ASSERT(A.pixeladdr(0, 0, 0, 0) != nullptr);
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+
+    // An ImageBufAlgo function writing in-place into an already-initialized,
+    // file-backed dst (the common `ImageBufAlgo::foo(buf, buf, ...)` idiom).
+    {
+        ImageBuf A = reload();
+        float fillcolor[3] = { 1, 1, 1 };
+        ImageBufAlgo::fill(A, make_span(fillcolor));
+        OIIO_CHECK_ASSERT(!A.from_file());
+    }
+
+    // Deep images: the direct per-sample mutators bypass ImageBuf::Iterator
+    // entirely, so they need their own explicit tracking.
+    {
+        ImageSpec deepspec(2, 2, 1, TypeDesc::FLOAT);
+        deepspec.deep = true;
+        ImageBuf D(deepspec);
+        for (ImageBuf::Iterator<float> p(D); !p.done(); ++p)
+            D.set_deep_samples(p.x(), p.y(), p.z(), 1);
+        for (ImageBuf::Iterator<float> p(D); !p.done(); ++p)
+            D.set_deep_value(p.x(), p.y(), p.z(), 0, 0, 1.0f);
+        D.write("next_subimage_deep_test.exr");
+
+        ImageBuf A("next_subimage_deep_test.exr");
+        OIIO_CHECK_ASSERT(A.from_file());
+        A.set_deep_samples(0, 0, 0, 2);
+        OIIO_CHECK_ASSERT(!A.from_file());
+
+        ImageBuf B("next_subimage_deep_test.exr");
+        OIIO_CHECK_ASSERT(B.from_file());
+        B.set_deep_value(0, 0, 0, 0, 0, 2.0f);
+        OIIO_CHECK_ASSERT(!B.from_file());
+
+        ImageBuf C("next_subimage_deep_test.exr");
+        OIIO_CHECK_ASSERT(C.from_file());
+        OIIO_CHECK_ASSERT(C.deepdata() != nullptr);
+        OIIO_CHECK_ASSERT(!C.from_file());
+    }
+    Filesystem::remove("next_subimage_deep_test.exr");
+
+    Filesystem::remove("next_subimage_test.tif");
+}
+
+
+
 void
 test_empty_iterator()
 {
@@ -993,6 +1118,7 @@ main(int argc, char* argv[])
     ImageBuf_test_appbuffer_strided();
     test_open_with_config();
     test_next_subimage_and_miplevel();
+    test_from_file_tracking();
     test_read_channel_subset();
 
     test_set_get_pixels();
