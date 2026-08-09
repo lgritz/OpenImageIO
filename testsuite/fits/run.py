@@ -28,5 +28,8 @@ for f in files :
 
 # Regression tests for broken files
 command += info_command ("src/broken_no_END.fits", verbose=False, failureok=True)
+# NAXIS declares 999999999 axes: must be rejected before sizing the axis
+# vector (previously an unvalidated resize -> OOM/crash).
+command += info_command ("src/bad-naxis.fits", verbose=False, failureok=True)
 
 outputs = [ "out.txt" ]
