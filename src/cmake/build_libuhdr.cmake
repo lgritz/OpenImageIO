@@ -21,8 +21,8 @@ if (TARGET libjpeg-turbo::jpeg)
     get_target_property(JPEG_LIBRARY JPEG::JPEG INTERFACE_LINK_LIBRARIES)
 endif ()
 
-set_cache (UHDR_CMAKE_C_COMPILER ${CMAKE_C_COMPILER} "libuhdr build C compiler override" ADVANCED)
-set_cache (UHDR_CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER} "libuhdr build C++ compiler override" ADVANCED)
+set_cache (libuhdr_CMAKE_C_COMPILER ${CMAKE_C_COMPILER} "libuhdr build C compiler override" ADVANCED)
+set_cache (libuhdr_CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER} "libuhdr build C++ compiler override" ADVANCED)
 
 # libuhdr's own CMake install target does not work on Windows (it generates
 # no install.vcxproj), so we skip CMake's install step there and instead
