@@ -21,8 +21,8 @@ if (TARGET libjpeg-turbo::jpeg)
     get_target_property(JPEG_LIBRARY JPEG::JPEG INTERFACE_LINK_LIBRARIES)
 endif ()
 
-set_cache (UHDR_CMAKE_C_COMPILER ${CMAKE_C_COMPILER} "libuhdr build C compiler override" ADVANCED)
-set_cache (UHDR_CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER} "libuhdr build C++ compiler override" ADVANCED)
+set_cache (libuhdr_CMAKE_C_COMPILER ${CMAKE_C_COMPILER} "libuhdr build C compiler override" ADVANCED)
+set_cache (libuhdr_CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER} "libuhdr build C++ compiler override" ADVANCED)
 
 build_dependency_with_cmake(libuhdr
     VERSION         ${libuhdr_BUILD_VERSION}
@@ -38,8 +38,8 @@ build_dependency_with_cmake(libuhdr
         -D UHDR_ENABLE_LOGS=TRUE
         -D JPEG_INCLUDE_DIR=${JPEG_INCLUDE_DIR}
         -D JPEG_LIBRARY=${JPEG_LIBRARY}
-        -D CMAKE_C_COMPILER=${UHDR_CMAKE_C_COMPILER}
-        -D CMAKE_CXX_COMPILER=${UHDR_CMAKE_CXX_COMPILER}
+        -D CMAKE_C_COMPILER=${libuhdr_CMAKE_C_COMPILER}
+        -D CMAKE_CXX_COMPILER=${libuhdr_CMAKE_CXX_COMPILER}
     )
 
 if (WIN32)
