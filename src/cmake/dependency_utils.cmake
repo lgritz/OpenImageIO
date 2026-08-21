@@ -773,15 +773,29 @@ macro (build_dependency_with_cmake pkgname)
                 ${_pkg_cmake_verbose}
             # Build args passed by caller
                 ${_pkg_CMAKE_ARGS}
-        ${_pkg_exec_quiet}
+        RESULT_VARIABLE _pkg_configure_result
+        OUTPUT_VARIABLE _pkg_configure_output
+        ERROR_VARIABLE _pkg_configure_output
         )
+    if (NOT _pkg_configure_result EQUAL 0)
+        message (FATAL_ERROR
+            "Configuring local ${pkgname} failed (exit code ${_pkg_configure_result}):\n"
+            "${_pkg_configure_output}")
+    endif ()
 
     # Build the package
     execute_process (COMMAND ${CMAKE_COMMAND}
                         --build ${${pkgname}_LOCAL_BUILD_DIR}
                         --config ${${PROJECT_NAME}_DEPENDENCY_BUILD_TYPE}
-                     ${_pkg_exec_quiet}
+                     RESULT_VARIABLE _pkg_build_result
+                     OUTPUT_VARIABLE _pkg_build_output
+                     ERROR_VARIABLE _pkg_build_output
                     )
+    if (NOT _pkg_build_result EQUAL 0)
+        message (FATAL_ERROR
+            "Building local ${pkgname} failed (exit code ${_pkg_build_result}):\n"
+            "${_pkg_build_output}")
+    endif ()
 
     # Install the project, unless instructed not to do so
     if (NOT _pkg_NOINSTALL)
@@ -789,8 +803,15 @@ macro (build_dependency_with_cmake pkgname)
                             --build ${${pkgname}_LOCAL_BUILD_DIR}
                             --config ${${PROJECT_NAME}_DEPENDENCY_BUILD_TYPE}
                             --target install
-                         ${_pkg_exec_quiet}
+                         RESULT_VARIABLE _pkg_install_result
+                         OUTPUT_VARIABLE _pkg_install_output
+                         ERROR_VARIABLE _pkg_install_output
                         )
+        if (NOT _pkg_install_result EQUAL 0)
+            message (FATAL_ERROR
+                "Installing local ${pkgname} failed (exit code ${_pkg_install_result}):\n"
+                "${_pkg_install_output}")
+        endif ()
         set (${pkgname}_ROOT ${${pkgname}_LOCAL_INSTALL_DIR})
         list (APPEND CMAKE_PREFIX_PATH ${${pkgname}_LOCAL_INSTALL_DIR})
     endif ()
