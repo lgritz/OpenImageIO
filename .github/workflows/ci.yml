@@ -424,8 +424,8 @@ jobs:
           - desc: Linux ARM latest releases gcc14 C++20 py3.12 exr3.4 ocio2.4
             nametag: linux-arm-latest-releases
             runner: ubuntu-24.04-arm
-            # cc_compiler: gcc-14
-            # cxx_compiler: g++-14
+            cc_compiler: gcc-14
+            cxx_compiler: g++-14
             cxx_std: 20
             fmt_ver: 12.2.0
             fmt_commit: 1be298e1bd68957e4cd352e1f676f00e07dcfb57
@@ -433,9 +433,7 @@ jobs:
             openexr_ver: v3.4.14
             pybind11_ver: v3.1.0
             python_ver: "3.12"
-            gcc_action_ver: 15
-            setenvs: export OIIO_CC=gcc-15 OIIO_CXX=g++-15
-                            LIBJPEGTURBO_VERSION=3.2.0
+            setenvs: export LIBJPEGTURBO_VERSION=3.2.0
                             LIBPNG_VERSION=v1.6.58
                             LIBRAW_VERSION=0.22.2
                             LIBTIFF_VERSION=v4.7.2
