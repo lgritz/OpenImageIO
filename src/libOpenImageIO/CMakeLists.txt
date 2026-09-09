@@ -99,7 +99,7 @@ endif ()
 
 # Enable default use of OpenEXR core library for versions of the library
 # new enough to support DWA compression in exrcore.
-if (OPENEXR_VERSION VERSION_GREATER_EQUAL 3.1.10)
+if (OpenEXR_VERSION VERSION_GREATER_EQUAL 3.1.10)
     target_compile_definitions(OpenImageIO
                                PRIVATE OIIO_OPENEXR_CORE_DEFAULT=1)
     message (STATUS "OpenEXR core library will be used by default")

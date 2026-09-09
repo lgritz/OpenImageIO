@@ -55,11 +55,19 @@ checked_find_package (Imath REQUIRED
     PRINT IMATH_INCLUDES OPENEXR_INCLUDES Imath_VERSION
 )
 
-checked_find_package (OpenEXR REQUIRED
+checked_find_package (OpenEXR REQUIRED CONFIG
     VERSION_MIN 3.1
     NO_FP_RANGE_CHECK
     PRINT IMATH_INCLUDES OPENEXR_INCLUDES Imath_VERSION
     )
+
+# Set variables for two things that imported targets can't express: the global
+# ordering below, and the PUBLIC/PRIVATE choice for Imath in libOpenImageIO.
+# Everything else uses the targets.
+get_target_property (IMATH_INCLUDES Imath::Imath
+                     INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property (OPENEXR_INCLUDES OpenEXR::OpenEXR
+                     INTERFACE_INCLUDE_DIRECTORIES)
 
 # Force Imath includes to be before everything else to ensure that we have
 # the right Imath/OpenEXR version, not some older version in the system
