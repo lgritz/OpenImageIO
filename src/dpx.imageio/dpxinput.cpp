@@ -554,13 +554,24 @@ DPXInput::seek_subimage(int subimage, int miplevel)
     // data is per-file, not per-element)
     if (m_userBuf.empty() && m_dpx.header.UserSize() != 0
         && m_dpx.header.UserSize() != 0xFFFFFFFF) {
-        if (m_dpx.header.UserSize() > m_filesize) {
+        // The user data block starts after the generic and industry headers,
+        // so that offset counts against the file size too.
+        const uint64_t userdata_offset = sizeof(dpx::GenericHeader)
+                                         + sizeof(dpx::IndustryHeader);
+        if (userdata_offset + uint64_t(m_dpx.header.UserSize()) > m_filesize) {
             errorfmt("Corrupt userbuf: size claims {} but whole file size is {}",
                      m_dpx.header.UserSize(), m_filesize);
             return false;
         }
         m_userBuf.resize(m_dpx.header.UserSize());
-        m_dpx.ReadUserData(&m_userBuf[0]);
+        if (!m_dpx.ReadUserData(&m_userBuf[0])) {
+            // A short read leaves part of m_userBuf uninitialized, and it is
+            // about to be handed out as metadata. Don't let that escape.
+            m_userBuf.clear();
+            errorfmt("Corrupt userbuf: could not read {} bytes of user data",
+                     m_dpx.header.UserSize());
+            return false;
+        }
     }
     if (!m_userBuf.empty())
         m_spec.attribute("dpx:UserData",

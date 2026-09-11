@@ -50,3 +50,10 @@ command += info_command("src/crash-1chan-10bit-filled-methodA.dpx", safematch=Tr
 # (46341x46341x3) -- a decompression bomb the compression-ratio guard must
 # reject before any large allocation.
 command += info_command("src/bomb-46341.dpx", safematch=True, failureok=True)
+
+# Regression test: a 2100-byte DPX declaring 2000 bytes of user data. The
+# size fits the file, but the block starts at offset 2048, so the read gets
+# only 52 bytes. The short read was ignored and the rest of the buffer went
+# out as the dpx:UserData attribute. Must be rejected.
+command += info_command("src/truncated-userdata.dpx", safematch=True,
+                        failureok=True)
