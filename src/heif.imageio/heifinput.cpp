@@ -244,7 +244,7 @@ HeifInput::close()
 bool
 HeifInput::seek_subimage(int subimage, int miplevel)
 {
-    if (miplevel != 0)
+    if (miplevel != 0 || subimage < 0)
         return false;
 
     if (subimage == m_subimage) {
@@ -261,11 +261,11 @@ HeifInput::seek_subimage(int subimage, int miplevel)
     m_bitdepth = m_ihandle.get_luma_bits_per_pixel();
     if (m_bitdepth < 0) {
         errorfmt("Image has undefined bit depth");
-        m_ctx.reset();
+        close();
         return false;
     } else if (!(m_bitdepth == 8 || m_bitdepth == 10 || m_bitdepth == 12)) {
         errorfmt("Image has unsupported bit depth {}", m_bitdepth);
-        m_ctx.reset();
+        close();
         return false;
     }
 
@@ -311,7 +311,7 @@ HeifInput::seek_subimage(int subimage, int miplevel)
     m_spec = ImageSpec(m_ihandle.get_width(), m_ihandle.get_height(), nchannels,
                        (m_bitdepth > 8) ? TypeUInt16 : TypeUInt8);
     if (!check_open(m_spec, { 0, 1 << 18, 0, 1 << 18, 0, 1, 0, 4 })) {
-        m_ctx.reset();
+        close();
         return false;
     }
 
@@ -340,7 +340,7 @@ HeifInput::seek_subimage(int subimage, int miplevel)
         m_himage = heif::Image(img_tmp);
     if (herr.code != heif_error_Ok || !img_tmp) {
         errorfmt("Could not decode image ({})", herr.message);
-        m_ctx.reset();
+        close();
         return false;
     }
 #endif

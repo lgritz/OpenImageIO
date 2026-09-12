@@ -162,7 +162,7 @@ DICOMInput::seek_subimage(int subimage, int miplevel)
                                    0 /*first frame*/, 1 /* fcount */));
         m_subimage = 0;
         if (m_img->getStatus() != EIS_Normal) {
-            m_img.reset();
+            close();
             errorfmt("Unable to open DICOM file {}", m_filename);
             return false;
         }
@@ -179,7 +179,7 @@ DICOMInput::seek_subimage(int subimage, int miplevel)
     while (m_subimage < subimage) {
         m_img->processNextFrames(1);
         if (m_img->getStatus() != EIS_Normal) {
-            m_img.reset();
+            close();
             errorfmt("Unable to seek to subimage {}", subimage);
             return false;
         }
@@ -189,7 +189,7 @@ DICOMInput::seek_subimage(int subimage, int miplevel)
     m_dipixel = m_img->getInterData();
     if (!m_dipixel) {
         errorfmt("Unable to read pixel data from DICOM file {}", m_filename);
-        m_img.reset();
+        close();
         return false;
     }
     EP_Representation rep = m_dipixel->getRepresentation();
@@ -206,7 +206,7 @@ DICOMInput::seek_subimage(int subimage, int miplevel)
     m_internal_data = (const char*)m_img->getOutputData(0, m_subimage, 0);
     if (!m_internal_data) {
         errorfmt("Unable to decode pixel data from DICOM file {}", m_filename);
-        m_img.reset();
+        close();
         return false;
     }
 
@@ -243,8 +243,13 @@ DICOMInput::seek_subimage(int subimage, int miplevel)
 
     m_spec = ImageSpec(m_img->getWidth(), m_img->getHeight(), nchannels,
                        format);
-    if (!check_open(m_spec, { 0, 1 << 30, 0, 1 << 30, 0, 1 << 16, 0, 1 << 16 }))
+    if (!check_open(m_spec,
+                    { 0, 1 << 30, 0, 1 << 30, 0, 1 << 16, 0, 1 << 16 })) {
+        // m_subimage already names this frame, so leaving it current would
+        // let the early out above hand back the spec we just refused.
+        close();
         return false;
+    }
 
     m_bitspersample = m_img->getDepth();
     if (size_t(m_bitspersample) != m_spec.format.size() * 8)
