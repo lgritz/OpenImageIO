@@ -1192,8 +1192,11 @@ test_decorr_stretch()
             OIIO_CHECK_EQUAL_THRESH(corr[i][j], i == j ? 1.0f : 0.0f, 1.0e-3f);
 
     // The scale option multiplies the standard deviation of every channel,
-    // and sigma and mean override them outright.
-    result = ImageBufAlgo::decorr_stretch(img, { { "scale", 2.0f } });
+    // and sigma and mean override them outright. Note that a lone option is
+    // spelled `{ ParamValue(name, value) }` rather than `{ { name, value } }`:
+    // the latter is also a candidate for constructing the `src` ImageBuf of
+    // the (dst, src, options) overload, which some compilers take.
+    result = ImageBufAlgo::decorr_stretch(img, { ParamValue("scale", 2.0f) });
     after  = ImageBufAlgo::computePixelStats(result);
     for (int c = 0; c < 3; ++c) {
         OIIO_CHECK_EQUAL_THRESH(after.avg[c], before.avg[c], 1.0e-4f);
@@ -1212,7 +1215,8 @@ test_decorr_stretch()
     // about the requested fraction of the pixels at each end. It also makes
     // the result independent of scale, sigma, and mean.
     const float pct = 2.0f;
-    result = ImageBufAlgo::decorr_stretch(img, { { "percentile", pct } });
+    result = ImageBufAlgo::decorr_stretch(img,
+                                          { ParamValue("percentile", pct) });
     OIIO_CHECK_ASSERT(!result.has_error());
     after               = ImageBufAlgo::computePixelStats(result);
     imagesize_t npixels = imagesize_t(n) * n;
@@ -1233,14 +1237,16 @@ test_decorr_stretch()
     OIIO_CHECK_EQUAL(cmp.nfail, 0);
 
     // Out of range percentile is an error.
-    result = ImageBufAlgo::decorr_stretch(img, { { "percentile", 50.0f } });
+    result = ImageBufAlgo::decorr_stretch(img,
+                                          { ParamValue("percentile", 50.0f) });
     OIIO_CHECK_ASSERT(result.has_error());
     result.geterror();
 
     // Correlation mode decorrelates just as thoroughly and preserves the
     // same per-channel statistics, but mixes the channels differently,
     // because it does not let the highest variance channel dominate.
-    result = ImageBufAlgo::decorr_stretch(img, { { "mode", "correlation" } });
+    result = ImageBufAlgo::decorr_stretch(img, { ParamValue("mode",
+                                                            "correlation") });
     OIIO_CHECK_ASSERT(!result.has_error());
     after = ImageBufAlgo::computePixelStats(result);
     for (int c = 0; c < 3; ++c) {
@@ -1252,12 +1258,13 @@ test_decorr_stretch()
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
             OIIO_CHECK_EQUAL_THRESH(corr[i][j], i == j ? 1.0f : 0.0f, 1.0e-3f);
-    other = ImageBufAlgo::decorr_stretch(img, { { "mode", "covariance" } });
+    other = ImageBufAlgo::decorr_stretch(img,
+                                         { ParamValue("mode", "covariance") });
     cmp   = ImageBufAlgo::compare(result, other, 1.0e-4f, 1.0e-4f);
     OIIO_CHECK_ASSERT(cmp.nfail > 0);  // the two modes really do differ
 
     // An unknown mode is an error.
-    result = ImageBufAlgo::decorr_stretch(img, { { "mode", "bogus" } });
+    result = ImageBufAlgo::decorr_stretch(img, { ParamValue("mode", "bogus") });
     OIIO_CHECK_ASSERT(result.has_error());
     result.geterror();
 
@@ -1285,7 +1292,7 @@ test_decorr_stretch()
     OIIO_CHECK_EQUAL_THRESH(after.stddev[3], 0.0f, 1.0e-6f);
 
     // Asking to stretch the alpha channel is an error.
-    result = ImageBufAlgo::decorr_stretch(rgba, { { "nchannels", 4 } });
+    result = ImageBufAlgo::decorr_stretch(rgba, { ParamValue("nchannels", 4) });
     OIIO_CHECK_ASSERT(result.has_error());
     std::cout << "  (expected error: " << result.geterror() << ")\n";
 }

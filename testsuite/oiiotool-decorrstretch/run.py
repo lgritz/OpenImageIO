@@ -14,6 +14,18 @@ redirect = " >> out.txt 2>&1 "
 # along two different color directions. Neither line is visible to the eye,
 # nor even a full value of an 8 bit file. A decorrelation stretch amplifies
 # the color directions that carry them until they are impossible to miss.
+#
+# The text comes from committed masks rather than being rendered here on the
+# fly. The stretch amplifies whatever distinguishes the channels by a hundred
+# times or more, which is enough to turn the small differences between one
+# FreeType version's antialiasing and another's into visible ones. The masks
+# were made once with:
+#     oiiotool --pattern constant:color=0 320x240 1 \
+#         --text:x=160:y=80:xalign=center:size=52:font=DroidSerif:color=1 \
+#         HIDDEN -d uint8 --compression zip -o src/mask1.tif
+#     oiiotool --pattern constant:color=0 320x240 1 \
+#         --text:x=160:y=160:xalign=center:size=30:font=DroidSerif:color=1 \
+#         "IN PLAIN SIGHT" -d uint8 --compression zip -o src/mask2.tif
 
 hazy = ("--pattern fill:top=0.20,0.30,0.36:bottom=0.80,0.65,0.52 320x240 3 "
         # Grain, the same in every channel, so it stays on the bright axis
@@ -21,13 +33,9 @@ hazy = ("--pattern fill:top=0.20,0.30,0.36:bottom=0.80,0.65,0.52 320x240 3 "
         "--pattern noise:type=gaussian:mean=0:stddev=0.02:mono=1:seed=1 320x240 3 "
         "--add "
         # "HIDDEN": +R -G, 0.002 either way.
-        "--pattern constant:color=0,0,0 320x240 3 "
-        "--text:x=160:y=80:xalign=center:size=52:font=DroidSerif:color=1,-1,0 "
-        "HIDDEN --mulc 0.002 --add "
+        "src/mask1.tif --ch 0,0,0 --mulc 0.002,-0.002,0 --add "
         # "IN PLAIN SIGHT": +R +G -B, on a different color axis again.
-        "--pattern constant:color=0,0,0 320x240 3 "
-        "--text:x=160:y=160:xalign=center:size=30:font=DroidSerif:color=1,1,-2 "
-        "\"IN PLAIN SIGHT\" --mulc 0.004 --add ")
+        "src/mask2.tif --ch 0,0,0 --mulc 0.004,0.004,-0.008 --add ")
 
 command += oiiotool (hazy + "-d half -o hazy.exr")
 
@@ -52,7 +60,7 @@ command += oiiotool ("hazy.exr --decorrstretch:sigma=0.2:mean=0.5 -d uint8 -o de
 # strongly varying red one, which lands the background in a different place.
 command += oiiotool ("hazy.exr --decorrstretch:mode=correlation -d uint8 -o decorr-correlation.tif")
 command += oiiotool ("hazy.exr --decorrstretch:mode=correlation:percentile=1 "
-                     "-d uint8 -o decorr-correlation-percentile.tif")
+                     "-d uint8 -o decorr-corrpercentile.tif")
 
 # Only the channels asked for are touched. Decorrelating green and blue alone
 # leaves red as it was, so "HIDDEN", which is hidden in red against green,
@@ -68,7 +76,9 @@ command += oiiotool ("hazy.exr --decorrstretch:mode=bogus -o out.tif",
                      failureok = True)
 
 
-# Outputs to check against references
+# Outputs to check against references. Note that no name here may be another
+# name plus a "-suffix": runtest treats those as platform variants of each
+# other and will compare them.
 outputs = [
             "hazy.exr",
             "decorr-original.tif",
@@ -77,7 +87,7 @@ outputs = [
             "decorr-percentile.tif",
             "decorr-sigma.tif",
             "decorr-correlation.tif",
-            "decorr-correlation-percentile.tif",
+            "decorr-corrpercentile.tif",
             "decorr-greenblue.tif",
             "out.txt"
     ]

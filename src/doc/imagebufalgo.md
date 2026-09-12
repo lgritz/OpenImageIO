@@ -2115,7 +2115,7 @@ pre-allocated `dst` nor a non-default ROI.
 >       ImageBuf img("hazy.exr");
 >       ImageBuf stretched = ImageBufAlgo::decorr_stretch (img);
 >       // Fill the display range, clipping 1% of the pixels at each end:
->       ImageBuf full = ImageBufAlgo::decorr_stretch (img, { { "percentile", 1.0f } });
+>       ImageBuf full = ImageBufAlgo::decorr_stretch (img, { ParamValue("percentile", 1.0f) });
 >
 >   .. code-tab:: py
 >

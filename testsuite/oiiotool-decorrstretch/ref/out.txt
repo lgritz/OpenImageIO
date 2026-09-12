@@ -18,7 +18,7 @@ Comparing "decorr-sigma.tif" and "ref/decorr-sigma.tif"
 PASS
 Comparing "decorr-correlation.tif" and "ref/decorr-correlation.tif"
 PASS
-Comparing "decorr-correlation-percentile.tif" and "ref/decorr-correlation-percentile.tif"
+Comparing "decorr-corrpercentile.tif" and "ref/decorr-corrpercentile.tif"
 PASS
 Comparing "decorr-greenblue.tif" and "ref/decorr-greenblue.tif"
 PASS
