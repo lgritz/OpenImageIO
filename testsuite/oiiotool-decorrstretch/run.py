@@ -7,6 +7,11 @@
 
 redirect = " >> out.txt 2>&1 "
 
+# The hidden text sits right at the edge of round-off: the covariance matrix
+# is nearly singular by design (that's what makes it decorrelate), and so
+# architectures like ARM with fma are a little different than x86 without.
+hardfail = 0.06
+
 
 # Synthesize an image that hides two features in plain sight: a hazy
 # gradient, whose three channels are therefore almost perfectly correlated,
