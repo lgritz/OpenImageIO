@@ -52,7 +52,6 @@ endif ()
 # IlmBase & OpenEXR
 checked_find_package (Imath REQUIRED
     VERSION_MIN 3.1
-    PRINT IMATH_INCLUDES OPENEXR_INCLUDES Imath_VERSION
 )
 
 checked_find_package (OpenEXR REQUIRED CONFIG
