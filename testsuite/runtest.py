@@ -320,8 +320,8 @@ def rw_command (dir: str, filename: str, testwrite: bool=True, use_oiiotool: boo
 
 # Construct a command that will testtex
 def testtex_command (file: str, extraargs: str="", silent: bool=False, concat: bool=True) -> str:
-    return run_commands(f"testtex {file} {extraargs}",
-                        silent=silent, failureok=failureok, concat=concat)
+    return run_app(f"testtex {file} {extraargs}",
+                   silent=silent, concat=concat)
 
 
 # Construct a command that will run iconvert and append its output to out.txt
@@ -334,8 +334,8 @@ def iconvert (args: str, silent: bool=False, concat: bool=True,
 # Construct a command that will run oiiotool and append its output to out.txt
 def oiiotool (args: str, silent: bool=False, concat: bool=True,
              failureok: bool=False) -> str:
-    return run_commands(f"oiiotool {args}",
-                        silent=silent, failureok=failureok, concat=concat)
+    return run_app(f"oiiotool {args}",
+                   silent=silent, failureok=failureok, concat=concat)
 
 
 
