@@ -235,7 +235,7 @@ def run_app(app: str, silent: bool=False, failureok: bool=False,
 
 # Take shell `commands`, split at newlines, adorn each with redirects, etc.,
 # then re-join with semicolons to make a single command.
-def run_commands(commands : str, silent: bool=False,
+def run_commands(commands: str, silent: bool=False,
                  failureok: bool=failureok, concat: bool=True) -> str :
     result = ""
     for line in commands.splitlines():
