@@ -39,6 +39,13 @@ include (FindThreads)
 
 checked_find_package (ZLIB REQUIRED)  # Needed by several packages
 
+# zstd is optional, but must be found before TIFF so that an auto-built libtiff
+# can use it, and so that the ZSTD::ZSTD target referenced by static libtiff
+# configs exists.
+checked_find_package (zstd VERSION_MIN 1.4)
+alias_library_if_not_exists (ZSTD::ZSTD zstd::libzstd_static)
+alias_library_if_not_exists (ZSTD::ZSTD zstd::libzstd_shared)
+
 # Help set up this target for libtiff config file when using static libtiff
 if (NOT TARGET CMath::CMath)
     find_library (MATH_LIBRARY m)
