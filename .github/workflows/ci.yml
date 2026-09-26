@@ -454,6 +454,7 @@ jobs:
                             PUGIXML_VERSION=v1.14
                             WEBP_VERSION=v1.4.0
                             OIIO_HARDENING=3
+                            OpenImageIO_DEPENDENCY_BUILD_VERBOSE=ON
           - desc: clang18 C++17 avx2 exr3.1 ocio2.3
             nametag: linux-clang18
             runner: ubuntu-24.04
