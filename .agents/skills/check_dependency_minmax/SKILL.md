@@ -275,6 +275,18 @@ From the 2026-09-29 audit (all still to be resolved unless noted):
   main-built OpenEXR, and whether Imath really follows main (the 09-29 run
   found system Imath 3.1.9 even with OpenEXR built from a tag, since
   `build_openexr.bash` may use a system Imath if found).
+- Imath: `build_openexr.bash` (used when a job sets `openexr_ver`) now
+  builds the Imath that OpenEXR prefers (`OPENEXR_FORCE_INTERNAL_IMATH=ON`,
+  installed next to OpenEXR) and exports `Imath_ROOT` so OIIO uses it.
+  What "prefers" means varies: v3.1.0 -> Imath v3.1.1, v3.4.x -> v3.2.2,
+  v3.5.x and main -> Imath `main` (override with
+  `-DOPENEXR_IMATH_TAG=...` in `OPENEXR_CMAKE_FLAGS`). Imath main reports
+  its version as 3.2.0. Jobs with no `openexr_ver` (ASWF containers) still
+  use the container's Imath. Added 2026-09-30; confirm on the next audit
+  that summaries show the expected Imath. A separate `IMATH_VERSION`
+  selector was tried and dropped as unnecessary for now.
+- OIIO's own OpenEXR auto-build (`build_OpenEXR.cmake`) passes
+  `-D Imath_DIR=...` so OpenEXR uses the same Imath as OIIO.
 - OpenJPH is always the `build_openjph.cmake` default; no job tests an
   older OpenJPH.
 - Minimums not tested by any job: libjpeg 9, libjpeg-turbo 2.1, zlib
