@@ -18,7 +18,13 @@ string (MAKE_C_IDENTIFIER ${OpenEXR_BUILD_VERSION} OpenEXR_VERSION_IDENT)
 if (OpenEXR_BUILD_VERSION VERSION_GREATER_EQUAL 3.5)
     checked_find_package (zstd REQUIRED CONFIG
                           VERSION_MIN 1.5)
-    set (MORE_OpenEXR_CMAKE_ARGS -D zstd_DIR=${zstd_DIR})
+    list (APPEND MORE_OpenEXR_CMAKE_ARGS -D zstd_DIR=${zstd_DIR})
+endif ()
+
+# Make OpenEXR use exactly the Imath we found (or built) ourselves. Otherwise
+# its own search could settle on a different Imath, or fetch yet another one.
+if (Imath_DIR)
+    list (APPEND MORE_OpenEXR_CMAKE_ARGS -D Imath_DIR=${Imath_DIR})
 endif ()
 
 build_dependency_with_cmake(OpenEXR
