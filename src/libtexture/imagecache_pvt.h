@@ -1351,7 +1351,7 @@ private:
 
     mutable FilenameMap m_files;    ///< Map file names to ImageCacheFile's
     ustring m_file_sweep_name;      ///< Sweeper for "clock" paging algorithm
-    spin_mutex m_file_sweep_mutex;  ///< Ensure only one in check_max_files
+    std::mutex m_file_sweep_mutex;  ///< Ensure only one in check_max_files
 
     spin_mutex m_fingerprints_mutex;  ///< Protect m_fingerprints
     FingerprintMap m_fingerprints;    ///< Map fingerprints to files
