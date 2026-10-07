@@ -799,7 +799,11 @@ public:
 
     /// Mark the tile as recently used.
     ///
-    void use() { m_used = 1; }
+    void use()
+    {
+        if (!m_used.load(std::memory_order_relaxed))
+            m_used.store(1, std::memory_order_relaxed);
+    }
 
     /// Mark the tile as not recently used, return its previous value.
     ///
