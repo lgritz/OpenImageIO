@@ -1,0 +1,39 @@
+$ /Users/lg/tmp/claude-501/spinwork/sweep/build/bin/parallel_test --threads 1 --iters 100000 --trials 3
+hw threads = 16
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+ 1	  0.0   launch 60658140.8 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.011 cpu=0.011 rc=0
+$ /Users/lg/tmp/claude-501/spinwork/sweep/build/bin/parallel_test --threads 4 --iters 100000 --trials 3
+hw threads = 16
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+ 4	  0.0   launch 261494879.1 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.007 cpu=0.006 rc=0
+$ /Users/lg/tmp/claude-501/spinwork/sweep/build/bin/parallel_test --threads 16 --iters 100000 --trials 3
+hw threads = 16
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+16	  0.0   launch 625000000.0 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.006 cpu=0.006 rc=0

@@ -1,0 +1,27 @@
+$ /Users/lg/tmp/claude-501/spinwork/base/build/bin/testtex -t 0 --maketests 10 test{:04}.exr --maketest-res 1024 --threadtimes 7 --wedge --threads 16 --iters 200000
+Created texture system
+Temp file 0: test0000.exr
+Temp file 1: test0001.exr
+Temp file 2: test0002.exr
+Temp file 3: test0003.exr
+Temp file 4: test0004.exr
+Temp file 5: test0005.exr
+Temp file 6: test0006.exr
+Temp file 7: test0007.exr
+Temp file 8: test0008.exr
+Temp file 9: test0009.exr
+Workload: Coherent access, many files, partially overlapping texture sets
+texture cache size = 1024 MB
+hw threads = 16
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+  1         0.12      1.0x   100.0%    range 0.00	(200000 iters/thread)
+  2         0.06      1.8x    91.4%    range 0.00	(100000 iters/thread)
+  4         0.04      3.3x    81.5%    range 0.00	(50000 iters/thread)
+  8         0.02      4.7x    59.2%    range 0.00	(25000 iters/thread)
+ 12         0.02      5.3x    44.4%    range 0.00	(16666 iters/thread)
+ 16         0.02      6.0x    37.2%    range 0.00	(12500 iters/thread)
+
+wall=0.571 cpu=2.450 rc=0

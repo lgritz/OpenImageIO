@@ -1,0 +1,36 @@
+$ /Users/lg/tmp/claude-501/spinwork/sweep/build/bin/spinlock_test --threads 1 --iters 16000000 --trials 3
+hw threads = 16
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    0.9 ns (+/- 0.1ns), 1115.8 M/s
+std::mutex      :    4.2 ns (+/- 0.0ns),  237.1 M/s
+std::recursive_mutex:    8.6 ns (+/- 0.1ns),  115.8 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+   1        0.0     1.00x    100.00%   16000000     0.00
+OK
+wall=0.373 cpu=0.372 rc=0
+$ /Users/lg/tmp/claude-501/spinwork/sweep/build/bin/spinlock_test --threads 4 --iters 16000000 --trials 3
+hw threads = 16
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    0.8 ns (+/- 0.0ns), 1188.8 M/s
+std::mutex      :    4.2 ns (+/- 0.0ns),  235.5 M/s
+std::recursive_mutex:    8.7 ns (+/- 0.1ns),  114.9 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+   4        0.0     4.00x    100.00%    4000000     0.01
+OK
+wall=0.453 cpu=0.595 rc=0
+$ /Users/lg/tmp/claude-501/spinwork/sweep/build/bin/spinlock_test --threads 16 --iters 16000000 --trials 3
+hw threads = 16
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    0.8 ns (+/- 0.0ns), 1177.0 M/s
+std::mutex      :    4.3 ns (+/- 0.0ns),  234.3 M/s
+std::recursive_mutex:    8.5 ns (+/- 0.1ns),  118.1 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+  16        0.1    16.00x    100.00%    1000000     0.02
+OK
+wall=0.708 cpu=5.066 rc=0

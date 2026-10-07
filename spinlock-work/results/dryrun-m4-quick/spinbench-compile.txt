@@ -1,0 +1,2 @@
+c++: error: couldn't create cache file '/var/folders/py/q8rnbld17pj29665hxgmrz_m0000gn/T/xcrun_db-uogdv3GJ' (errno=Operation not permitted)
+c++: error: couldn't create cache file '/var/folders/py/q8rnbld17pj29665hxgmrz_m0000gn/T/xcrun_db-Bw29li6u' (errno=Operation not permitted)

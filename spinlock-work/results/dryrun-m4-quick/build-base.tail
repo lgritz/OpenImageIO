@@ -1,0 +1,3 @@
+[100%] Linking CXX executable ../../bin/parallel_test
+c++: error: couldn't create cache file '/var/folders/py/q8rnbld17pj29665hxgmrz_m0000gn/T/xcrun_db-iDnBL94W' (errno=Operation not permitted)
+[100%] Built target parallel_test

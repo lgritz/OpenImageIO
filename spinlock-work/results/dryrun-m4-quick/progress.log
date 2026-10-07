@@ -1,0 +1,126 @@
+2026-10-07 09:15:59 === run_all.sh RUN=dryrun-m4-quick NCPU=16 QUICK=1 STEPS='survey build spinbench spinlock spinrw parallel testtex'
+2026-10-07 09:15:59 variants: base sweep   threads: 1 4 16    WORK=/Users/lg/tmp/claude-501/spinwork
+2026-10-07 09:15:59 START survey
+2026-10-07 09:15:59 END survey
+2026-10-07 09:16:00 START build base (2a58fd4f3)
+2026-10-07 09:16:38 END build base OK
+2026-10-07 09:16:38 START build sweep (7624b8e90)
+2026-10-07 09:17:17 END build sweep OK
+2026-10-07 09:17:17 START spinbench compile
+2026-10-07 09:17:23 END spinbench compile
+2026-10-07 09:17:23 START spinbench run (see bench.log for per-process progress)
+2026-10-07 09:17:31 END spinbench run
+2026-10-07 09:17:31 START spinlock base threads=1
+2026-10-07 09:17:31 END spinlock base threads=1 wall=0.367 cpu=0.366 rc=0
+2026-10-07 09:17:31 START spinlock base threads=4
+2026-10-07 09:17:32 END spinlock base threads=4 wall=0.579 cpu=1.096 rc=0
+2026-10-07 09:17:32 START spinlock base threads=16
+2026-10-07 09:17:33 END spinlock base threads=16 wall=0.645 cpu=4.178 rc=0
+2026-10-07 09:17:33 START spinlock sweep threads=1
+2026-10-07 09:17:33 END spinlock sweep threads=1 wall=0.373 cpu=0.372 rc=0
+2026-10-07 09:17:33 START spinlock sweep threads=4
+2026-10-07 09:17:34 END spinlock sweep threads=4 wall=0.453 cpu=0.595 rc=0
+2026-10-07 09:17:34 START spinlock sweep threads=16
+2026-10-07 09:17:34 END spinlock sweep threads=16 wall=0.708 cpu=5.066 rc=0
+2026-10-07 09:17:34 START spinrw base threads=1
+2026-10-07 09:17:35 END spinrw base threads=1 wall=0.019 cpu=0.018 rc=0
+2026-10-07 09:17:35 START spinrw base threads=4
+2026-10-07 09:17:35 END spinrw base threads=4 wall=0.019 cpu=0.018 rc=0
+2026-10-07 09:17:35 START spinrw base threads=16
+2026-10-07 09:17:35 END spinrw base threads=16 wall=0.019 cpu=0.018 rc=0
+2026-10-07 09:17:35 START spinrw sweep threads=1
+2026-10-07 09:17:35 END spinrw sweep threads=1 wall=0.019 cpu=0.018 rc=0
+2026-10-07 09:17:35 START spinrw sweep threads=4
+2026-10-07 09:17:35 END spinrw sweep threads=4 wall=0.018 cpu=0.017 rc=0
+2026-10-07 09:17:35 START spinrw sweep threads=16
+2026-10-07 09:17:35 END spinrw sweep threads=16 wall=0.018 cpu=0.017 rc=0
+2026-10-07 09:17:35 START parallel base threads=1
+2026-10-07 09:17:35 END parallel base threads=1 wall=0.006 cpu=0.006 rc=0
+2026-10-07 09:17:35 START parallel base threads=4
+2026-10-07 09:17:35 END parallel base threads=4 wall=0.006 cpu=0.006 rc=0
+2026-10-07 09:17:35 START parallel base threads=16
+2026-10-07 09:17:36 END parallel base threads=16 wall=0.006 cpu=0.006 rc=0
+2026-10-07 09:17:36 START parallel sweep threads=1
+2026-10-07 09:17:36 END parallel sweep threads=1 wall=0.007 cpu=0.007 rc=0
+2026-10-07 09:17:36 START parallel sweep threads=4
+2026-10-07 09:17:36 END parallel sweep threads=4 wall=0.006 cpu=0.005 rc=0
+2026-10-07 09:17:36 START parallel sweep threads=16
+2026-10-07 09:17:36 END parallel sweep threads=16 wall=0.007 cpu=0.006 rc=0
+2026-10-07 09:17:36 START testtex base w1
+2026-10-07 09:17:37 END testtex base w1 wall=0.519 cpu=2.255 rc=0
+2026-10-07 09:17:37 START testtex sweep w1
+2026-10-07 09:17:37 END testtex sweep w1 wall=0.492 cpu=2.062 rc=0
+2026-10-07 09:17:37 START testtex base w7
+2026-10-07 09:17:38 END testtex base w7 wall=0.571 cpu=2.450 rc=0
+2026-10-07 09:17:38 START testtex sweep w7
+2026-10-07 09:17:39 END testtex sweep w7 wall=0.571 cpu=2.429 rc=0
+2026-10-07 09:17:39 START testtex base maxfiles16
+2026-10-07 09:17:40 END testtex base maxfiles16 wall=1.231 cpu=4.569 rc=0
+2026-10-07 09:17:40 START testtex base cache64
+2026-10-07 09:17:41 END testtex base cache64 wall=1.026 cpu=3.944 rc=0
+2026-10-07 09:17:41 START testtex base stats-w1
+2026-10-07 09:17:41 END testtex base stats-w1 wall=0.311 cpu=1.719 rc=0
+2026-10-07 09:17:41 START testtex base stats-w7
+2026-10-07 09:17:42 END testtex base stats-w7 wall=0.316 cpu=1.701 rc=0
+2026-10-07 09:17:42 START testtex sweep maxfiles16
+2026-10-07 09:17:43 END testtex sweep maxfiles16 wall=1.202 cpu=4.544 rc=0
+2026-10-07 09:17:43 START testtex sweep cache64
+2026-10-07 09:17:44 END testtex sweep cache64 wall=1.065 cpu=4.043 rc=0
+2026-10-07 09:17:44 START testtex sweep stats-w1
+2026-10-07 09:17:45 END testtex sweep stats-w1 wall=0.302 cpu=1.550 rc=0
+2026-10-07 09:17:45 START testtex sweep stats-w7
+2026-10-07 09:17:45 END testtex sweep stats-w7 wall=0.315 cpu=1.660 rc=0
+2026-10-07 09:17:45 === done. Summary: /Users/lg/code/oiio/oiio.lg/spinlock-work/results/dryrun-m4-quick/SUMMARY.md
+2026-10-07 09:19:55 === run_all.sh RUN=dryrun-m4-quick NCPU=16 QUICK=1 STEPS='spinrw parallel prodtex'
+2026-10-07 09:19:55 variants: base sweep   threads: 1 4 16    WORK=/Users/lg/tmp/claude-501/spinwork
+2026-10-07 09:19:55 START parallel base threads=1
+2026-10-07 09:19:55 END parallel base threads=1 wall=0.010 cpu=0.010 rc=0
+2026-10-07 09:19:55 START parallel base threads=4
+2026-10-07 09:19:55 END parallel base threads=4 wall=0.007 cpu=0.007 rc=0
+2026-10-07 09:19:55 START parallel base threads=16
+2026-10-07 09:19:55 END parallel base threads=16 wall=0.006 cpu=0.006 rc=0
+2026-10-07 09:19:55 START parallel sweep threads=1
+2026-10-07 09:19:55 END parallel sweep threads=1 wall=0.011 cpu=0.011 rc=0
+2026-10-07 09:19:55 START parallel sweep threads=4
+2026-10-07 09:19:55 END parallel sweep threads=4 wall=0.007 cpu=0.006 rc=0
+2026-10-07 09:19:55 START parallel sweep threads=16
+2026-10-07 09:19:55 END parallel sweep threads=16 wall=0.006 cpu=0.006 rc=0
+2026-10-07 09:19:55 START spinrw base wedge to 32
+2026-10-07 09:20:00 END spinrw base wall=4.170 cpu=47.263 rc=0
+2026-10-07 09:20:00 START spinrw sweep wedge to 32
+2026-10-07 09:20:04 END spinrw sweep wall=4.344 cpu=49.532 rc=0
+2026-10-07 09:20:04 START testtex base prod-w7
+2026-10-07 09:20:04 END testtex base prod-w7 wall=0.064 cpu=0.064 rc=0
+2026-10-07 09:20:04 START testtex sweep prod-w7
+2026-10-07 09:20:04 END testtex sweep prod-w7 wall=0.062 cpu=0.063 rc=0
+2026-10-07 09:20:05 START testtex base prod-stats-w7
+2026-10-07 09:20:05 END testtex base prod-stats-w7 wall=0.061 cpu=0.061 rc=0
+2026-10-07 09:20:05 START testtex sweep prod-stats-w7
+2026-10-07 09:20:05 END testtex sweep prod-stats-w7 wall=0.062 cpu=0.061 rc=0
+2026-10-07 09:20:05 scrubbed production file names from results
+2026-10-07 09:20:05 === done. Summary: /Users/lg/code/oiio/oiio.lg/spinlock-work/results/dryrun-m4-quick/SUMMARY.md
+2026-10-07 09:20:21 === run_all.sh RUN=dryrun-m4-quick NCPU=16 QUICK=1 STEPS='ctest'
+2026-10-07 09:20:22 variants: base sweep   threads: 1 4 16    WORK=/var/folders/py/q8rnbld17pj29665hxgmrz_m0000gn/T//spinwork
+2026-10-07 09:20:22 === done. Summary: /Users/lg/code/oiio/oiio.lg/spinlock-work/results/dryrun-m4-quick/SUMMARY.md
+2026-10-07 09:20:33 === run_all.sh RUN=dryrun-m4-quick NCPU=16 QUICK=1 STEPS='ctest'
+2026-10-07 09:20:33 variants: base sweep   threads: 1 4 16    WORK=/Users/lg/tmp/claude-501/spinwork
+2026-10-07 09:20:33 START full build of sweep for ctest
+2026-10-07 09:20:50 END full build of sweep
+2026-10-07 09:20:50 START ctest on sweep
+2026-10-07 09:20:50 END ctest rc=8 : 0% tests passed, 1 tests failed out of 1
+2026-10-07 09:20:50 === done. Summary: /Users/lg/code/oiio/oiio.lg/spinlock-work/results/dryrun-m4-quick/SUMMARY.md
+2026-10-07 09:21:33 === run_all.sh RUN=dryrun-m4-quick NCPU=16 QUICK=1 STEPS='ctest'
+2026-10-07 09:21:33 variants: base sweep   threads: 1 4 16    WORK=/Users/lg/tmp/claude-501/spinwork
+2026-10-07 09:21:33 START ctest on sweep
+2026-10-07 09:22:16 END ctest rc=8 : 90% tests passed, 8 tests failed out of 84
+2026-10-07 09:22:16 === done. Summary: /Users/lg/code/oiio/oiio.lg/spinlock-work/results/dryrun-m4-quick/SUMMARY.md
+2026-10-07 09:24:05 === run_all.sh RUN=dryrun-m4-quick NCPU=16 QUICK=1 STEPS='ctest'
+2026-10-07 09:24:05 variants: base sweep   threads: 1 4 16    WORK=/Users/lg/tmp/claude-501/spinwork
+2026-10-07 09:24:05 START ctest on sweep
+2026-10-07 09:24:39 END ctest rc=8 : 95% tests passed, 4 tests failed out of 88
+2026-10-07 09:24:39 === done. Summary: /Users/lg/code/oiio/oiio.lg/spinlock-work/results/dryrun-m4-quick/SUMMARY.md
+2026-10-07 10:10:35 === run_all.sh RUN=dryrun-m4-quick NCPU=16 QUICK=1 STEPS='ctest'
+2026-10-07 10:10:35 variants: base sweep   threads: 1 4 16    WORK=/Users/lg/tmp/claude-501/spinwork
+2026-10-07 10:10:35 START ctest on sweep
+2026-10-07 10:10:59 END ctest rc=0 : 100% tests passed out of 84
+2026-10-07 10:10:59 === done. Summary: /Users/lg/code/oiio/oiio.lg/spinlock-work/results/dryrun-m4-quick/SUMMARY.md

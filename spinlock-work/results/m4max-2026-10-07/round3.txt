@@ -1,0 +1,63 @@
+spinbench17 unc A_cur 0.84
+spinbench17 con A_cur 2 coloc 1.8/3.3
+spinbench17 con A_cur 4 coloc 3.8/14.4
+spinbench17 con A_cur 8 coloc 24.5/193.6
+spinbench17 con A_cur 12 coloc 10.7/104.8
+spinbench17 con A_cur 14 coloc 13.7/138.9
+spinbench17 con A_cur 16 coloc 10.2/100.0
+spinbench17 con A_cur 32 coloc 5.1/61.4
+spinbench17 unc B_flag_isb_16y1 0.82
+spinbench17 con B_flag_isb_16y1 2 coloc 1.6/3.0
+spinbench17 con B_flag_isb_16y1 4 coloc 4.8/18.6
+spinbench17 con B_flag_isb_16y1 8 coloc 27.4/217.7
+spinbench17 con B_flag_isb_16y1 12 coloc 32.9/390.8
+spinbench17 con B_flag_isb_16y1 14 coloc 14.4/155.9
+spinbench17 con B_flag_isb_16y1 16 coloc 9.9/94.7
+spinbench17 con B_flag_isb_16y1 32 coloc 5.0/51.6
+spinbench17 unc D_article 1.00
+spinbench17 con D_article 2 coloc 1.3/2.4
+spinbench17 con D_article 4 coloc 1.8/6.3
+spinbench17 con D_article 8 coloc 3.9/28.4
+spinbench17 con D_article 12 coloc 7.1/78.7
+spinbench17 con D_article 14 coloc 11.5/152.2
+spinbench17 con D_article 16 coloc 17.2/262.5
+spinbench17 unc X_bool_isb_64y256 0.99
+spinbench17 con X_bool_isb_64y256 2 coloc 1.3/2.4
+spinbench17 con X_bool_isb_64y256 4 coloc 1.8/6.0
+spinbench17 con X_bool_isb_64y256 8 coloc 3.8/26.2
+spinbench17 con X_bool_isb_64y256 12 coloc 7.5/83.5
+spinbench17 con X_bool_isb_64y256 14 coloc 11.4/151.6
+spinbench17 con X_bool_isb_64y256 16 coloc 17.2/258.8
+spinbench17 con X_bool_isb_64y256 32 coloc 18.2/278.1
+spinbench17 unc X_bool_isb_64y1k 0.99
+spinbench17 con X_bool_isb_64y1k 2 coloc 1.3/2.4
+spinbench17 con X_bool_isb_64y1k 4 coloc 1.8/6.1
+spinbench17 con X_bool_isb_64y1k 8 coloc 4.2/29.6
+spinbench17 con X_bool_isb_64y1k 12 coloc 7.1/78.0
+spinbench17 con X_bool_isb_64y1k 14 coloc 11.3/150.2
+spinbench17 con X_bool_isb_64y1k 16 coloc 16.7/249.3
+spinbench17 con X_bool_isb_64y1k 32 coloc 17.7/269.3
+spinbench17 unc X_bool_isb_128y16 0.83
+spinbench17 con X_bool_isb_128y16 2 coloc 1.1/1.9
+spinbench17 con X_bool_isb_128y16 4 coloc 1.4/4.5
+spinbench17 con X_bool_isb_128y16 8 coloc 2.7/18.8
+spinbench17 con X_bool_isb_128y16 12 coloc 5.0/54.1
+spinbench17 con X_bool_isb_128y16 14 coloc 5.6/73.7
+spinbench17 con X_bool_isb_128y16 16 coloc 4.8/62.5
+spinbench17 con X_bool_isb_128y16 32 coloc 4.8/64.6
+spinbench17 unc X_bool_isb_128y64 0.83
+spinbench17 con X_bool_isb_128y64 2 coloc 1.1/1.7
+spinbench17 con X_bool_isb_128y64 4 coloc 1.5/4.4
+spinbench17 con X_bool_isb_128y64 8 coloc 2.2/16.3
+spinbench17 con X_bool_isb_128y64 12 coloc 3.2/31.4
+spinbench17 con X_bool_isb_128y64 14 coloc 4.6/58.0
+spinbench17 con X_bool_isb_128y64 16 coloc 4.7/61.5
+spinbench17 con X_bool_isb_128y64 32 coloc 7.3/111.8
+spinbench17 unc X_bool_isb_128y256 0.83
+spinbench17 con X_bool_isb_128y256 2 coloc 1.1/1.6
+spinbench17 con X_bool_isb_128y256 4 coloc 1.3/4.4
+spinbench17 con X_bool_isb_128y256 8 coloc 2.3/14.6
+spinbench17 con X_bool_isb_128y256 12 coloc 3.3/32.0
+spinbench17 con X_bool_isb_128y256 14 coloc 4.6/57.5
+spinbench17 con X_bool_isb_128y256 16 coloc 5.2/67.9
+spinbench17 con X_bool_isb_128y256 32 coloc 6.8/101.3

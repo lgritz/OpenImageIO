@@ -1,0 +1,27 @@
+$ /Users/lg/tmp/claude-501/spinwork/sweep/build/bin/testtex -t 0 --maketests 10 test{:04}.exr --maketest-res 1024 --threadtimes 1 --wedge --threads 16 --iters 200000
+Created texture system
+Temp file 0: test0000.exr
+Temp file 1: test0001.exr
+Temp file 2: test0002.exr
+Temp file 3: test0003.exr
+Temp file 4: test0004.exr
+Temp file 5: test0005.exr
+Temp file 6: test0006.exr
+Temp file 7: test0007.exr
+Temp file 8: test0008.exr
+Temp file 9: test0009.exr
+Workload: Everybody accesses the same spot in one file (handles)
+texture cache size = 1024 MB
+hw threads = 16
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+  1         0.10      1.0x   100.0%    range 0.00	(200000 iters/thread)
+  2         0.05      2.0x    99.4%    range 0.00	(100000 iters/thread)
+  4         0.02      3.9x    97.2%    range 0.00	(50000 iters/thread)
+  8         0.01      7.5x    94.4%    range 0.00	(25000 iters/thread)
+ 12         0.01     11.1x    92.7%    range 0.00	(16666 iters/thread)
+ 16         0.01     10.4x    64.9%    range 0.00	(12500 iters/thread)
+
+wall=0.492 cpu=2.062 rc=0

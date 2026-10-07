@@ -1,0 +1,66 @@
+$ /Users/lg/tmp/claude-501/spinwork/base/build/bin/testtex --threadtimes 7 --wedge --threads 16 --iters 200000 prodtex0 prodtex1
+Created texture system
+Workload: Coherent access, many files, partially overlapping texture sets
+texture cache size = 1024 MB
+hw threads = 16
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+Unexpected error: Could not open file: prodtex0: No such file or directory
+Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+  1         0.00      1.0x   100.0%    range 0.00	(200000 iters/thread)
+Unexpected error: Could not open file: prodtex0: No such file or directory
+Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+  2         0.00     39.7x  1984.3%    range 0.00	(100000 iters/thread)
+Unexpected error: Could not open file: prodtex0: No such file or directory
+Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+  4         0.00     27.4x   685.6%    range 0.00	(50000 iters/thread)
+Unexpected error: Could not open file: prodtex0: No such file or directory
+Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+  8         0.00     25.0x   312.6%    range 0.00	(25000 iters/thread)
+Unexpected error: Could not open file: prodtex0: No such file or directory
+Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+ 12         0.00     20.5x   171.2%    range 0.00	(16666 iters/thread)
+Unexpected error: Could not open file: prodtex0: No such file or directory
+Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+ 16         0.00     15.5x    97.0%    range 0.00	(12500 iters/thread)
+
+wall=0.064 cpu=0.064 rc=0

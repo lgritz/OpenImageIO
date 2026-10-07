@@ -1,0 +1,57 @@
+$ /Users/lg/tmp/claude-501/spinwork/base/build/bin/testtex --threadtimes 7 --threads 16 --runstats --iters 200000 prodtex0 prodtex1
+Created texture system
+Workload: Coherent access, many files, partially overlapping texture sets
+texture cache size = 1024 MB
+hw threads = 16
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+Unexpected error: Could not open file: prodtex0: No such file or directory
+Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+Unexpected error: Invalid image file "prodtex0": Could not open file: prodtex0: No such file or directory
+ 16         0.00     16.0x   100.0%    range 0.00	(12500 iters/thread)
+
+Memory use: 50.8 MB
+OpenImageIO ImageCache statistics (0x77e850000) ver 3.3.0.0dev
+  Options:  max_memory_MB=1024.0 max_open_files=100 autotile=0
+            autoscanline=false automip=false forcefloat=false
+            accept_untiled=true accept_unmipped=true deduplicate=true
+            unassociatedalpha=false failure_retries=0 openexr:core=1 
+  Images : 2 unique
+    ImageInputs : 0 created, 0 current, 0 peak
+    Total pixel data size of all images referenced : 0 B
+    Total actual file size of all images referenced : 0 B
+    Pixel data read : 0 B
+    File I/O time : 0.1s (0.0s average per thread, for 17 threads)
+    File open time only : 0.1s
+    ImageInput mutex locking time : 0.1s
+    Peak cache memory : 0 B
+  Cache : 7 KB
+    Strings : 0 B, count : 2
+    Thread info : 6 KB, count : 17
+    Fingerprints : 0 B, count : 0
+    Tiles : 0 B, count : 0
+    Files : 992 B, count : 2
+      Format 'constant' : 992 B, count : 2
+        Image inputs : 32 B, count : 2
+        Image specs : 16 B, count : 2
+  2 were constant-valued in all pixels
+  Broken or invalid files: 1
+      1  prodtex0
+
+wall=0.061 cpu=0.061 rc=0

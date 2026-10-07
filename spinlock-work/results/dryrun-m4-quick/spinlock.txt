@@ -1,0 +1,6 @@
+base 1 wall=0.367 cpu=0.366 rc=0
+base 4 wall=0.579 cpu=1.096 rc=0
+base 16 wall=0.645 cpu=4.178 rc=0
+sweep 1 wall=0.373 cpu=0.372 rc=0
+sweep 4 wall=0.453 cpu=0.595 rc=0
+sweep 16 wall=0.708 cpu=5.066 rc=0

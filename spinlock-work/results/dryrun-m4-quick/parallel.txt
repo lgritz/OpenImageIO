@@ -1,0 +1,6 @@
+base 1 wall=0.010 cpu=0.010 rc=0
+base 4 wall=0.007 cpu=0.007 rc=0
+base 16 wall=0.006 cpu=0.006 rc=0
+sweep 1 wall=0.011 cpu=0.011 rc=0
+sweep 4 wall=0.007 cpu=0.006 rc=0
+sweep 16 wall=0.006 cpu=0.006 rc=0

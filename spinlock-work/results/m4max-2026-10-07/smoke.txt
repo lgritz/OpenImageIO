@@ -1,0 +1,300 @@
+spinbench17 unc A_cur 0.85
+spinbench17 con A_cur 1 tiny 1.1/1.1
+spinbench17 con A_cur 4 tiny 4.4/14.9
+spinbench17 con A_cur 16 tiny 45.1/494.4
+spinbench17 con A_cur 32 tiny 7.1/73.2
+spinbench17 con A_cur 1 medium 12.0/12.1
+spinbench17 con A_cur 4 medium 15.5/44.0
+spinbench17 con A_cur 16 medium 72.9/757.6
+spinbench17 con A_cur 32 medium 41.6/511.8
+spinbench17 unc A2_cur_nodclp 0.89
+spinbench17 con A2_cur_nodclp 1 tiny 1.1/1.1
+spinbench17 con A2_cur_nodclp 4 tiny 30.3/119.3
+spinbench17 con A2_cur_nodclp 16 tiny 24.7/242.8
+spinbench17 con A2_cur_nodclp 32 tiny 21.2/191.3
+spinbench17 con A2_cur_nodclp 1 medium 14.1/14.1
+spinbench17 con A2_cur_nodclp 4 medium 66.7/264.1
+spinbench17 con A2_cur_nodclp 16 medium 107.7/1386.4
+spinbench17 con A2_cur_nodclp 32 medium 52.2/682.9
+spinbench17 unc B_flag_isb_16y1 0.84
+spinbench17 con B_flag_isb_16y1 1 tiny 1.3/1.4
+spinbench17 con B_flag_isb_16y1 4 tiny 3.6/11.4
+spinbench17 con B_flag_isb_16y1 16 tiny 41.5/390.9
+spinbench17 con B_flag_isb_16y1 32 tiny 14.4/139.9
+spinbench17 con B_flag_isb_16y1 1 medium 12.1/12.1
+spinbench17 con B_flag_isb_16y1 4 medium 15.0/39.8
+spinbench17 con B_flag_isb_16y1 16 medium 49.5/472.3
+spinbench17 con B_flag_isb_16y1 32 medium 39.3/491.4
+spinbench17 unc B2_flag_yld_16y1 0.85
+spinbench17 con B2_flag_yld_16y1 1 tiny 1.1/1.1
+spinbench17 con B2_flag_yld_16y1 4 tiny 6.0/22.3
+spinbench17 con B2_flag_yld_16y1 16 tiny 35.0/339.0
+spinbench17 con B2_flag_yld_16y1 32 tiny 36.3/371.0
+spinbench17 con B2_flag_yld_16y1 1 medium 12.3/12.3
+spinbench17 con B2_flag_yld_16y1 4 medium 16.6/51.4
+spinbench17 con B2_flag_yld_16y1 16 medium 75.4/802.3
+spinbench17 con B2_flag_yld_16y1 32 medium 29.6/333.6
+spinbench17 unc C_bool_isb_16y1 0.80
+spinbench17 con C_bool_isb_16y1 1 tiny 1.1/1.1
+spinbench17 con C_bool_isb_16y1 4 tiny 13.5/51.9
+spinbench17 con C_bool_isb_16y1 16 tiny 33.6/301.1
+spinbench17 con C_bool_isb_16y1 32 tiny 27.2/280.3
+spinbench17 con C_bool_isb_16y1 1 medium 14.3/14.3
+spinbench17 con C_bool_isb_16y1 4 medium 28.4/98.6
+spinbench17 con C_bool_isb_16y1 16 medium 56.0/574.9
+spinbench17 con C_bool_isb_16y1 32 medium 42.6/476.0
+spinbench17 unc D_article 1.00
+spinbench17 con D_article 1 tiny 1.2/1.3
+spinbench17 con D_article 4 tiny 1.7/4.7
+spinbench17 con D_article 16 tiny 16.2/243.1
+spinbench17 con D_article 1 medium 14.2/14.2
+spinbench17 con D_article 4 medium 20.5/74.8
+spinbench17 con D_article 16 medium 66.9/895.8
+spinbench17 unc D2_article_yldinsn 1.00
+spinbench17 con D2_article_yldinsn 1 tiny 1.2/1.3
+spinbench17 con D2_article_yldinsn 4 tiny 39.0/113.9
+spinbench17 con D2_article_yldinsn 16 tiny 544.6/7630.1
+spinbench17 con D2_article_yldinsn 1 medium 14.6/14.6
+spinbench17 con D2_article_yldinsn 4 medium 110.7/391.4
+spinbench17 con D2_article_yldinsn 16 medium 295.2/3994.3
+spinbench17 unc E_bool_isb_16y16 0.88
+spinbench17 con E_bool_isb_16y16 1 tiny 1.1/1.1
+spinbench17 con E_bool_isb_16y16 4 tiny 6.5/24.4
+spinbench17 con E_bool_isb_16y16 16 tiny 56.3/558.6
+spinbench17 con E_bool_isb_16y16 32 tiny 24.7/247.8
+spinbench17 con E_bool_isb_16y16 1 medium 14.3/14.3
+spinbench17 con E_bool_isb_16y16 4 medium 37.9/146.1
+spinbench17 con E_bool_isb_16y16 16 medium 115.8/1235.4
+spinbench17 con E_bool_isb_16y16 32 medium 58.3/642.9
+spinbench17 unc E_bool_isb_32y16 1.31
+spinbench17 con E_bool_isb_32y16 1 tiny 1.3/1.4
+spinbench17 con E_bool_isb_32y16 4 tiny 8.0/28.3
+spinbench17 con E_bool_isb_32y16 16 tiny 48.3/532.5
+spinbench17 con E_bool_isb_32y16 32 tiny 17.0/181.6
+spinbench17 con E_bool_isb_32y16 1 medium 12.6/12.6
+spinbench17 con E_bool_isb_32y16 4 medium 32.4/126.4
+spinbench17 con E_bool_isb_32y16 16 medium 101.7/1126.7
+spinbench17 con E_bool_isb_32y16 32 medium 42.9/518.8
+spinbench17 unc E_bool_isb_64y4 1.00
+spinbench17 con E_bool_isb_64y4 1 tiny 1.2/1.2
+spinbench17 con E_bool_isb_64y4 4 tiny 4.3/14.2
+spinbench17 con E_bool_isb_64y4 16 tiny 54.2/552.1
+spinbench17 con E_bool_isb_64y4 32 tiny 18.8/187.8
+spinbench17 con E_bool_isb_64y4 1 medium 14.2/14.2
+spinbench17 con E_bool_isb_64y4 4 medium 32.5/117.3
+spinbench17 con E_bool_isb_64y4 16 medium 74.7/809.9
+spinbench17 con E_bool_isb_64y4 32 medium 41.4/491.1
+spinbench17 unc E_bool_isb_64y16 1.00
+spinbench17 con E_bool_isb_64y16 1 tiny 1.3/1.3
+spinbench17 con E_bool_isb_64y16 4 tiny 16.0/62.4
+spinbench17 con E_bool_isb_64y16 16 tiny 39.3/371.4
+spinbench17 con E_bool_isb_64y16 32 tiny 14.2/160.5
+spinbench17 con E_bool_isb_64y16 1 medium 14.4/14.4
+spinbench17 con E_bool_isb_64y16 4 medium 25.7/97.5
+spinbench17 con E_bool_isb_64y16 16 medium 44.5/526.6
+spinbench17 con E_bool_isb_64y16 32 medium 31.2/366.6
+spinbench17 unc E_bool_isb_64y64 1.01
+spinbench17 con E_bool_isb_64y64 1 tiny 1.4/1.4
+spinbench17 con E_bool_isb_64y64 4 tiny 4.9/17.9
+spinbench17 con E_bool_isb_64y64 16 tiny 7.0/62.5
+spinbench17 con E_bool_isb_64y64 32 tiny 11.8/134.4
+spinbench17 con E_bool_isb_64y64 1 medium 14.2/14.2
+spinbench17 con E_bool_isb_64y64 4 medium 26.7/102.2
+spinbench17 con E_bool_isb_64y64 16 medium 46.0/549.6
+spinbench17 con E_bool_isb_64y64 32 medium 35.2/473.5
+spinbench17 unc E_bool_isb_128y16 0.80
+spinbench17 con E_bool_isb_128y16 1 tiny 1.1/1.1
+spinbench17 con E_bool_isb_128y16 4 tiny 6.6/25.2
+spinbench17 con E_bool_isb_128y16 16 tiny 31.4/340.5
+spinbench17 con E_bool_isb_128y16 32 tiny 9.9/122.4
+spinbench17 con E_bool_isb_128y16 1 medium 14.4/14.4
+spinbench17 con E_bool_isb_128y16 4 medium 27.9/107.0
+spinbench17 con E_bool_isb_128y16 16 medium 33.6/394.9
+spinbench17 con E_bool_isb_128y16 32 medium 28.6/365.4
+spinbench17 unc E_bool_empty_64y16 0.86
+spinbench17 con E_bool_empty_64y16 1 tiny 1.1/1.1
+spinbench17 con E_bool_empty_64y16 4 tiny 5.0/18.3
+spinbench17 con E_bool_empty_64y16 16 tiny 28.2/305.3
+spinbench17 con E_bool_empty_64y16 32 tiny 25.6/211.9
+spinbench17 con E_bool_empty_64y16 1 medium 14.2/14.2
+spinbench17 con E_bool_empty_64y16 4 medium 24.7/83.6
+spinbench17 con E_bool_empty_64y16 16 medium 88.5/951.8
+spinbench17 con E_bool_empty_64y16 32 medium 39.7/460.0
+spinbench17 unc E2_bool2_isb_64y16 1.00
+spinbench17 con E2_bool2_isb_64y16 1 tiny 1.2/1.2
+spinbench17 con E2_bool2_isb_64y16 4 tiny 50.8/171.3
+spinbench17 con E2_bool2_isb_64y16 16 tiny 74.0/777.9
+spinbench17 con E2_bool2_isb_64y16 32 tiny 38.2/386.2
+spinbench17 con E2_bool2_isb_64y16 1 medium 14.4/14.4
+spinbench17 con E2_bool2_isb_64y16 4 medium 34.5/130.8
+spinbench17 con E2_bool2_isb_64y16 16 medium 70.3/817.2
+spinbench17 con E2_bool2_isb_64y16 32 medium 40.6/563.0
+spinbench17 unc B3_flag_isb_64y16 0.99
+spinbench17 con B3_flag_isb_64y16 1 tiny 1.3/1.3
+spinbench17 con B3_flag_isb_64y16 4 tiny 12.3/47.6
+spinbench17 con B3_flag_isb_64y16 16 tiny 6.6/62.4
+spinbench17 con B3_flag_isb_64y16 32 tiny 6.3/59.2
+spinbench17 con B3_flag_isb_64y16 1 medium 11.9/11.9
+spinbench17 con B3_flag_isb_64y16 4 medium 15.3/40.5
+spinbench17 con B3_flag_isb_64y16 16 medium 60.2/657.9
+spinbench17 con B3_flag_isb_64y16 32 medium 32.1/347.2
+spinbench17 unc H_stdmutex 4.08
+spinbench20 unc A_cur 0.85
+spinbench20 con A_cur 1 tiny 1.1/1.1
+spinbench20 con A_cur 4 tiny 3.6/11.5
+spinbench20 con A_cur 16 tiny 28.3/261.5
+spinbench20 con A_cur 32 tiny 23.4/221.6
+spinbench20 con A_cur 1 medium 12.1/12.2
+spinbench20 con A_cur 4 medium 15.1/41.6
+spinbench20 con A_cur 16 medium 54.8/535.7
+spinbench20 con A_cur 32 medium 53.1/631.3
+spinbench20 unc A2_cur_nodclp 0.82
+spinbench20 con A2_cur_nodclp 1 tiny 1.1/1.1
+spinbench20 con A2_cur_nodclp 4 tiny 29.8/117.1
+spinbench20 con A2_cur_nodclp 16 tiny 56.5/588.3
+spinbench20 con A2_cur_nodclp 32 tiny 8.6/92.1
+spinbench20 con A2_cur_nodclp 1 medium 14.3/14.4
+spinbench20 con A2_cur_nodclp 4 medium 72.4/288.3
+spinbench20 con A2_cur_nodclp 16 medium 101.8/1325.7
+spinbench20 con A2_cur_nodclp 32 medium 52.2/698.4
+spinbench20 unc B_flag_isb_16y1 0.86
+spinbench20 con B_flag_isb_16y1 1 tiny 1.1/1.2
+spinbench20 con B_flag_isb_16y1 4 tiny 3.8/12.4
+spinbench20 con B_flag_isb_16y1 16 tiny 28.6/262.9
+spinbench20 con B_flag_isb_16y1 32 tiny 4.9/45.5
+spinbench20 con B_flag_isb_16y1 1 medium 12.1/12.1
+spinbench20 con B_flag_isb_16y1 4 medium 15.6/44.3
+spinbench20 con B_flag_isb_16y1 16 medium 92.0/985.7
+spinbench20 con B_flag_isb_16y1 32 medium 50.5/610.0
+spinbench20 unc B2_flag_yld_16y1 0.87
+spinbench20 con B2_flag_yld_16y1 1 tiny 1.2/1.3
+spinbench20 con B2_flag_yld_16y1 4 tiny 3.2/9.7
+spinbench20 con B2_flag_yld_16y1 16 tiny 38.3/363.5
+spinbench20 con B2_flag_yld_16y1 32 tiny 31.5/296.6
+spinbench20 con B2_flag_yld_16y1 1 medium 12.1/12.2
+spinbench20 con B2_flag_yld_16y1 4 medium 19.2/66.4
+spinbench20 con B2_flag_yld_16y1 16 medium 65.1/595.6
+spinbench20 con B2_flag_yld_16y1 32 medium 47.8/507.0
+spinbench20 unc C_bool_isb_16y1 0.87
+spinbench20 con C_bool_isb_16y1 1 tiny 1.1/1.1
+spinbench20 con C_bool_isb_16y1 4 tiny 3.9/13.3
+spinbench20 con C_bool_isb_16y1 16 tiny 19.8/176.5
+spinbench20 con C_bool_isb_16y1 32 tiny 15.1/133.8
+spinbench20 con C_bool_isb_16y1 1 medium 14.2/14.2
+spinbench20 con C_bool_isb_16y1 4 medium 30.6/107.4
+spinbench20 con C_bool_isb_16y1 16 medium 90.2/957.3
+spinbench20 con C_bool_isb_16y1 32 medium 35.1/432.9
+spinbench20 unc D_article 1.00
+spinbench20 con D_article 1 tiny 1.4/1.4
+spinbench20 con D_article 4 tiny 2.1/6.4
+spinbench20 con D_article 16 tiny 16.7/246.4
+spinbench20 con D_article 1 medium 14.3/14.3
+spinbench20 con D_article 4 medium 20.1/67.3
+spinbench20 con D_article 16 medium 61.9/828.6
+spinbench20 unc D2_article_yldinsn 1.00
+spinbench20 con D2_article_yldinsn 1 tiny 1.3/1.3
+spinbench20 con D2_article_yldinsn 4 tiny 99.8/361.7
+spinbench20 con D2_article_yldinsn 16 tiny 635.5/8666.3
+spinbench20 con D2_article_yldinsn 1 medium 15.1/15.1
+spinbench20 con D2_article_yldinsn 4 medium 147.6/549.1
+spinbench20 con D2_article_yldinsn 16 medium 328.6/4495.9
+spinbench20 unc E_bool_isb_16y16 0.84
+spinbench20 con E_bool_isb_16y16 1 tiny 1.1/1.1
+spinbench20 con E_bool_isb_16y16 4 tiny 11.5/44.9
+spinbench20 con E_bool_isb_16y16 16 tiny 24.4/231.9
+spinbench20 con E_bool_isb_16y16 32 tiny 39.8/398.6
+spinbench20 con E_bool_isb_16y16 1 medium 14.2/14.2
+spinbench20 con E_bool_isb_16y16 4 medium 42.7/164.8
+spinbench20 con E_bool_isb_16y16 16 medium 72.6/764.9
+spinbench20 con E_bool_isb_16y16 32 medium 51.4/604.6
+spinbench20 unc E_bool_isb_32y16 1.33
+spinbench20 con E_bool_isb_32y16 1 tiny 1.4/1.4
+spinbench20 con E_bool_isb_32y16 4 tiny 16.9/64.7
+spinbench20 con E_bool_isb_32y16 16 tiny 92.5/983.7
+spinbench20 con E_bool_isb_32y16 32 tiny 5.1/52.7
+spinbench20 con E_bool_isb_32y16 1 medium 13.8/13.8
+spinbench20 con E_bool_isb_32y16 4 medium 37.3/142.7
+spinbench20 con E_bool_isb_32y16 16 medium 94.0/1021.6
+spinbench20 con E_bool_isb_32y16 32 medium 55.3/692.6
+spinbench20 unc E_bool_isb_64y4 1.00
+spinbench20 con E_bool_isb_64y4 1 tiny 1.3/1.3
+spinbench20 con E_bool_isb_64y4 4 tiny 6.4/22.8
+spinbench20 con E_bool_isb_64y4 16 tiny 48.1/516.1
+spinbench20 con E_bool_isb_64y4 32 tiny 28.9/311.5
+spinbench20 con E_bool_isb_64y4 1 medium 17.1/17.1
+spinbench20 con E_bool_isb_64y4 4 medium 30.2/115.4
+spinbench20 con E_bool_isb_64y4 16 medium 69.8/809.8
+spinbench20 con E_bool_isb_64y4 32 medium 53.6/627.8
+spinbench20 unc E_bool_isb_64y16 1.00
+spinbench20 con E_bool_isb_64y16 1 tiny 1.6/1.6
+spinbench20 con E_bool_isb_64y16 4 tiny 19.5/75.5
+spinbench20 con E_bool_isb_64y16 16 tiny 49.5/538.6
+spinbench20 con E_bool_isb_64y16 32 tiny 27.6/282.6
+spinbench20 con E_bool_isb_64y16 1 medium 14.3/14.3
+spinbench20 con E_bool_isb_64y16 4 medium 25.5/96.4
+spinbench20 con E_bool_isb_64y16 16 medium 53.6/634.1
+spinbench20 con E_bool_isb_64y16 32 medium 38.2/493.3
+spinbench20 unc E_bool_isb_64y64 1.01
+spinbench20 con E_bool_isb_64y64 1 tiny 1.3/1.3
+spinbench20 con E_bool_isb_64y64 4 tiny 5.2/19.9
+spinbench20 con E_bool_isb_64y64 16 tiny 20.5/234.9
+spinbench20 con E_bool_isb_64y64 32 tiny 10.8/134.4
+spinbench20 con E_bool_isb_64y64 1 medium 14.3/14.3
+spinbench20 con E_bool_isb_64y64 4 medium 33.7/120.3
+spinbench20 con E_bool_isb_64y64 16 medium 34.6/393.9
+spinbench20 con E_bool_isb_64y64 32 medium 34.9/472.5
+spinbench20 unc E_bool_isb_128y16 0.83
+spinbench20 con E_bool_isb_128y16 1 tiny 1.1/1.1
+spinbench20 con E_bool_isb_128y16 4 tiny 7.7/29.8
+spinbench20 con E_bool_isb_128y16 16 tiny 16.4/164.4
+spinbench20 con E_bool_isb_128y16 32 tiny 12.2/135.1
+spinbench20 con E_bool_isb_128y16 1 medium 15.5/15.5
+spinbench20 con E_bool_isb_128y16 4 medium 24.3/95.6
+spinbench20 con E_bool_isb_128y16 16 medium 36.2/408.9
+spinbench20 con E_bool_isb_128y16 32 medium 31.0/389.5
+spinbench20 unc E_bool_empty_64y16 0.82
+spinbench20 con E_bool_empty_64y16 1 tiny 1.1/1.1
+spinbench20 con E_bool_empty_64y16 4 tiny 11.1/42.9
+spinbench20 con E_bool_empty_64y16 16 tiny 63.9/621.4
+spinbench20 con E_bool_empty_64y16 32 tiny 16.5/190.9
+spinbench20 con E_bool_empty_64y16 1 medium 14.3/14.3
+spinbench20 con E_bool_empty_64y16 4 medium 52.9/202.1
+spinbench20 con E_bool_empty_64y16 16 medium 50.5/516.0
+spinbench20 con E_bool_empty_64y16 32 medium 60.9/713.2
+spinbench20 unc E2_bool2_isb_64y16 1.04
+spinbench20 con E2_bool2_isb_64y16 1 tiny 1.3/1.3
+spinbench20 con E2_bool2_isb_64y16 4 tiny 63.3/196.1
+spinbench20 con E2_bool2_isb_64y16 16 tiny 60.7/638.6
+spinbench20 con E2_bool2_isb_64y16 32 tiny 22.2/209.2
+spinbench20 con E2_bool2_isb_64y16 1 medium 14.2/14.2
+spinbench20 con E2_bool2_isb_64y16 4 medium 35.0/133.4
+spinbench20 con E2_bool2_isb_64y16 16 medium 67.6/792.0
+spinbench20 con E2_bool2_isb_64y16 32 medium 42.2/566.3
+spinbench20 unc B3_flag_isb_64y16 1.01
+spinbench20 con B3_flag_isb_64y16 1 tiny 1.2/1.2
+spinbench20 con B3_flag_isb_64y16 4 tiny 3.3/10.4
+spinbench20 con B3_flag_isb_64y16 16 tiny 40.7/397.7
+spinbench20 con B3_flag_isb_64y16 32 tiny 26.6/263.0
+spinbench20 con B3_flag_isb_64y16 1 medium 11.9/11.9
+spinbench20 con B3_flag_isb_64y16 4 medium 15.7/45.4
+spinbench20 con B3_flag_isb_64y16 16 medium 57.0/643.5
+spinbench20 con B3_flag_isb_64y16 32 medium 40.8/485.2
+spinbench20 unc H_stdmutex 4.15
+spinbench20 unc F_flagtest_isb_16y1 0.78
+spinbench20 con F_flagtest_isb_16y1 1 tiny 1.1/1.1
+spinbench20 con F_flagtest_isb_16y1 4 tiny 6.3/24.1
+spinbench20 con F_flagtest_isb_16y1 16 tiny 15.6/169.1
+spinbench20 con F_flagtest_isb_16y1 32 tiny 15.7/141.4
+spinbench20 con F_flagtest_isb_16y1 1 medium 14.3/14.3
+spinbench20 con F_flagtest_isb_16y1 4 medium 26.7/91.5
+spinbench20 con F_flagtest_isb_16y1 16 medium 72.0/771.3
+spinbench20 con F_flagtest_isb_16y1 32 medium 50.0/582.0
+spinbench20 unc F_flagtest_isb_64y16 1.01
+spinbench20 con F_flagtest_isb_64y16 1 tiny 1.3/1.3
+spinbench20 con F_flagtest_isb_64y16 4 tiny 8.3/30.9
+spinbench20 con F_flagtest_isb_64y16 16 tiny 49.9/513.3
+spinbench20 con F_flagtest_isb_64y16 32 tiny 29.7/291.7
+spinbench20 con F_flagtest_isb_64y16 1 medium 14.3/14.3
+spinbench20 con F_flagtest_isb_64y16 4 medium 25.9/101.7
+spinbench20 con F_flagtest_isb_64y16 16 medium 69.1/812.7
+spinbench20 con F_flagtest_isb_64y16 32 medium 37.6/477.2

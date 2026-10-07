@@ -1,0 +1,8 @@
+# name    commit      description
+# Each variant is built in its own git worktree. Order matters: the last
+# line is the "newest" variant (also used for ctest and spin_mutex tests).
+base     2a58fd4f3   main before any of this work
+spin     bad4c87e4   spin_mutex: atomic<bool> TTAS, backoff(128,64), branch hint fix, arm64 pause
+tileuse  114a92be0   + ImageCacheTile::use() test-before-write
+fileuse  fdf355203   + ImageCacheFile::use() atomic test-before-write
+sweep    7624b8e90   + file sweep lock is std::mutex
