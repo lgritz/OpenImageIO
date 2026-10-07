@@ -1,0 +1,62 @@
+spinbench17o3 unc A_cur 0.92
+spinbench17o3 con A_cur 1 tiny 1.1/1.1
+spinbench17o3 con A_cur 4 tiny 12.5/48.6
+spinbench17o3 con A_cur 16 tiny 106.1/1151.7
+spinbench17o3 con A_cur 1 medium 12.5/12.5
+spinbench17o3 con A_cur 4 medium 15.8/42.7
+spinbench17o3 con A_cur 16 medium 91.9/993.1
+spinbench17o3 con A_cur 1 coloc 1.1/1.1
+spinbench17o3 con A_cur 4 coloc 3.8/14.6
+spinbench17o3 con A_cur 16 coloc 4.5/49.7
+spinbench17o3 unc X_bool_isb_128y64 1.06
+spinbench17o3 con X_bool_isb_128y64 1 tiny 1.3/1.3
+spinbench17o3 con X_bool_isb_128y64 4 tiny 4.9/18.3
+spinbench17o3 con X_bool_isb_128y64 16 tiny 11.0/124.0
+spinbench17o3 con X_bool_isb_128y64 1 medium 12.9/12.9
+spinbench17o3 con X_bool_isb_128y64 4 medium 16.3/49.7
+spinbench17o3 con X_bool_isb_128y64 16 medium 24.7/279.5
+spinbench17o3 con X_bool_isb_128y64 1 coloc 1.2/1.3
+spinbench17o3 con X_bool_isb_128y64 4 coloc 1.7/5.3
+spinbench17o3 con X_bool_isb_128y64 16 coloc 4.5/48.3
+spinbench17o3 unc H_stdmutex 4.33
+spinbench17o3 unc O_oiio_spin_mutex 0.91
+spinbench17o3 con O_oiio_spin_mutex 1 tiny 1.2/1.2
+spinbench17o3 con O_oiio_spin_mutex 4 tiny 5.8/22.0
+spinbench17o3 con O_oiio_spin_mutex 16 tiny 11.0/110.2
+spinbench17o3 con O_oiio_spin_mutex 1 medium 12.9/13.0
+spinbench17o3 con O_oiio_spin_mutex 4 medium 15.3/47.4
+spinbench17o3 con O_oiio_spin_mutex 16 medium 22.2/232.7
+spinbench17o3 con O_oiio_spin_mutex 1 coloc 1.1/1.2
+spinbench17o3 con O_oiio_spin_mutex 4 coloc 1.6/4.5
+spinbench17o3 con O_oiio_spin_mutex 16 coloc 5.8/81.2
+spinbench20o3 unc A_cur 0.95
+spinbench20o3 con A_cur 1 tiny 1.1/1.1
+spinbench20o3 con A_cur 4 tiny 23.6/93.4
+spinbench20o3 con A_cur 16 tiny 123.2/1367.9
+spinbench20o3 con A_cur 1 medium 12.5/12.6
+spinbench20o3 con A_cur 4 medium 15.3/39.9
+spinbench20o3 con A_cur 16 medium 108.7/1255.9
+spinbench20o3 con A_cur 1 coloc 1.1/1.1
+spinbench20o3 con A_cur 4 coloc 3.1/10.5
+spinbench20o3 con A_cur 16 coloc 20.4/228.2
+spinbench20o3 unc X_bool_isb_128y64 1.06
+spinbench20o3 con X_bool_isb_128y64 1 tiny 1.3/1.4
+spinbench20o3 con X_bool_isb_128y64 4 tiny 8.0/31.4
+spinbench20o3 con X_bool_isb_128y64 16 tiny 16.7/163.4
+spinbench20o3 con X_bool_isb_128y64 1 medium 12.3/12.3
+spinbench20o3 con X_bool_isb_128y64 4 medium 15.9/47.1
+spinbench20o3 con X_bool_isb_128y64 16 medium 23.1/241.7
+spinbench20o3 con X_bool_isb_128y64 1 coloc 1.4/1.4
+spinbench20o3 con X_bool_isb_128y64 4 coloc 1.6/4.9
+spinbench20o3 con X_bool_isb_128y64 16 coloc 7.2/102.6
+spinbench20o3 unc H_stdmutex 4.26
+spinbench20o3 unc O_oiio_spin_mutex 0.90
+spinbench20o3 con O_oiio_spin_mutex 1 tiny 1.1/1.1
+spinbench20o3 con O_oiio_spin_mutex 4 tiny 2.8/9.3
+spinbench20o3 con O_oiio_spin_mutex 16 tiny 10.9/111.6
+spinbench20o3 con O_oiio_spin_mutex 1 medium 13.0/13.0
+spinbench20o3 con O_oiio_spin_mutex 4 medium 16.1/59.5
+spinbench20o3 con O_oiio_spin_mutex 16 medium 27.6/372.6
+spinbench20o3 con O_oiio_spin_mutex 1 coloc 1.1/1.1
+spinbench20o3 con O_oiio_spin_mutex 4 coloc 1.6/5.0
+spinbench20o3 con O_oiio_spin_mutex 16 coloc 5.2/67.5

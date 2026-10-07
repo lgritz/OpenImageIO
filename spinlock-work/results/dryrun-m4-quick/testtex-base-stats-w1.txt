@@ -1,0 +1,75 @@
+$ /Users/lg/tmp/claude-501/spinwork/base/build/bin/testtex -t 0 --maketests 10 test{:04}.exr --maketest-res 1024 --threadtimes 1 --threads 16 --runstats --iters 200000
+Created texture system
+Temp file 0: test0000.exr
+Temp file 1: test0001.exr
+Temp file 2: test0002.exr
+Temp file 3: test0003.exr
+Temp file 4: test0004.exr
+Temp file 5: test0005.exr
+Temp file 6: test0006.exr
+Temp file 7: test0007.exr
+Temp file 8: test0008.exr
+Temp file 9: test0009.exr
+Created 10 test files in 0.2s
+
+Workload: Everybody accesses the same spot in one file (handles)
+texture cache size = 1024 MB
+hw threads = 16
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+ 16         0.02     16.0x   100.0%    range 0.00	(12500 iters/thread)
+
+Memory use: 125.0 MB
+OpenImageIO Texture statistics
+  Options:  gray_to_rgb=false flip_t=false max_tile_channels=6
+            stochastic=0 
+  Queries/batches : 
+    texture     :  200000 queries in 200000 batches
+    texture 3d  :  0 queries in 0 batches
+    shadow      :  0 queries in 0 batches
+    environment :  0 queries in 0 batches
+    gettextureinfo :  0 queries
+  Interpolations :
+    closest  : 0
+    bilinear : 400000
+    bicubic  : 0
+  Average anisotropic probes : 1
+  Max anisotropy in the wild : 1
+
+OpenImageIO ImageCache statistics (0x86d0a4000) ver 3.3.0.0dev
+  Options:  max_memory_MB=1024.0 max_open_files=100 autotile=0
+            autoscanline=false automip=false forcefloat=false
+            accept_untiled=true accept_unmipped=true deduplicate=true
+            unassociatedalpha=false failure_retries=0 openexr:core=1 
+  Images : 10 unique
+    ImageInputs : 1 created, 1 current, 1 peak
+    Total pixel data size of all images referenced : 10.7 MB
+    Total actual file size of all images referenced : 600 KB
+    Pixel data read : 64 KB
+    ImageInput mutex locking time : 0.0s
+  Tiles: 2 created, 2 current, 2 peak
+    total tile requests : 400000
+    micro-cache misses : 32 (0.0%)
+    main cache misses : 2 (0.0%)
+    redundant reads: 0 tiles, 0 B
+    Peak cache memory : 64 KB
+  Cache : 77 KB
+    Strings : 0 B, count : 2
+    Thread info : 6 KB, count : 17
+    Fingerprints : 0 B, count : 0
+    Tiles : 64 KB, count : 2
+    Files : 7 KB, count : 10
+      Format 'constant' : 4 KB, count : 9
+        Image inputs : 144 B, count : 9
+        Image specs : 72 B, count : 9
+      Format 'openexr' : 2 KB, count : 1
+        Image inputs : 296 B, count : 1
+        Image specs : 992 B, count : 12
+        Subimages : 924 B, count : 1
+          Levels : 552 B, count : 11
+  9 were constant-valued in all pixels
+  Broken or invalid files: 0
+
+wall=0.311 cpu=1.719 rc=0

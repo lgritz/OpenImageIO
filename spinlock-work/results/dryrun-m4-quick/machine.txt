@@ -1,0 +1,28 @@
+## date
+Wed  7 Oct 2026 09:15:59 PDT
+## git
+7624b8e9070076501112ff99acc0c8cacb5c31ae perf(IC): file sweep lock should block, not spin
+## uname
+Darwin unagi3.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:17:26 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6041 arm64
+## nproc
+16
+## lscpu
+## numa
+numactl not available
+## smt
+n/a
+## governor
+n/a
+## memory
+sysctl: sysctl fmt -1 1024 1: Operation not permitted
+## compiler
+c++: error: couldn't create cache file '/var/folders/py/q8rnbld17pj29665hxgmrz_m0000gn/T/xcrun_db-e34yOOuv' (errno=Operation not permitted)
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+## cmake
+cmake version 4.4.4
+## python
+Python 3.14.8
+## perf
+no perf
+## OIIO_CMAKE_ARGS
+-DUSE_PYTHON=0
