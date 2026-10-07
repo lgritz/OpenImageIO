@@ -204,7 +204,11 @@ public:
 
     /// Mark the file as recently used.
     ///
-    void use(void) { m_used = true; }
+    void use(void)
+    {
+        if (!m_used.load(std::memory_order_relaxed))
+            m_used.store(true, std::memory_order_relaxed);
+    }
 
     /// Try to release resources for this file -- if recently used, mark
     /// as not recently used; if already not recently used, close the
@@ -479,7 +483,7 @@ public:
 private:
     ustring m_filename_original;   ///< original filename before search path
     ustring m_filename;            ///< Filename
-    bool m_used;                   ///< Recently used (in the LRU sense)
+    std::atomic<bool> m_used;      ///< Recently used (in the LRU sense)
     bool m_broken;                 ///< has errors; can't be used properly
     bool m_allow_release = true;   ///< Allow the file to release()?
     std::string m_broken_message;  ///< Error message for why it's broken
