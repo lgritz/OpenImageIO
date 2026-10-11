@@ -34,6 +34,9 @@ command += oiiotool("--info -v src/bomb-resolution.j2c", failureok = True)
 command += oiiotool("--info -v src/bomb-ratio.j2c", failureok = True)
 # ... while a small valid codestream still reads.
 command += oiiotool("--info -v --hash src/valid-16x16.j2c", failureok = True)
+# A codestream with more than 4 components: only the first 4 are kept, and
+# the rest must be pulled and dropped so later rows stay in step.
+command += oiiotool("--info -v --hash src/five-components.j2c", failureok = True)
 
 # Reading a valid HTJ2K file and then a malformed one in the same process
 # used to crash: OpenJPH's error handler is global, and the old code left it

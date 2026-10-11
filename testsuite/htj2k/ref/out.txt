@@ -17,6 +17,12 @@ src/valid-16x16.j2c  :   16 x   16, 3 channel, uint8 jpeg2000
     channel list: R, G, B
     oiio:BitsPerSample: 8
     oiio:ColorSpace: "srgb_rec709_scene"
+Reading src/five-components.j2c
+src/five-components.j2c :   16 x    8, 4 channel, uint8 jpeg2000
+    SHA-1: FC9128F5C39016986D2BB5AD77AAAF8649CD9CA2
+    channel list: R, G, B, A
+    oiio:BitsPerSample: 8
+    oiio:ColorSpace: "srgb_rec709_scene"
 Reading src/valid-16x16.j2c
 src/valid-16x16.j2c  :   16 x   16, 3 channel, uint8 jpeg2000
 Full command line was:

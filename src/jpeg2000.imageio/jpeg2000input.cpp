@@ -238,6 +238,7 @@ private:                               // OJPH code
     bool ojph_reader     = false;      // Are we using the ojph reader?
     std::vector<unsigned char> m_buf;  // Buffer the image pixels
     int buffer_bpp;                    // Bytes per pixel in the buffer
+    int m_codestream_comps = 0;        // Components in the codestream
     ojph::codestream codestream;       // The HTJ2K codestream
     std::unique_ptr<jph_infile> m_jphinfile;
 #endif
@@ -344,6 +345,7 @@ Jpeg2000Input::ojph_read_header()
         close();
         return false;
     }
+    m_codestream_comps = ch;
     if (ch > 4)
         ch = 4;  // Only do the first 4 channels.
     m_bpp.resize(ch);
@@ -372,6 +374,12 @@ Jpeg2000Input::ojph_read_header()
         }
         if (m_bpp[c] != m_bpp[0]) {
             errorfmt("All channels need to be the same bitdepth");
+            close();
+            return false;
+        }
+        if (siz.get_recon_width(c) != ojph::ui32(w)
+            || siz.get_recon_height(c) != ojph::ui32(h)) {
+            errorfmt("Subsampled HTJ2K components are not supported");
             close();
             return false;
         }
@@ -423,7 +431,7 @@ Jpeg2000Input::ojph_read_image()
     // We are going to read the whole image into the buffer, since with openjph
     // its hard to easily grab part of the image.
     if (codestream.is_planar()) {
-        for (int c = 0; c < ch; ++c)
+        for (int c = 0; c < m_codestream_comps; ++c)
             for (int i = 0; i < h; ++i) {
                 ojph::ui32 comp_num;
                 ojph::line_buf* line = nullptr;
@@ -438,6 +446,8 @@ Jpeg2000Input::ojph_read_image()
                     return false;
                 }
 
+                if (c >= ch)
+                    continue;  // extra components are pulled and dropped
                 const ojph::si32* sp = line->i32;
                 OIIO_DASSERT(int(comp_num) == c);
                 if (m_spec.format == TypeDesc::UINT8) {
@@ -459,7 +469,7 @@ Jpeg2000Input::ojph_read_image()
             }
     } else {
         for (int i = 0; i < h; ++i) {
-            for (int c = 0; c < ch; ++c) {
+            for (int c = 0; c < m_codestream_comps; ++c) {
                 ojph::ui32 comp_num;
                 ojph::line_buf* line = nullptr;
                 try {
@@ -473,6 +483,8 @@ Jpeg2000Input::ojph_read_image()
                     return false;
                 }
 
+                if (c >= ch)
+                    continue;  // extra components are pulled and dropped
                 const ojph::si32* sp = line->i32;
                 OIIO_DASSERT(int(comp_num) == c);
                 if (m_spec.format == TypeDesc::UINT8) {
