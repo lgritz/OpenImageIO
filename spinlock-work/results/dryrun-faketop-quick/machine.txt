@@ -1,0 +1,39 @@
+## date
+Mon 12 Oct 2026 15:36:52 PDT
+## git
+83a1dcb0a966147b4a52d14510fe250670e69e70 spinlock-work: run_all.sh drives TOP/build.sh on the feedstock layout
+## uname
+Darwin unagi3.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:17:26 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6041 arm64
+## nproc
+16
+## lscpu
+hw.ncpu: 16
+hw.physicalcpu: 16
+hw.physicalcpu_max: 16
+hw.logicalcpu: 16
+hw.logicalcpu_max: 16
+machdep.cpu.cores_per_package: 16
+machdep.cpu.core_count: 16
+machdep.cpu.logical_per_package: 16
+machdep.cpu.thread_count: 16
+machdep.cpu.brand_string: Apple M4 Max
+## numa
+numactl not available
+## smt
+n/a
+## governor
+n/a
+## memory
+68719476736
+## compiler
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin25.6.0
+## cmake
+cmake version 4.4.4
+## python
+Python 3.9.6
+## perf
+no perf
+## EXTRA_CMAKE_ARGS
+
+## build CMakeCache (selected)

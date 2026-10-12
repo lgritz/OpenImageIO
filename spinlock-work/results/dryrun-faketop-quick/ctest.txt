@@ -1,0 +1,180 @@
+Test project /Users/lg/tmp/claude-501/faketop/build
+    Start 157: openvdb
+1/1 Test #157: openvdb ..........................   Passed    1.24 sec
+
+100% tests passed out of 1
+
+Total Test time (real) =   1.25 sec
+Test project /Users/lg/tmp/claude-501/faketop/build
+      Start   4: texture-device
+      Start  29: maketx
+      Start  30: oiiotool-maketx
+      Start  35: texture-derivs
+      Start  36: texture-fill
+      Start  37: texture-flipt
+      Start  38: texture-gettexels
+      Start  39: texture-gray
+ 1/84 Test  #38: texture-gettexels .......................   Passed    0.48 sec
+ 2/84 Test  #39: texture-gray ............................   Passed    0.48 sec
+      Start  40: texture-interp-bicubic
+      Start  41: texture-blurtube
+ 3/84 Test  #36: texture-fill ............................   Passed    0.48 sec
+      Start  42: texture-crop
+ 4/84 Test   #4: texture-device ..........................   Passed    0.62 sec
+      Start  43: texture-cropover
+ 5/84 Test  #37: texture-flipt ...........................   Passed    0.72 sec
+      Start  44: texture-half
+ 6/84 Test  #35: texture-derivs ..........................   Passed    0.72 sec
+      Start  45: texture-uint16
+ 7/84 Test  #40: texture-interp-bicubic ..................   Passed    0.57 sec
+      Start  46: texture-icwrite
+ 8/84 Test  #42: texture-crop ............................   Passed    0.95 sec
+      Start  47: texture-interp-bilinear
+ 9/84 Test  #43: texture-cropover ........................   Passed    0.99 sec
+      Start  48: texture-interp-closest
+10/84 Test  #45: texture-uint16 ..........................   Passed    1.13 sec
+      Start  49: texture-levels-stochaniso
+11/84 Test  #44: texture-half ............................   Passed    1.13 sec
+      Start  50: texture-levels-stochmip
+12/84 Test  #47: texture-interp-bilinear .................   Passed    0.72 sec
+      Start  51: texture-mip-nomip
+13/84 Test  #48: texture-interp-closest ..................   Passed    0.71 sec
+      Start  52: texture-mip-onelevel
+14/84 Test  #46: texture-icwrite .........................   Passed    1.40 sec
+      Start  53: texture-mip-trilinear
+15/84 Test  #50: texture-levels-stochmip .................   Passed    0.62 sec
+      Start  54: texture-mip-stochastictrilinear
+16/84 Test  #49: texture-levels-stochaniso ...............   Passed    0.69 sec
+      Start  55: texture-mip-stochasticaniso
+17/84 Test  #51: texture-mip-nomip .......................   Passed    0.61 sec
+      Start  56: texture-missing
+18/84 Test  #52: texture-mip-onelevel ....................   Passed    0.62 sec
+      Start  57: texture-overscan
+19/84 Test  #53: texture-mip-trilinear ...................   Passed    0.56 sec
+      Start  58: texture-pointsample
+20/84 Test  #54: texture-mip-stochastictrilinear .........   Passed    0.60 sec
+      Start  61: texture-uint8
+21/84 Test  #55: texture-mip-stochasticaniso .............   Passed    0.60 sec
+      Start  62: texture-width0blur
+22/84 Test  #56: texture-missing .........................   Passed    0.46 sec
+      Start  63: texture-wrapfill
+23/84 Test  #58: texture-pointsample .....................   Passed    0.54 sec
+      Start  64: texture-blurfix
+24/84 Test  #62: texture-width0blur ......................   Passed    0.48 sec
+      Start  65: texture-fat
+25/84 Test  #61: texture-uint8 ...........................   Passed    0.55 sec
+      Start  66: texture-skinny
+26/84 Test  #41: texture-blurtube ........................   Passed    3.39 sec
+      Start  67: texture-stats
+27/84 Test  #66: texture-skinny ..........................   Passed    0.59 sec
+      Start  68: texture-threadtimes
+28/84 Test  #65: texture-fat .............................   Passed    0.60 sec
+      Start  69: texture-env
+29/84 Test  #57: texture-overscan ........................   Passed    1.32 sec
+      Start  70: texture-colorspace
+30/84 Test  #67: texture-stats ...........................   Passed    0.52 sec
+      Start  71: texture-derivs.batch
+31/84 Test  #63: texture-wrapfill ........................   Passed    1.38 sec
+      Start  72: texture-fill.batch
+32/84 Test  #72: texture-fill.batch ......................   Passed    0.53 sec
+      Start  73: texture-flipt.batch
+33/84 Test  #71: texture-derivs.batch ....................   Passed    0.77 sec
+      Start  74: texture-gettexels.batch
+34/84 Test  #70: texture-colorspace ......................   Passed    0.96 sec
+      Start  75: texture-gray.batch
+35/84 Test  #74: texture-gettexels.batch .................   Passed    0.47 sec
+      Start  76: texture-interp-bicubic.batch
+36/84 Test  #75: texture-gray.batch ......................   Passed    0.43 sec
+      Start  77: texture-blurtube.batch
+37/84 Test  #73: texture-flipt.batch .....................   Passed    0.69 sec
+      Start  78: texture-crop.batch
+38/84 Test  #64: texture-blurfix .........................   Passed    2.48 sec
+      Start  79: texture-cropover.batch
+39/84 Test  #76: texture-interp-bicubic.batch ............   Passed    0.47 sec
+      Start  80: texture-half.batch
+40/84 Test  #78: texture-crop.batch ......................   Passed    0.82 sec
+      Start  81: texture-uint16.batch
+41/84 Test  #69: texture-env .............................   Passed    2.64 sec
+      Start  82: texture-icwrite.batch
+42/84 Test  #79: texture-cropover.batch ..................   Passed    0.83 sec
+      Start  83: texture-interp-bilinear.batch
+43/84 Test  #80: texture-half.batch ......................   Passed    0.84 sec
+      Start  84: texture-interp-closest.batch
+44/84 Test  #83: texture-interp-bilinear.batch ...........   Passed    0.48 sec
+      Start  85: texture-levels-stochaniso.batch
+45/84 Test  #84: texture-interp-closest.batch ............   Passed    0.47 sec
+      Start  86: texture-levels-stochmip.batch
+46/84 Test  #81: texture-uint16.batch ....................   Passed    0.84 sec
+      Start  87: texture-mip-nomip.batch
+47/84 Test  #85: texture-levels-stochaniso.batch .........   Passed    0.51 sec
+      Start  88: texture-mip-onelevel.batch
+48/84 Test  #86: texture-levels-stochmip.batch ...........   Passed    0.49 sec
+      Start  89: texture-mip-trilinear.batch
+49/84 Test  #87: texture-mip-nomip.batch .................   Passed    0.46 sec
+      Start  90: texture-mip-stochastictrilinear.batch
+50/84 Test  #82: texture-icwrite.batch ...................   Passed    1.08 sec
+      Start  91: texture-mip-stochasticaniso.batch
+51/84 Test  #77: texture-blurtube.batch ..................   Passed    2.46 sec
+      Start  92: texture-missing.batch
+52/84 Test  #88: texture-mip-onelevel.batch ..............   Passed    0.46 sec
+      Start  93: texture-overscan.batch
+53/84 Test  #89: texture-mip-trilinear.batch .............   Passed    0.48 sec
+      Start  94: texture-pointsample.batch
+54/84 Test  #90: texture-mip-stochastictrilinear.batch ...   Passed    0.48 sec
+      Start  97: texture-uint8.batch
+55/84 Test  #91: texture-mip-stochasticaniso.batch .......   Passed    0.48 sec
+      Start  98: texture-width0blur.batch
+56/84 Test  #92: texture-missing.batch ...................   Passed    0.45 sec
+      Start  99: texture-wrapfill.batch
+57/84 Test  #94: texture-pointsample.batch ...............   Passed    0.53 sec
+      Start 100: texture-blurfix.batch
+58/84 Test  #98: texture-width0blur.batch ................   Passed    0.52 sec
+      Start 101: texture-fat.batch
+59/84 Test  #97: texture-uint8.batch .....................   Passed    0.59 sec
+      Start 102: texture-skinny.batch
+60/84 Test #101: texture-fat.batch .......................   Passed    0.61 sec
+      Start 103: texture-stats.batch
+61/84 Test #102: texture-skinny.batch ....................   Passed    0.62 sec
+      Start 104: texture-threadtimes.batch
+62/84 Test  #93: texture-overscan.batch ..................   Passed    1.53 sec
+      Start 105: texture-env.batch
+63/84 Test  #99: texture-wrapfill.batch ..................   Passed    1.44 sec
+      Start 106: texture-colorspace.batch
+64/84 Test #103: texture-stats.batch .....................   Passed    0.55 sec
+      Start 110: texture-filtersize
+65/84 Test #110: texture-filtersize ......................   Passed    0.75 sec
+      Start 111: texture-filtersize-stochastic
+66/84 Test #106: texture-colorspace.batch ................   Passed    1.27 sec
+      Start 112: texture-res
+67/84 Test #100: texture-blurfix.batch ...................   Passed    2.47 sec
+      Start 113: texture-maxres
+68/84 Test #111: texture-filtersize-stochastic ...........   Passed    0.57 sec
+      Start 158: texture-texture3d
+69/84 Test #112: texture-res .............................   Passed    0.45 sec
+      Start 160: texture-texture3d.batch
+70/84 Test #113: texture-maxres ..........................   Passed    0.61 sec
+      Start 183: unit_atomic
+71/84 Test #105: texture-env.batch .......................   Passed    3.58 sec
+      Start 185: unit_spinlock
+72/84 Test #158: texture-texture3d .......................   Passed    2.47 sec
+      Start 186: unit_spin_rw
+73/84 Test #186: unit_spin_rw ............................   Passed    0.07 sec
+      Start 187: unit_ustring
+74/84 Test #160: texture-texture3d.batch .................   Passed    2.32 sec
+      Start 193: unit_parallel
+75/84 Test #193: unit_parallel ...........................   Passed    0.01 sec
+      Start 195: unit_thread
+76/84 Test #185: unit_spinlock ...........................   Passed    0.69 sec
+      Start 205: unit_imagecache
+77/84 Test #205: unit_imagecache .........................   Passed    0.27 sec
+78/84 Test #187: unit_ustring ............................   Passed    0.48 sec
+79/84 Test  #29: maketx ..................................   Passed   14.76 sec
+80/84 Test  #68: texture-threadtimes .....................   Passed   12.93 sec
+81/84 Test  #30: oiiotool-maketx .........................   Passed   17.89 sec
+82/84 Test #195: unit_thread .............................   Passed    6.04 sec
+83/84 Test #104: texture-threadtimes.batch ...............   Passed   17.03 sec
+84/84 Test #183: unit_atomic .............................   Passed   16.47 sec
+
+100% tests passed out of 84
+
+Total Test time (real) =  28.48 sec

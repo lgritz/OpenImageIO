@@ -1,0 +1,39 @@
+$ /Users/lg/tmp/claude-501/faketop/build/bin/parallel_test --threads 1 --iters 100000 --trials 3
+hw threads = 16
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+ 1	  0.0   launch 64477996.9 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.012 cpu=0.011 rc=0
+$ /Users/lg/tmp/claude-501/faketop/build/bin/parallel_test --threads 4 --iters 100000 --trials 3
+hw threads = 16
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+ 4	  0.0   launch 213068181.8 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.009 cpu=0.008 rc=0
+$ /Users/lg/tmp/claude-501/faketop/build/bin/parallel_test --threads 16 --iters 100000 --trials 3
+hw threads = 16
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+16	  0.0   launch 604381767.8 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.007 cpu=0.006 rc=0

@@ -14,92 +14,116 @@ Working area for branch `lg-spinlock`, not for merging. Contents:
   - `timed.py`, `scrub.py`, `summarize.py`: helpers.
 - `results/<run>/`: outputs. Commit these and push them back.
 
+## Machine layout this assumes (the "feedstock" machine)
+
+```
+TOP/                  ~/code/openimageio-feedstock  -- run everything from here
+TOP/build.sh          the special-environment build (--clean, EXTRA_CMAKE_ARGS)
+TOP/oiio/             OIIO checkout (submodule), on branch lg-spinlock
+TOP/build/            build tree (written by build.sh)
+TOP/dist/             install tree (written by build.sh)
+TOP/spinwork/         created by the scripts: script copy, generated textures,
+                      spinbench binaries, perf data (never committed)
+```
+
 ## What the run does
 
-1. Records machine info: `lscpu`, NUMA, SMT, compiler.
-2. Builds 5 variants of OIIO, each in its own git worktree under `$WORK`:
-   - `base`: main, before this work
-   - `spin`: new spin_mutex
-   - `tileuse`: + the tile `use()` fix
-   - `fileuse`: + the file `use()` fix
-   - `sweep`: + the file sweep lock as std::mutex
+For each variant in `remote/variants.txt`:
+- `base`: main, before this work
+- `spin`: new spin_mutex
+- `tileuse`: + the tile `use()` fix
+- `fileuse`: + the file `use()` fix
+- `sweep`: + the file sweep lock as std::mutex
 
-   Only the needed targets are built, except for the newest variant, which
-   is fully built for ctest.
-3. ctest on the newest variant: spin/thread/parallel/ustring units,
-   texture, imagecache and maketx tests.
-4. `spinbench`: lock variants, three critical-section shapes, thread
-   counts up to 2x hardware threads; plus a single-NUMA-node run if there
-   is more than one node.
-5. `spinlock_test`, `spin_rw_test`, `parallel_test`: base vs new, at each
-   thread count.
-6. `testtex --threadtimes` on generated textures, for every variant:
-   workloads 1, 2, 4, 7, 8, a low `--maxfiles`, a small `--cachesize`,
-   and `--runstats` at full thread count.
-7. The same on **your production textures**, if you give it a list.
-8. Optional: `perf c2c` / `perf record` (cache-line sharing profiles).
-9. Writes `results/<run>/SUMMARY.md`.
+it does the following:
+1. `git checkout --detach <commit>` in `TOP/oiio`.
+2. `./build.sh`, with `-DOIIO_BUILD_TESTS=ON` appended to your
+   `EXTRA_CMAKE_ARGS`. Incremental; pass `CLEAN_FIRST=1` to do `--clean`
+   on the first variant.
+3. Runs that variant's benchmarks from `TOP/build/bin`:
+   - `testtex --threadtimes` on generated textures (workloads 1, 2, 4, 7, 8;
+     low `--maxfiles`; small `--cachesize`; `--runstats` at full thread
+     count), and on **your production textures** if you give it a list;
+   - for `base` and `spin` only: `spinlock_test`, `spin_rw_test` and
+     `parallel_test` at each thread count;
+   - for `spin` only: the `spinbench` lock microbenchmark, at up to 2x the
+     hardware threads, plus a single-NUMA-node run if there is more than
+     one node;
+   - for the newest variant: ctest (spin/thread/parallel/ustring units,
+     texture, imagecache, maketx);
+   - optionally (`PERF=1`), `perf c2c` / `perf record` profiles for base,
+     spin and newest.
 
-## Requirements on the remote machine
-- Everything you normally need to build OIIO there: compiler, CMake, deps.
-- `git`, `python3` (standard library only), `bash`.
+At the end it writes `results/<run>/SUMMARY.md`, and **restores `TOP/oiio`
+to the checkout it started from**, even if it fails or you hit ^C. Results
+are written as untracked files, so they survive the checkouts.
+
+Note: when it finishes, `TOP/build` and `TOP/dist` contain the **last
+variant built** (`sweep`, which matches the lg-spinlock code). Run
+`./build.sh` afterwards if you need them to match something else.
+
+## Requirements
+- A working `TOP/build.sh` (it already handles the special environment).
+- `git`, `bash`, `python3` (standard library only), a C++ compiler on PATH
+  for the small standalone benchmark (`CXX=...` to choose it).
 - Optional: `numactl` (NUMA comparison), `perf` (profiles).
-- Disk: 5 build trees under `$WORK` (default `<repo>/../oiio-spinwork`).
-- Optional, for the ctest step: test image repos (`oiio-images`,
-  `openexr-images`, ...) cloned *next to* the OIIO checkout. The script
-  symlinks them into each worktree. Without them, the texture tests that
-  need them fail; that is expected and harmless here.
+- Optional, for ctest: `oiio-images` (and other test image repos) cloned
+  in `TOP/`, next to `oiio/`. Without them, the texture tests that need
+  them fail; that is expected and harmless here.
 
 ## Steps
 
 ```bash
-# 0. Get the branch
-git fetch origin && git checkout lg-spinlock && git pull
+cd ~/code/openimageio-feedstock          # TOP
+cd oiio && git fetch && git checkout lg-spinlock && git pull && cd ..
 
-# 1. Smoke test first (short, about 15-30 min, mostly build time).
-#    Pass whatever cmake args you normally use to find dependencies.
-export OIIO_CMAKE_ARGS="-DCMAKE_PREFIX_PATH=/your/deps -DUSE_PYTHON=0"
-QUICK=1 spinlock-work/remote/run_all.sh
-#    Check spinlock-work/results/<host>-<date>-quick/SUMMARY.md looks sane.
-#    The full run reuses those builds (same WORK dir), so it won't rebuild.
+# 1. Smoke test (short; mostly build time: 5 incremental builds)
+QUICK=1 oiio/spinlock-work/remote/run_all.sh
+#    Check oiio/spinlock-work/results/<host>-<date>-quick/SUMMARY.md looks sane.
 
-# 2. Full run (several hours on a big machine). Use tmux/screen or nohup,
-#    and keep the machine otherwise idle (it loads every core).
+# 2. Full run (several hours). Use tmux/screen or nohup, and keep the
+#    machine otherwise idle (it loads every core).
 #    Production textures: one path per line in a list file. Use typical
-#    tiled, MIP-mapped .tx/.exr files from a real asset. 10-100 files is
-#    plenty; UDIM patterns work too.
-TEXLIST=/path/to/prodtextures.txt spinlock-work/remote/run_all.sh
+#    tiled, MIP-mapped .tx/.exr files from a real asset; 10-100 files is
+#    plenty, and UDIM patterns work too.
+TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
 #    (add PERF=1 if `perf` works for your user; see below)
 
 # 3. Commit and push the results (small text files only)
+cd oiio
 git add spinlock-work/results/<run-name>
 git commit -m "spinlock-work: results from <run-name>"
 git push
 ```
 
+The script refuses to start if `TOP/oiio` has uncommitted changes to
+tracked files, because it checks out other commits.
+
 ### If it is interrupted or the machine crashes
 The last `START` line without a matching `END` in
 `results/<run>/progress.log` (and `results/<run>/bench.log` for spinbench)
 names exactly what was running. Push that directory anyway; it is useful.
-To **resume**, rerun with the same run name; finished steps are skipped:
+After a crash, `TOP/oiio` may be left on a variant commit, so first run
+`git -C oiio checkout lg-spinlock`. To **resume**, rerun with the same run
+name; finished steps and variants are skipped:
 ```bash
-RUN=<run-name> TEXLIST=... spinlock-work/remote/run_all.sh
+RUN=<run-name> TEXLIST=... oiio/spinlock-work/remote/run_all.sh
 ```
-To run only some steps: `STEPS="testtex prodtex"`. To build/compare only
-some variants: `VARIANTS="base sweep"`.
+To run only some steps, set e.g. `STEPS="build testtex prodtex"` (keep
+`build` in the list, or each variant uses whatever is in `TOP/build`). To
+run only some variants, set e.g. `VARIANTS="base sweep"`.
 
 ### Production file names
 By default (`SCRUB_NAMES=1`), production texture paths are replaced with
-`prodtex0`, `prodtex1`, ... in the results. Still, glance at
-`SUMMARY.md` and the `testtex-*-prod-*.txt` files before pushing to
-GitHub. No texture data is ever copied into `results/`.
+`prodtex0`, `prodtex1`, ... in the results. Still, glance at `SUMMARY.md`
+and the `testtex-*-prod-*.txt` files before pushing to GitHub. No texture
+data is ever copied into `results/`.
 
 ### perf (optional)
 `PERF=1` adds `perf c2c` (finds cache lines bounced between cores) and
-`perf record` profiles for base / spin / newest. It needs
-`/proc/sys/kernel/perf_event_paranoid` <= 1, or run as a user allowed to
-use perf. The large `.data` files stay in `$WORK`; only text reports go
-into `results/`.
+`perf record` profiles. It needs `/proc/sys/kernel/perf_event_paranoid`
+<= 1, or a user allowed to use perf. The big `.data` files stay in
+`TOP/spinwork`; only text reports go into `results/`.
 
 ## Safety notes
 - The C++20 atomic wait/notify variant that panicked macOS is not in the

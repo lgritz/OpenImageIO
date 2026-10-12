@@ -1,0 +1,82 @@
+2026-10-12 15:36:52 === run_all.sh RUN=dryrun-faketop-quick TOP=/Users/lg/tmp/claude-501/faketop NCPU=16 QUICK=1 STEPS='survey build ctest spinbench spinlock spinrw parallel testtex prodtex'
+2026-10-12 15:36:52 variants: base sweep   threads: 1 4 16    production files: 2
+2026-10-12 15:36:52 TOP/oiio started at 83a1dcb0a966147b4a52d14510fe250670e69e70
+2026-10-12 15:36:52 START survey
+2026-10-12 15:36:52 END survey
+2026-10-12 15:36:52 START checkout base (2a58fd4f3)
+2026-10-12 15:36:53 START build.sh base
+2026-10-12 15:37:42 END build.sh base OK
+2026-10-12 15:37:42 START spinlock base threads=1
+2026-10-12 15:37:43 END spinlock base threads=1 wall=0.366 cpu=0.362 rc=0
+2026-10-12 15:37:43 START spinlock base threads=4
+2026-10-12 15:37:44 END spinlock base threads=4 wall=0.579 cpu=1.083 rc=0
+2026-10-12 15:37:44 START spinlock base threads=16
+2026-10-12 15:37:44 END spinlock base threads=16 wall=0.712 cpu=4.858 rc=0
+2026-10-12 15:37:45 START parallel base threads=1
+2026-10-12 15:37:45 END parallel base threads=1 wall=0.011 cpu=0.011 rc=0
+2026-10-12 15:37:45 START parallel base threads=4
+2026-10-12 15:37:45 END parallel base threads=4 wall=0.008 cpu=0.008 rc=0
+2026-10-12 15:37:45 START parallel base threads=16
+2026-10-12 15:37:45 END parallel base threads=16 wall=0.007 cpu=0.007 rc=0
+2026-10-12 15:37:45 START spinrw base wedge to 32
+2026-10-12 15:37:49 END spinrw base wall=4.033 cpu=45.345 rc=0
+2026-10-12 15:37:49 START testtex base w1
+2026-10-12 15:37:50 END testtex base w1 wall=0.612 cpu=2.509 rc=0
+2026-10-12 15:37:50 START testtex base w7
+2026-10-12 15:37:51 END testtex base w7 wall=0.571 cpu=2.447 rc=0
+2026-10-12 15:37:51 START testtex base maxfiles16
+2026-10-12 15:37:52 END testtex base maxfiles16 wall=1.135 cpu=4.270 rc=0
+2026-10-12 15:37:52 START testtex base cache64
+2026-10-12 15:37:53 END testtex base cache64 wall=1.057 cpu=4.035 rc=0
+2026-10-12 15:37:53 START testtex base stats-w1
+2026-10-12 15:37:57 END testtex base stats-w1 wall=3.025 cpu=43.091 rc=0
+2026-10-12 15:37:57 START testtex base stats-w7
+2026-10-12 15:37:59 END testtex base stats-w7 wall=2.170 cpu=29.403 rc=0
+2026-10-12 15:37:59 START testtex base prod-w7
+2026-10-12 15:37:59 END testtex base prod-w7 wall=0.325 cpu=0.895 rc=0
+2026-10-12 15:38:00 START testtex base prod-stats-w7
+2026-10-12 15:38:02 END testtex base prod-stats-w7 wall=2.213 cpu=31.701 rc=0
+2026-10-12 15:38:02 === variant base complete
+2026-10-12 15:38:02 START checkout sweep (7624b8e90)
+2026-10-12 15:38:02 START build.sh sweep
+2026-10-12 15:38:43 END build.sh sweep OK
+2026-10-12 15:38:44 START ctest on sweep
+2026-10-12 15:39:13 END ctest rc=0 : 100% tests passed out of 84
+2026-10-12 15:39:13 START spinbench compile
+2026-10-12 15:39:20 END spinbench compile
+2026-10-12 15:39:20 START spinbench run (per-process progress in bench.log)
+2026-10-12 15:39:28 END spinbench run
+2026-10-12 15:39:28 START spinlock sweep threads=1
+2026-10-12 15:39:28 END spinlock sweep threads=1 wall=0.364 cpu=0.362 rc=0
+2026-10-12 15:39:28 START spinlock sweep threads=4
+2026-10-12 15:39:29 END spinlock sweep threads=4 wall=0.467 cpu=0.634 rc=0
+2026-10-12 15:39:29 START spinlock sweep threads=16
+2026-10-12 15:39:30 END spinlock sweep threads=16 wall=0.679 cpu=4.281 rc=0
+2026-10-12 15:39:30 START parallel sweep threads=1
+2026-10-12 15:39:30 END parallel sweep threads=1 wall=0.012 cpu=0.011 rc=0
+2026-10-12 15:39:30 START parallel sweep threads=4
+2026-10-12 15:39:30 END parallel sweep threads=4 wall=0.009 cpu=0.008 rc=0
+2026-10-12 15:39:30 START parallel sweep threads=16
+2026-10-12 15:39:30 END parallel sweep threads=16 wall=0.007 cpu=0.006 rc=0
+2026-10-12 15:39:30 START spinrw sweep wedge to 32
+2026-10-12 15:39:35 END spinrw sweep wall=4.418 cpu=47.115 rc=0
+2026-10-12 15:39:35 START testtex sweep w1
+2026-10-12 15:39:36 END testtex sweep w1 wall=0.499 cpu=2.130 rc=0
+2026-10-12 15:39:36 START testtex sweep w7
+2026-10-12 15:39:36 END testtex sweep w7 wall=0.573 cpu=2.448 rc=0
+2026-10-12 15:39:36 START testtex sweep maxfiles16
+2026-10-12 15:39:38 END testtex sweep maxfiles16 wall=1.186 cpu=4.360 rc=0
+2026-10-12 15:39:38 START testtex sweep cache64
+2026-10-12 15:39:39 END testtex sweep cache64 wall=1.056 cpu=3.958 rc=0
+2026-10-12 15:39:39 START testtex sweep stats-w1
+2026-10-12 15:39:41 END testtex sweep stats-w1 wall=1.493 cpu=18.612 rc=0
+2026-10-12 15:39:41 START testtex sweep stats-w7
+2026-10-12 15:39:43 END testtex sweep stats-w7 wall=2.075 cpu=27.906 rc=0
+2026-10-12 15:39:43 START testtex sweep prod-w7
+2026-10-12 15:39:43 END testtex sweep prod-w7 wall=0.318 cpu=0.849 rc=0
+2026-10-12 15:39:44 START testtex sweep prod-stats-w7
+2026-10-12 15:39:45 END testtex sweep prod-stats-w7 wall=1.865 cpu=27.160 rc=0
+2026-10-12 15:39:46 === variant sweep complete
+2026-10-12 15:39:46 === done. Summary: /Users/lg/tmp/claude-501/faketop/oiio/spinlock-work/results/dryrun-faketop-quick/SUMMARY.md
+2026-10-12 15:39:46 restored TOP/oiio to 83a1dcb0a966147b4a52d14510fe250670e69e70
+2026-10-12 15:39:46 NOTE: TOP/build and TOP/dist now hold the last variant built; run ./build.sh to rebuild 83a1dcb0a966147b4a52d14510fe250670e69e70 if needed.

@@ -1,0 +1,5 @@
+[ 98%] Building CXX object src/iv/CMakeFiles/iv.dir/ivpref.cpp.o
+[ 99%] Linking CXX executable ../../bin/iv
+[ 99%] Built target iv
+[100%] Linking CXX executable ../../bin/oiiotool
+[100%] Built target oiiotool

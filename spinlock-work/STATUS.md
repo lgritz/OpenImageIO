@@ -184,3 +184,5 @@ Caveats: x86 not measured (pause is about 35-140 cycles, so the spin budget befo
   Finding: workload 7 has 94.9% micro-cache misses (2-tile microcache).
 - Committing spinlock-work/ for push to GitHub. NEXT: the user runs spinlock-work/remote/run_all.sh on the
   x86 box and pushes results/<run>/; then analyze SUMMARY.md and decide on the micro-cache experiment.
+- 10-12 15:36 FEEDSTOCK layout: run_all.sh rewritten to use TOP/build.sh + checkout per variant. Dry run in fake TOP /Users/lg/tmp/claude-501/faketop (QUICK, base+sweep).
+- 10-12 15:40 feedstock-layout dry run OK (results/dryrun-faketop-quick): build.sh per variant, ctest 84/84, all steps, checkout restored. README rewritten for TOP layout.
