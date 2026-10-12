@@ -1,0 +1,130 @@
+2026-10-12 16:02:25 === run_all.sh RUN=bear0056-20261012-1602-quick TOP=/net/soft_scratch/users/lg/code/openimageio-feedstock NCPU=32 QUICK=1 STEPS='survey build ctest spinbench spinlock spinrw parallel testtex prodtex'
+2026-10-12 16:02:25 variants: base spin tileuse fileuse sweep   threads: 1 4 16 32    production files: 0
+2026-10-12 16:02:25 TOP/oiio started at lg-spinlock
+2026-10-12 16:02:25 START survey
+2026-10-12 16:02:25 END survey
+2026-10-12 16:02:25 START checkout base (a1d18bda9)
+2026-10-12 16:02:25 START build.sh base
+2026-10-12 16:03:22 END build.sh base OK
+2026-10-12 16:03:22 START spinlock base threads=1
+2026-10-12 16:03:23 END spinlock base threads=1 wall=0.603 cpu=0.586 rc=0
+2026-10-12 16:03:23 START spinlock base threads=4
+2026-10-12 16:03:24 END spinlock base threads=4 wall=1.012 cpu=2.502 rc=0
+2026-10-12 16:03:24 START spinlock base threads=16
+2026-10-12 16:03:26 END spinlock base threads=16 wall=2.316 cpu=28.968 rc=0
+2026-10-12 16:03:26 START spinlock base threads=32
+2026-10-12 16:03:30 END spinlock base threads=32 wall=3.563 cpu=93.086 rc=0
+2026-10-12 16:03:30 START parallel base threads=1
+2026-10-12 16:03:30 END parallel base threads=1 wall=0.067 cpu=0.031 rc=0
+2026-10-12 16:03:30 START parallel base threads=4
+2026-10-12 16:03:30 END parallel base threads=4 wall=0.024 cpu=0.022 rc=0
+2026-10-12 16:03:30 START parallel base threads=16
+2026-10-12 16:03:30 END parallel base threads=16 wall=0.023 cpu=0.020 rc=0
+2026-10-12 16:03:30 START parallel base threads=32
+2026-10-12 16:03:30 END parallel base threads=32 wall=0.023 cpu=0.022 rc=0
+2026-10-12 16:03:30 START spinrw base wedge to 64
+2026-10-12 16:03:36 END spinrw base wall=6.069 cpu=108.814 rc=0
+2026-10-12 16:03:36 START testtex base w1
+2026-10-12 16:03:37 END testtex base w1 wall=0.635 cpu=4.342 rc=0
+2026-10-12 16:03:37 START testtex base w7
+2026-10-12 16:03:38 END testtex base w7 wall=0.719 cpu=4.571 rc=0
+2026-10-12 16:03:38 START testtex base maxfiles16
+2026-10-12 16:03:40 END testtex base maxfiles16 wall=1.830 cpu=7.042 rc=0
+2026-10-12 16:03:40 START testtex base cache64
+2026-10-12 16:03:41 END testtex base cache64 wall=1.682 cpu=6.505 rc=0
+2026-10-12 16:03:41 START testtex base stats-w1
+2026-10-12 16:03:43 END testtex base stats-w1 wall=2.155 cpu=58.410 rc=0
+2026-10-12 16:03:43 START testtex base stats-w7
+2026-10-12 16:03:46 END testtex base stats-w7 wall=2.392 cpu=65.118 rc=0
+2026-10-12 16:03:46 === variant base complete
+2026-10-12 16:03:46 START checkout spin (af02fb95a)
+2026-10-12 16:03:46 START build.sh spin
+2026-10-12 16:04:17 END build.sh spin OK
+2026-10-12 16:04:17 START spinbench compile
+2026-10-12 16:04:30 END spinbench compile
+2026-10-12 16:04:30 START spinbench run (per-process progress in bench.log)
+2026-10-12 16:04:35 END spinbench run
+2026-10-12 16:04:35 START spinlock spin threads=1
+2026-10-12 16:04:36 END spinlock spin threads=1 wall=0.607 cpu=0.580 rc=0
+2026-10-12 16:04:36 START spinlock spin threads=4
+2026-10-12 16:04:37 END spinlock spin threads=4 wall=0.885 cpu=2.010 rc=0
+2026-10-12 16:04:37 START spinlock spin threads=16
+2026-10-12 16:04:39 END spinlock spin threads=16 wall=1.689 cpu=18.918 rc=0
+2026-10-12 16:04:39 START spinlock spin threads=32
+2026-10-12 16:04:41 END spinlock spin threads=32 wall=2.620 cpu=66.545 rc=0
+2026-10-12 16:04:41 START parallel spin threads=1
+2026-10-12 16:04:41 END parallel spin threads=1 wall=0.048 cpu=0.029 rc=0
+2026-10-12 16:04:41 START parallel spin threads=4
+2026-10-12 16:04:41 END parallel spin threads=4 wall=0.024 cpu=0.022 rc=0
+2026-10-12 16:04:41 START parallel spin threads=16
+2026-10-12 16:04:41 END parallel spin threads=16 wall=0.022 cpu=0.019 rc=0
+2026-10-12 16:04:41 START parallel spin threads=32
+2026-10-12 16:04:42 END parallel spin threads=32 wall=0.022 cpu=0.019 rc=0
+2026-10-12 16:04:42 START spinrw spin wedge to 64
+2026-10-12 16:04:48 END spinrw spin wall=5.985 cpu=108.165 rc=0
+2026-10-12 16:04:48 START testtex spin w1
+2026-10-12 16:04:48 END testtex spin w1 wall=0.631 cpu=4.282 rc=0
+2026-10-12 16:04:48 START testtex spin w7
+2026-10-12 16:04:49 END testtex spin w7 wall=0.724 cpu=4.614 rc=0
+2026-10-12 16:04:49 START testtex spin maxfiles16
+2026-10-12 16:04:51 END testtex spin maxfiles16 wall=1.792 cpu=6.845 rc=0
+2026-10-12 16:04:51 START testtex spin cache64
+2026-10-12 16:04:52 END testtex spin cache64 wall=1.607 cpu=6.524 rc=0
+2026-10-12 16:04:52 START testtex spin stats-w1
+2026-10-12 16:04:55 END testtex spin stats-w1 wall=2.190 cpu=58.126 rc=0
+2026-10-12 16:04:55 START testtex spin stats-w7
+2026-10-12 16:04:57 END testtex spin stats-w7 wall=2.398 cpu=65.302 rc=0
+2026-10-12 16:04:57 === variant spin complete
+2026-10-12 16:04:57 START checkout tileuse (aeb2708da)
+2026-10-12 16:04:57 START build.sh tileuse
+2026-10-12 16:05:13 END build.sh tileuse OK
+2026-10-12 16:05:13 START testtex tileuse w1
+2026-10-12 16:05:13 END testtex tileuse w1 wall=0.574 cpu=3.754 rc=0
+2026-10-12 16:05:13 START testtex tileuse w7
+2026-10-12 16:05:14 END testtex tileuse w7 wall=0.707 cpu=4.455 rc=0
+2026-10-12 16:05:14 START testtex tileuse maxfiles16
+2026-10-12 16:05:16 END testtex tileuse maxfiles16 wall=1.827 cpu=6.923 rc=0
+2026-10-12 16:05:16 START testtex tileuse cache64
+2026-10-12 16:05:18 END testtex tileuse cache64 wall=1.630 cpu=6.507 rc=0
+2026-10-12 16:05:18 START testtex tileuse stats-w1
+2026-10-12 16:05:19 END testtex tileuse stats-w1 wall=1.790 cpu=43.318 rc=0
+2026-10-12 16:05:19 START testtex tileuse stats-w7
+2026-10-12 16:05:22 END testtex tileuse stats-w7 wall=2.456 cpu=63.329 rc=0
+2026-10-12 16:05:22 === variant tileuse complete
+2026-10-12 16:05:22 START checkout fileuse (b32ff9496)
+2026-10-12 16:05:22 START build.sh fileuse
+2026-10-12 16:05:36 END build.sh fileuse OK
+2026-10-12 16:05:36 START testtex fileuse w1
+2026-10-12 16:05:36 END testtex fileuse w1 wall=0.534 cpu=3.660 rc=0
+2026-10-12 16:05:36 START testtex fileuse w7
+2026-10-12 16:05:37 END testtex fileuse w7 wall=0.704 cpu=4.432 rc=0
+2026-10-12 16:05:37 START testtex fileuse maxfiles16
+2026-10-12 16:05:39 END testtex fileuse maxfiles16 wall=2.135 cpu=6.872 rc=0
+2026-10-12 16:05:39 START testtex fileuse cache64
+2026-10-12 16:05:41 END testtex fileuse cache64 wall=1.589 cpu=6.414 rc=0
+2026-10-12 16:05:41 START testtex fileuse stats-w1
+2026-10-12 16:05:42 END testtex fileuse stats-w1 wall=1.415 cpu=35.156 rc=0
+2026-10-12 16:05:42 START testtex fileuse stats-w7
+2026-10-12 16:05:44 END testtex fileuse stats-w7 wall=2.227 cpu=58.660 rc=0
+2026-10-12 16:05:44 === variant fileuse complete
+2026-10-12 16:05:44 START checkout sweep (1a9ee4ea5)
+2026-10-12 16:05:44 START build.sh sweep
+2026-10-12 16:05:48 END build.sh sweep OK
+2026-10-12 16:05:48 START ctest on sweep
+2026-10-12 16:06:05 END ctest rc=0 : 100% tests passed, 0 tests failed out of 86
+2026-10-12 16:06:05 START testtex sweep w1
+2026-10-12 16:06:05 END testtex sweep w1 wall=0.556 cpu=3.707 rc=0
+2026-10-12 16:06:05 START testtex sweep w7
+2026-10-12 16:06:06 END testtex sweep w7 wall=0.692 cpu=4.389 rc=0
+2026-10-12 16:06:06 START testtex sweep maxfiles16
+2026-10-12 16:06:08 END testtex sweep maxfiles16 wall=1.786 cpu=6.798 rc=0
+2026-10-12 16:06:08 START testtex sweep cache64
+2026-10-12 16:06:09 END testtex sweep cache64 wall=1.579 cpu=6.454 rc=0
+2026-10-12 16:06:09 START testtex sweep stats-w1
+2026-10-12 16:06:11 END testtex sweep stats-w1 wall=1.404 cpu=35.115 rc=0
+2026-10-12 16:06:11 START testtex sweep stats-w7
+2026-10-12 16:06:13 END testtex sweep stats-w7 wall=2.187 cpu=58.939 rc=0
+2026-10-12 16:06:13 === variant sweep complete
+2026-10-12 16:06:13 === done. Summary: /net/soft_scratch/users/lg/code/openimageio-feedstock/oiio/spinlock-work/results/bear0056-20261012-1602-quick/SUMMARY.md
+2026-10-12 16:06:13 restored TOP/oiio to lg-spinlock
+2026-10-12 16:06:13 NOTE: TOP/build and TOP/dist now hold the last variant built; run ./build.sh to rebuild lg-spinlock if needed.

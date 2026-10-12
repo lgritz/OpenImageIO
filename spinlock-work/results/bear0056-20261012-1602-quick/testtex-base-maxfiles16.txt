@@ -1,0 +1,34 @@
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/testtex --maketests 64 many{:04}.exr --maketest-res 512 --maxfiles 16 --threadtimes 7 --wedge --threads 32 --iters 200000
+Created texture system
+Temp file 0: many0000.exr
+Temp file 1: many0001.exr
+Temp file 2: many0002.exr
+Temp file 3: many0003.exr
+Temp file 4: many0004.exr
+Temp file 10: many0010.exr
+Temp file 20: many0020.exr
+Temp file 30: many0030.exr
+Temp file 40: many0040.exr
+Temp file 50: many0050.exr
+Temp file 59: many0059.exr
+Temp file 60: many0060.exr
+Temp file 61: many0061.exr
+Temp file 62: many0062.exr
+Temp file 63: many0063.exr
+Workload: Coherent access, many files, partially overlapping texture sets
+texture cache size = 1024 MB
+hw threads = 32
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+  1         0.29      1.0x   100.0%    range 0.00	(200000 iters/thread)
+  2         0.12      2.4x   121.1%    range 0.00	(100000 iters/thread)
+  4         0.12      2.5x    61.7%    range 0.00	(50000 iters/thread)
+  8         0.07      4.3x    53.9%    range 0.00	(25000 iters/thread)
+ 12         0.05      5.5x    46.1%    range 0.00	(16666 iters/thread)
+ 16         0.05      5.9x    37.2%    range 0.00	(12500 iters/thread)
+ 24         0.04      6.7x    27.8%    range 0.00	(8333 iters/thread)
+ 32         0.03      9.4x    29.3%    range 0.00	(6250 iters/thread)
+
+wall=1.830 cpu=7.042 rc=0

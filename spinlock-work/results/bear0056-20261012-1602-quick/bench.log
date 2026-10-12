@@ -1,0 +1,209 @@
+16:04:30 START spinbench17o3 unc A_cur
+16:04:30 END
+16:04:30 START spinbench17o3 con A_cur 1 tiny
+16:04:30 END rc=0
+16:04:30 START spinbench17o3 con A_cur 4 tiny
+16:04:30 END rc=0
+16:04:30 START spinbench17o3 con A_cur 16 tiny
+16:04:30 END rc=0
+16:04:30 START spinbench17o3 con A_cur 32 tiny
+16:04:30 END rc=0
+16:04:30 START spinbench17o3 con A_cur 1 medium
+16:04:30 END rc=0
+16:04:30 START spinbench17o3 con A_cur 4 medium
+16:04:30 END rc=0
+16:04:30 START spinbench17o3 con A_cur 16 medium
+16:04:30 END rc=0
+16:04:30 START spinbench17o3 con A_cur 32 medium
+16:04:30 END rc=0
+16:04:30 START spinbench17o3 con A_cur 1 coloc
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con A_cur 4 coloc
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con A_cur 16 coloc
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con A_cur 32 coloc
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 unc X_bool_isb_128y64
+16:04:31 END
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 1 tiny
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 4 tiny
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 16 tiny
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 32 tiny
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 1 medium
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 4 medium
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 16 medium
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 32 medium
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 1 coloc
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 4 coloc
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 16 coloc
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 con X_bool_isb_128y64 32 coloc
+16:04:31 END rc=0
+16:04:31 START spinbench17o3 unc H_stdmutex
+16:04:32 END
+16:04:32 START spinbench17o3 con H_stdmutex 1 tiny
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 4 tiny
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 16 tiny
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 32 tiny
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 1 medium
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 4 medium
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 16 medium
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 32 medium
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 1 coloc
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 4 coloc
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 16 coloc
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con H_stdmutex 32 coloc
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 unc O_oiio_spin_mutex
+16:04:32 END
+16:04:32 START spinbench17o3 con O_oiio_spin_mutex 1 tiny
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con O_oiio_spin_mutex 4 tiny
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con O_oiio_spin_mutex 16 tiny
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con O_oiio_spin_mutex 32 tiny
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con O_oiio_spin_mutex 1 medium
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con O_oiio_spin_mutex 4 medium
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con O_oiio_spin_mutex 16 medium
+16:04:32 END rc=0
+16:04:32 START spinbench17o3 con O_oiio_spin_mutex 32 medium
+16:04:33 END rc=0
+16:04:33 START spinbench17o3 con O_oiio_spin_mutex 1 coloc
+16:04:33 END rc=0
+16:04:33 START spinbench17o3 con O_oiio_spin_mutex 4 coloc
+16:04:33 END rc=0
+16:04:33 START spinbench17o3 con O_oiio_spin_mutex 16 coloc
+16:04:33 END rc=0
+16:04:33 START spinbench17o3 con O_oiio_spin_mutex 32 coloc
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 unc A_cur
+16:04:33 END
+16:04:33 START spinbench20o3 con A_cur 1 tiny
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 4 tiny
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 16 tiny
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 32 tiny
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 1 medium
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 4 medium
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 16 medium
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 32 medium
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 1 coloc
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 4 coloc
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 16 coloc
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con A_cur 32 coloc
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 unc X_bool_isb_128y64
+16:04:33 END
+16:04:33 START spinbench20o3 con X_bool_isb_128y64 1 tiny
+16:04:33 END rc=0
+16:04:33 START spinbench20o3 con X_bool_isb_128y64 4 tiny
+16:04:33 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 16 tiny
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 32 tiny
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 1 medium
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 4 medium
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 16 medium
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 32 medium
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 1 coloc
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 4 coloc
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 16 coloc
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con X_bool_isb_128y64 32 coloc
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 unc H_stdmutex
+16:04:34 END
+16:04:34 START spinbench20o3 con H_stdmutex 1 tiny
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con H_stdmutex 4 tiny
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con H_stdmutex 16 tiny
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con H_stdmutex 32 tiny
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con H_stdmutex 1 medium
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con H_stdmutex 4 medium
+16:04:34 END rc=0
+16:04:34 START spinbench20o3 con H_stdmutex 16 medium
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con H_stdmutex 32 medium
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con H_stdmutex 1 coloc
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con H_stdmutex 4 coloc
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con H_stdmutex 16 coloc
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con H_stdmutex 32 coloc
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 unc O_oiio_spin_mutex
+16:04:35 END
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 1 tiny
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 4 tiny
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 16 tiny
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 32 tiny
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 1 medium
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 4 medium
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 16 medium
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 32 medium
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 1 coloc
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 4 coloc
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 16 coloc
+16:04:35 END rc=0
+16:04:35 START spinbench20o3 con O_oiio_spin_mutex 32 coloc
+16:04:35 END rc=0
+16:04:35 ALL DONE /net/soft_scratch/users/lg/code/openimageio-feedstock/oiio/spinlock-work/results/bear0056-20261012-1602-quick/spinbench.txt

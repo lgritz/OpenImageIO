@@ -1,0 +1,3 @@
+empty 0.000 ns
+isb 14.566 ns
+yield-insn 14.574 ns
