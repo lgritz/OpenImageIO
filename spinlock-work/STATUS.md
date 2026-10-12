@@ -186,3 +186,7 @@ Caveats: x86 not measured (pause is about 35-140 cycles, so the spin budget befo
   x86 box and pushes results/<run>/; then analyze SUMMARY.md and decide on the micro-cache experiment.
 - 10-12 15:36 FEEDSTOCK layout: run_all.sh rewritten to use TOP/build.sh + checkout per variant. Dry run in fake TOP /Users/lg/tmp/claude-501/faketop (QUICK, base+sweep).
 - 10-12 15:40 feedstock-layout dry run OK (results/dryrun-faketop-quick): build.sh per variant, ctest 84/84, all steps, checkout restored. README rewritten for TOP layout.
+- 10-12: REBASED lg-spinlock onto main a1d18bda9 (clean). SHA map (old -> new): base 2a58fd4f3 -> a1d18bda9,
+  spin bad4c87e4 -> af02fb95a, tileuse 114a92be0 -> aeb2708da, fileuse fdf355203 -> b32ff9496,
+  sweep 7624b8e90 -> 1a9ee4ea5. variants.txt and the docs were updated; older log lines above keep the old SHAs.
+- 10-12 15:49 rebased tip builds; ctest spin/thread/parallel/ustring/texture/imagecache/fits 84/84 (texture-udim excluded). Local fix: cleared stale FFmpeg cache vars in build/.

@@ -1,7 +1,7 @@
 > Note (2026-10-07): written for a coding agent. The remote machine cannot
 > run one, so this plan is automated by `remote/run_all.sh` (see README.md).
-> The H1 fix (tile use) is now commit 114a92be0, H2 is fdf355203, and the H5
-> file-sweep std::mutex is 7624b8e90. This file remains the reference for
+> The H1 fix (tile use) is now commit aeb2708da, H2 is b32ff9496, and the H5
+> file-sweep std::mutex is 1a9ee4ea5. This file remains the reference for
 > the hypotheses and how to interpret the results.
 
 # Task: validate OIIO spin_mutex changes on x86_64 at high core counts, and attack TextureSystem contention
@@ -66,11 +66,11 @@ add noise.
 
 ---
 
-## 1. What has been done (commit `bad4c87e4` on branch `lg-spinlock`)
+## 1. What has been done (commit `af02fb95a` on branch `lg-spinlock`)
 
-Parent (baseline) commit: `2a58fd4f3`. The only file changed is
+Parent (baseline) commit: `a1d18bda9`. The only file changed is
 `src/include/OpenImageIO/thread.h`. Read the commit message
-(`git show bad4c87e4`). Summary:
+(`git show af02fb95a`). Summary:
 
 1. `pause()`: added an `__aarch64__` branch (`isb`). Before, arm64 got an
    empty loop. x86 is unchanged: it was already `pause`.
@@ -119,8 +119,8 @@ across chips. Measure it. Arch-specific constants (`#if` on
 
 Use two separate trees so A/B comparisons are clean:
 ```
-git fetch && git checkout lg-spinlock          # contains bad4c87e4
-git worktree add ../oiio-base 2a58fd4f3        # baseline
+git fetch && git checkout lg-spinlock          # contains af02fb95a
+git worktree add ../oiio-base a1d18bda9        # baseline
 # Configure each the way this machine normally builds OIIO, Release, e.g.:
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake -S ../oiio-base -B ../oiio-base/build -DCMAKE_BUILD_TYPE=Release
@@ -269,7 +269,7 @@ is `void use() { m_used = 1; }`, a **seq_cst** store to an `atomic_int`
 object, and likely the same cache line, as the fields every lookup reads:
 the refcount, `m_id`, the pixels pointer and the sizes. So threads sampling
 the same hot tile bounce that line on every lookup.
-The fix (test, then a relaxed store) is commit `114a92be0`. On M4, weak-scaling seconds went:
+The fix (test, then a relaxed store) is commit `aeb2708da`. On M4, weak-scaling seconds went:
 workload 1, 8 threads 1.37-1.40 -> 1.06-1.14 and 16 threads 2.9-4.8 ->
 2.2-2.3; workload 2, 16 threads 2.7-3.3 -> 2.2; workload 4 2.6 -> 2.2;
 workload 7 unchanged. Expect a much bigger effect at 64+ cores. Verify with
@@ -388,7 +388,7 @@ shared counter (see H3). Benchmark `spin_rw_test` at high thread counts.
 2. One commit per verified improvement on a new branch off `lg-spinlock`
    (for example `lg-spinlock-x86`). Do not push without the user's OK.
 3. A short report:
-   - x86 verdict on `bad4c87e4`, and any constant changes, with numbers;
+   - x86 verdict on `af02fb95a`, and any constant changes, with numbers;
    - TextureSystem scaling before and after each fix, at 16/32/64/128/max
      threads;
    - which hypotheses were confirmed or rejected;

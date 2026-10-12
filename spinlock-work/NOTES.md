@@ -8,10 +8,10 @@ port just the code changes to a clean branch for a PR. The live step log is
 
 | commit | what |
 |---|---|
-| `bad4c87e4` | spin_mutex: atomic<bool> TTAS, backoff(128,64), branch hint fix, arm64 `isb` pause, no-unroll |
-| `114a92be0` | ImageCacheTile::use(): test before write (no per-lookup store to a shared line) |
-| `fdf355203` | ImageCacheFile::use(): atomic, test before write |
-| `7624b8e90` | ImageCache file sweep lock: std::mutex instead of spin_mutex |
+| `af02fb95a` | spin_mutex: atomic<bool> TTAS, backoff(128,64), branch hint fix, arm64 `isb` pause, no-unroll |
+| `aeb2708da` | ImageCacheTile::use(): test before write (no per-lookup store to a shared line) |
+| `b32ff9496` | ImageCacheFile::use(): atomic, test before write |
+| `1a9ee4ea5` | ImageCache file sweep lock: std::mutex instead of spin_mutex |
 
 `remote/variants.txt` maps these to the variant names the scripts build:
 base, spin, tileuse, fileuse, sweep.
@@ -67,7 +67,7 @@ It does so by starvation: early yields let one thread run alone.
   within noise. ImageCache's hot path is not spin_mutex-bound.
 - **ImageCacheTile::use()** did a seq_cst store (`xchg` on x86) of
   `m_used = 1` on about every lookup. That line also holds the fields every
-  lookup reads, so threads bounce it. Test-before-write (`114a92be0`) on M4,
+  lookup reads, so threads bounce it. Test-before-write (`aeb2708da`) on M4,
   weak-scaling seconds:
   - workload 1: 8 threads 1.37-1.40 -> 1.06-1.14; 16 threads 2.9-4.8 -> 2.2-2.3
   - workload 2: 16 threads 2.7-3.3 -> 2.2
@@ -84,13 +84,13 @@ It does so by starvation: early yields let one thread run alone.
   scaling of real (multi-texture) workloads; a bigger micro-cache is the
   next experiment.
 - ImageCacheFile::use() is the same pattern (a plain bool, also a data
-  race) on every by-name lookup (`fdf355203`). Not yet measured.
+  race) on every by-name lookup (`b32ff9496`). Not yet measured.
 - Other hypotheses, for the many-core box (details in
   `x86-investigation-plan.md`, section 5):
   - The per-thread microcache holds only 2 tiles. Each miss takes a
     `spin_rw_mutex` read lock, whose `fetch_add` writes the bin's shared
     counter even with no writers, plus a tile refcount inc/dec.
-  - File sweep lock (fixed in `7624b8e90`).
+  - File sweep lock (fixed in `1a9ee4ea5`).
   - Per-file `m_input_mutex` I/O serialization.
   - The thread-pool queue is one spin-locked `std::queue`.
   - Global atomics written during tile churn.
@@ -102,7 +102,7 @@ allocations.
   - `average_color_mutex` (`imagecache.cpp:1472`): held across
     `get_pixels`, which can read from disk. Not done yet: it lives in the
     copyable SubimageInfo, so it needs a copyable wrapper.
-  - `m_file_sweep_mutex` (done, `7624b8e90`).
+  - `m_file_sweep_mutex` (done, `1a9ee4ea5`).
   - `set_exr_threads` (`exroutput.cpp:312`): held across OpenEXR thread
     pool rebuild.
   - DeepData `m_mutex` (`deepdata.cpp:90, 506`): held across per-pixel
