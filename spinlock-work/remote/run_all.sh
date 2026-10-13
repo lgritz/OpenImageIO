@@ -22,6 +22,10 @@
 #   TEXFILES         space-separated production texture paths, and/or
 #   TEXLIST          file with one production texture path per line
 #   SCRUB_NAMES=0    keep production file names in results (default: scrub)
+#   PROD_ARGS        extra testtex args for the prodtex step only, e.g.
+#                    "--cachesize 8192 --maxfiles 1000"
+#   PROD_TAG         suffix for prodtex result names, e.g. "-c8g" gives
+#                    testtex-<v>-prod-c8g-w7.txt (so runs don't collide)
 #   PERF=1           also run the perf step (needs perf, perf_event_paranoid <= 1)
 #   CLEAN_FIRST=1    pass --clean to build.sh for the first variant built
 #   RUN              results subdir name; reuse an old one to RESUME a run
@@ -299,13 +303,14 @@ for i in "${!VNAMES[@]}"; do
     # ---- testtex on production textures ----
     if want prodtex && [ ${#PRODFILES[@]} -gt 0 ]; then
         d=$SW/proddata
+        pt=prod${PROD_TAG:-}
         for m in $PROD_WL; do
-            testtex_one $v prod-w$m "$d" --threadtimes $m --wedge --threads $NCPU $TT_EXTRA "${PRODFILES[@]}"
+            testtex_one $v $pt-w$m "$d" --threadtimes $m --wedge --threads $NCPU $TT_EXTRA ${PROD_ARGS:-} "${PRODFILES[@]}"
         done
-        testtex_one $v prod-stats-w7 "$d" --threadtimes 7 --threads $NCPU --runstats "${PRODFILES[@]}"
+        testtex_one $v $pt-stats-w7 "$d" --threadtimes 7 --threads $NCPU --runstats ${PROD_ARGS:-} "${PRODFILES[@]}"
         if [ "${SCRUB_NAMES:-1}" = 1 ]; then
             printf '%s\n' "${PRODFILES[@]}" > "$SW/prodfiles.lst"
-            python3 -I "$HERE/scrub.py" "$SW/prodfiles.lst" "$OUT"/testtex-*-prod-*.txt "$PROG"
+            python3 -I "$HERE/scrub.py" "$SW/prodfiles.lst" "$OUT"/testtex-*-prod*.txt "$PROG"
         fi
     fi
 
