@@ -1,7 +1,7 @@
 #!/bin/bash
 # The current "next run": production textures at three cache sizes,
 # base vs sweep only, --maxfiles 1000 (no reopens). Then commits ALL
-# results. It does not push; do that yourself afterwards.
+# results and pushes them with `(cd oiio ; git50 push lgritz lg-spinlock)`.
 #
 # Usage, from TOP (~/code/openimageio-feedstock), after
 # `git -C oiio checkout lg-spinlock && git -C oiio pull`:
@@ -49,4 +49,11 @@ else
     git -C oiio log --oneline -1
 fi
 echo
-echo "Now push:  git -C oiio push"
+# Push the results. git50 may be an alias or shell function, which a
+# non-interactive script can't see, so fall back to an interactive shell.
+PUSH='cd oiio ; git50 push lgritz lg-spinlock'
+if command -v git50 >/dev/null 2>&1; then
+    (eval "$PUSH")
+else
+    bash -ic "$PUSH"
+fi || echo "*** push failed; run by hand:  ($PUSH)"

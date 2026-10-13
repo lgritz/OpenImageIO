@@ -24,11 +24,11 @@ config. From TOP:
 cd ~/code/openimageio-feedstock
 git -C oiio checkout lg-spinlock && git -C oiio pull
 oiio/spinlock-work/remote/next_run.sh /path/to/prodtextures.txt
-git -C oiio push
 ```
 
 `next_run.sh` runs the three configs, prints OK/MISSING for each result
-dir, and commits **all** of `spinlock-work/results`. It is safe to rerun:
+dir, commits **all** of `spinlock-work/results`, and pushes with
+`(cd oiio ; git50 push lgritz lg-spinlock)`. It is safe to rerun:
 finished configs are skipped. `bear0056-prod-c256` is already pushed. If
 the earlier loop's `c8192` and `c1024` dirs are still on the remote
 (untracked), they are skipped and just get committed this time.
