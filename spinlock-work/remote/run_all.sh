@@ -347,7 +347,8 @@ log "=== done. Summary: $OUT/SUMMARY.md"
 cat <<EOF
 
 Next steps (from TOP):
-  git -C oiio add spinlock-work/results/$RUN
+  git -C oiio add spinlock-work/results
   git -C oiio commit -m "spinlock-work: results from $RUN"
   git -C oiio push
+(This adds ALL result dirs, so earlier runs from a loop are not left behind.)
 EOF

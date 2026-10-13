@@ -14,6 +14,29 @@ Working area for branch `lg-spinlock`, not for merging. Contents:
   - `timed.py`, `scrub.py`, `summarize.py`: helpers.
 - `results/<run>/`: outputs. Commit these and push them back.
 
+## CURRENT NEXT RUN (updated 2026-10-12)
+
+Production textures at three cache sizes (8192, 1024, 256 MB), base vs
+sweep only, `--maxfiles 1000` (no reopens). Roughly 5-10 min per
+config. From TOP:
+
+```bash
+cd ~/code/openimageio-feedstock
+git -C oiio checkout lg-spinlock && git -C oiio pull
+oiio/spinlock-work/remote/next_run.sh /path/to/prodtextures.txt
+git -C oiio push
+```
+
+`next_run.sh` runs the three configs, prints OK/MISSING for each result
+dir, and commits **all** of `spinlock-work/results`. It is safe to rerun:
+finished configs are skipped. `bear0056-prod-c256` is already pushed. If
+the earlier loop's `c8192` and `c1024` dirs are still on the remote
+(untracked), they are skipped and just get committed this time.
+
+Why the last loop only delivered c256: each run's closing message said
+`git add spinlock-work/results/<that run>`, so following the last message
+added only the last run. Fixed: it now says to add the whole results dir.
+
 ## Machine layout this assumes (the "feedstock" machine)
 
 ```
@@ -89,10 +112,11 @@ QUICK=1 oiio/spinlock-work/remote/run_all.sh
 TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
 #    (add PERF=1 if `perf` works for your user; see below)
 
-# 3. Commit and push the results (small text files only)
+# 3. Commit and push the results (small text files only). Add the whole
+#    results dir, not one run: a loop of runs leaves several new dirs.
 cd oiio
-git add spinlock-work/results/<run-name>
-git commit -m "spinlock-work: results from <run-name>"
+git add spinlock-work/results
+git commit -m "spinlock-work: results from <run-name(s)>"
 git push
 ```
 
