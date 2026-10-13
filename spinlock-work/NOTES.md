@@ -127,3 +127,6 @@ allocations.
    tiles-only purge under memory pressure, and a stat for evicted bytes
    still held by microcaches (typical max_memory_MB is 8 GB, so the worst case is ~0.4-3%).
    Later: bin reads without a shared write.
+- 2026-10-12 prod cache sweep (results/prod-cache-sweep-2026-10-12.md): phase 2
+  helps equally at 8 GB / 1 GB / 256 MB and hurts nothing, so phase 2 is ready. On 16
+  cores, phase 3 has little left to win; it needs a 64+ core machine or a render trace.
