@@ -1,0 +1,18 @@
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spin_rw_test --wedge --threads 64 --iters 64000000 --trials 3
+hw threads = 32
+reader:writer ratio = 99:1
+threads	time (best of 3)
+-------	----------
+ 1	0.2s	  0.2s, range 0.0	(64000000 iters/thread)
+ 2	0.5s	  0.5s, range 0.0	(32000000 iters/thread)
+ 4	1.3s	  1.3s, range 0.2	(16000000 iters/thread)
+ 8	1.6s	  1.6s, range 0.1	(8000000 iters/thread)
+12	1.6s	  1.6s, range 0.1	(5333333 iters/thread)
+16	1.9s	  1.9s, range 0.0	(4000000 iters/thread)
+20	2.3s	  2.3s, range 0.0	(3200000 iters/thread)
+24	2.4s	  2.4s, range 0.1	(2666666 iters/thread)
+28	2.7s	  2.7s, range 0.1	(2285714 iters/thread)
+32	3.0s	  3.0s, range 0.0	(2000000 iters/thread)
+64	2.7s	  2.7s, range 0.1	(1000000 iters/thread)
+OK
+wall=61.454 cpu=1192.505 rc=0

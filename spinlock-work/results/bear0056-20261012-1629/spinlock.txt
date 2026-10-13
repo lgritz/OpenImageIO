@@ -1,0 +1,16 @@
+base 1 wall=1.929 cpu=1.918 rc=0
+base 2 wall=3.468 cpu=6.180 rc=0
+base 4 wall=6.210 cpu=21.864 rc=0
+base 8 wall=11.777 cpu=88.539 rc=0
+base 16 wall=19.571 cpu=296.566 rc=0
+base 32 wall=33.189 cpu=970.053 rc=0
+base 48 wall=31.708 cpu=946.737 rc=0
+base 64 wall=28.788 cpu=868.884 rc=0
+spin 1 wall=1.936 cpu=1.911 rc=0
+spin 2 wall=3.283 cpu=5.780 rc=0
+spin 4 wall=4.807 cpu=16.315 rc=0
+spin 8 wall=7.595 cpu=52.298 rc=0
+spin 16 wall=13.332 cpu=194.804 rc=0
+spin 32 wall=22.905 cpu=678.549 rc=0
+spin 48 wall=25.142 cpu=768.667 rc=0
+spin 64 wall=28.388 cpu=877.347 rc=0

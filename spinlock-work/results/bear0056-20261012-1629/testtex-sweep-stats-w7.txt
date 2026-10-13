@@ -1,0 +1,73 @@
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/testtex --maketests 10 test{:04}.exr --maketest-res 1024 --threadtimes 7 --threads 32 --runstats
+Created texture system
+Temp file 0: test0000.exr
+Temp file 1: test0001.exr
+Temp file 2: test0002.exr
+Temp file 3: test0003.exr
+Temp file 4: test0004.exr
+Temp file 5: test0005.exr
+Temp file 6: test0006.exr
+Temp file 7: test0007.exr
+Temp file 8: test0008.exr
+Temp file 9: test0009.exr
+Created 10 test files in 0.3s
+
+Workload: Coherent access, many files, partially overlapping texture sets
+texture cache size = 1024 MB
+hw threads = 32
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+ 32         1.86     32.0x   100.0%    range 0.00	(2000000 iters/thread)
+
+Memory use: 115.7 MB
+OpenImageIO Texture statistics
+  Options:  gray_to_rgb=false flip_t=false max_tile_channels=6
+            stochastic=0 
+  Queries/batches : 
+    texture     :  64000000 queries in 64000000 batches
+    texture 3d  :  0 queries in 0 batches
+    shadow      :  0 queries in 0 batches
+    environment :  0 queries in 0 batches
+    gettextureinfo :  0 queries
+  Interpolations :
+    closest  : 0
+    bilinear : 128000000
+    bicubic  : 0
+  Average anisotropic probes : 1
+  Max anisotropy in the wild : 1
+
+OpenImageIO ImageCache statistics (0x3700000) ver 3.3.0.0spi
+  Options:  max_memory_MB=1024.0 max_open_files=100 autotile=0
+            autoscanline=false automip=false forcefloat=false
+            accept_untiled=true accept_unmipped=true deduplicate=true
+            unassociatedalpha=false failure_retries=0 openexr:core=1 
+  Images : 10 unique
+    ImageInputs : 10 created, 10 current, 10 peak
+    Total pixel data size of all images referenced : 106.7 MB
+    Total actual file size of all images referenced : 5.7 MB
+    Pixel data read : 25.0 MB
+    File I/O time : 0.3s (0.0s average per thread, for 33 threads)
+    File open time only : 0.0s
+    ImageInput mutex locking time : 0.1s
+  Tiles: 825 created, 800 current, 801 peak
+    total tile requests : 135965930
+    micro-cache misses : 128972283 (94.9%)
+    main cache misses : 825 (0.0%)
+    redundant reads: 0 tiles, 0 B
+    Peak cache memory : 25.0 MB
+  Cache : 25.2 MB
+    Strings : 0 B, count : 2
+    Thread info : 16 KB, count : 33
+    Fingerprints : 0 B, count : 0
+    Tiles : 25.1 MB, count : 800
+    Files : 26 KB, count : 10
+      Format 'openexr' : 26 KB, count : 10
+        Image inputs : 3 KB, count : 10
+        Image specs : 10 KB, count : 120
+        Subimages : 9 KB, count : 10
+          Levels : 5 KB, count : 110
+  Broken or invalid files: 0
+
+wall=2.225 cpu=58.985 rc=0

@@ -1,0 +1,16 @@
+base 1 wall=0.171 cpu=0.120 rc=0
+base 2 wall=0.075 cpu=0.073 rc=0
+base 4 wall=0.054 cpu=0.052 rc=0
+base 8 wall=0.042 cpu=0.040 rc=0
+base 16 wall=0.034 cpu=0.030 rc=0
+base 32 wall=0.031 cpu=0.028 rc=0
+base 48 wall=0.030 cpu=0.027 rc=0
+base 64 wall=0.029 cpu=0.027 rc=0
+spin 1 wall=0.138 cpu=0.121 rc=0
+spin 2 wall=0.073 cpu=0.070 rc=0
+spin 4 wall=0.051 cpu=0.049 rc=0
+spin 8 wall=0.039 cpu=0.035 rc=0
+spin 16 wall=0.033 cpu=0.030 rc=0
+spin 32 wall=0.029 cpu=0.026 rc=0
+spin 48 wall=0.028 cpu=0.026 rc=0
+spin 64 wall=0.028 cpu=0.025 rc=0
