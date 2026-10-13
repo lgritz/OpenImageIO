@@ -1,0 +1,36 @@
+2026-10-12 21:33:06 === run_all.sh RUN=bear0056-prod-c1024 TOP=/net/soft_scratch/users/lg/code/openimageio-feedstock NCPU=32 QUICK=0 STEPS='survey build prodtex'
+2026-10-12 21:33:06 variants: base sweep   threads: 1 2 4 8 16 32 48 64    production files: 392
+2026-10-12 21:33:06 TOP/oiio started at lg-spinlock
+2026-10-12 21:33:06 START survey
+2026-10-12 21:33:06 END survey
+2026-10-12 21:33:06 START checkout base (a1d18bda9)
+2026-10-12 21:33:06 START build.sh base
+2026-10-12 21:33:11 END build.sh base OK
+2026-10-12 21:33:11 START testtex base prod-c1024-w1
+2026-10-12 21:33:50 END testtex base prod-c1024-w1 wall=39.280 cpu=581.805 rc=0
+2026-10-12 21:33:50 START testtex base prod-c1024-w4
+2026-10-12 21:34:18 END testtex base prod-c1024-w4 wall=27.536 cpu=361.711 rc=0
+2026-10-12 21:34:18 START testtex base prod-c1024-w7
+2026-10-12 21:35:05 END testtex base prod-c1024-w7 wall=46.738 cpu=549.095 rc=0
+2026-10-12 21:35:05 START testtex base prod-c1024-w8
+2026-10-12 21:35:39 END testtex base prod-c1024-w8 wall=33.663 cpu=365.391 rc=0
+2026-10-12 21:35:39 START testtex base prod-c1024-stats-w7
+2026-10-12 21:35:41 END testtex base prod-c1024-stats-w7 wall=2.868 cpu=75.219 rc=0
+2026-10-12 21:35:41 === variant base complete
+2026-10-12 21:35:42 START checkout sweep (1a9ee4ea5)
+2026-10-12 21:35:42 START build.sh sweep
+2026-10-12 21:35:46 END build.sh sweep OK
+2026-10-12 21:35:46 START testtex sweep prod-c1024-w1
+2026-10-12 21:36:06 END testtex sweep prod-c1024-w1 wall=19.252 cpu=253.932 rc=0
+2026-10-12 21:36:06 START testtex sweep prod-c1024-w4
+2026-10-12 21:36:27 END testtex sweep prod-c1024-w4 wall=21.549 cpu=276.840 rc=0
+2026-10-12 21:36:27 START testtex sweep prod-c1024-w7
+2026-10-12 21:37:12 END testtex sweep prod-c1024-w7 wall=44.620 cpu=517.177 rc=0
+2026-10-12 21:37:12 START testtex sweep prod-c1024-w8
+2026-10-12 21:37:44 END testtex sweep prod-c1024-w8 wall=32.467 cpu=341.229 rc=0
+2026-10-12 21:37:44 START testtex sweep prod-c1024-stats-w7
+2026-10-12 21:37:48 END testtex sweep prod-c1024-stats-w7 wall=3.059 cpu=79.689 rc=0
+2026-10-12 21:37:48 === variant sweep complete
+2026-10-12 21:37:48 === done. Summary: /net/soft_scratch/users/lg/code/openimageio-feedstock/oiio/spinlock-work/results/bear0056-prod-c1024/SUMMARY.md
+2026-10-12 21:37:48 restored TOP/oiio to lg-spinlock
+2026-10-12 21:37:48 NOTE: TOP/build and TOP/dist now hold the last variant built; run ./build.sh to rebuild lg-spinlock if needed.

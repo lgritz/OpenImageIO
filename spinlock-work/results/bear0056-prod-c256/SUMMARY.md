@@ -175,14 +175,6 @@ wall=2.886 cpu=74.661 rc=0
 
 ## Progress log tail
 ```
-2026-10-12 20:19:54 === variant base complete
-2026-10-12 20:19:54 START checkout sweep (1a9ee4ea5)
-2026-10-12 20:19:54 START build.sh sweep
-2026-10-12 20:19:59 END build.sh sweep OK
-2026-10-12 20:19:59 START testtex sweep prod-c256-w1
-2026-10-12 20:20:19 END testtex sweep prod-c256-w1 wall=19.687 cpu=252.770 rc=0
-2026-10-12 20:20:19 START testtex sweep prod-c256-w4
-2026-10-12 20:20:40 END testtex sweep prod-c256-w4 wall=21.412 cpu=273.289 rc=0
 2026-10-12 20:20:40 START testtex sweep prod-c256-w7
 2026-10-12 20:21:25 END testtex sweep prod-c256-w7 wall=45.381 cpu=534.000 rc=0
 2026-10-12 20:21:25 START testtex sweep prod-c256-w8
@@ -190,4 +182,12 @@ wall=2.886 cpu=74.661 rc=0
 2026-10-12 20:21:58 START testtex sweep prod-c256-stats-w7
 2026-10-12 20:22:01 END testtex sweep prod-c256-stats-w7 wall=2.886 cpu=74.661 rc=0
 2026-10-12 20:22:01 === variant sweep complete
+2026-10-12 20:22:01 === done. Summary: /net/soft_scratch/users/lg/code/openimageio-feedstock/oiio/spinlock-work/results/bear0056-prod-c256/SUMMARY.md
+2026-10-12 20:22:02 restored TOP/oiio to lg-spinlock
+2026-10-12 20:22:02 NOTE: TOP/build and TOP/dist now hold the last variant built; run ./build.sh to rebuild lg-spinlock if needed.
+2026-10-12 21:37:49 === run_all.sh RUN=bear0056-prod-c256 TOP=/net/soft_scratch/users/lg/code/openimageio-feedstock NCPU=32 QUICK=0 STEPS='survey build prodtex'
+2026-10-12 21:37:49 variants: base sweep   threads: 1 2 4 8 16 32 48 64    production files: 392
+2026-10-12 21:37:49 TOP/oiio started at lg-spinlock
+2026-10-12 21:37:49 skip base (already complete)
+2026-10-12 21:37:49 skip sweep (already complete)
 ```
