@@ -59,28 +59,35 @@ below).
   can't keep up while files are busy.
 
 ## Next remote run
-Production: about an 8 GB cache vs 250 GB-2 TB of uncompressed texture, so
-the cache is **0.4-3% of the texture set**, with a file limit large enough
-to hold every file. Our set is 49 GB, so the same ratios are a 200 MB-1.6 GB
-cache. An 8 GB cache here would hold everything testtex touches (3.5 GB),
-so it is not representative. Use a 1000-file limit (> 392 files, so no reopens),
-and two cache sizes: 1 GB (2%, mid-range) and 256 MB (0.5%, low end).
-Use base and sweep only, prodtex step only, and a NEW `RUN` name per config (a
-reused name skips finished variants):
+Three production numbers matter (big renders):
+- referenced by the scene: 1-2 TB;
+- actually read from disk: tens of GB (unseen textures, coarse MIP levels);
+- tile cache: 4-8 GB, so cache/read is about 10-40%. Most tiles are read once,
+  some twice after eviction; there are few repeated evict/read cycles.
+
+This test set: 49 GB referenced, 3.5 GB read (7%). So:
+
+| config | cache/read | models | expect |
+|---|---|---|---|
+| `--cachesize 8192` | > 100% | light scenes, no eviction | pure contention |
+| `--cachesize 1024` | 29% | **typical big render** | ~1.3 reads/tile (1738 run at 100 files: 1.2 GB redundant / 3.5 GB) |
+| `--cachesize 256` | 7% | stress: heavy eviction | many re-reads |
+
+All three use `--maxfiles 1000` (> 392 files, so no reopens, matching production's
+~10000). Use base and sweep only, prodtex only, and a NEW `RUN` name per config (a reused
+name skips finished variants). Run the first two; the third is optional:
 
 ```bash
 cd ~/code/openimageio-feedstock
 git -C oiio pull
-RUN=bear0056-prod-c1g VARIANTS="base sweep" STEPS="survey build prodtex" \
-  PROD_ARGS="--cachesize 1024 --maxfiles 1000" PROD_TAG=-c1g \
-  TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
-
-RUN=bear0056-prod-c256m VARIANTS="base sweep" STEPS="survey build prodtex" \
-  PROD_ARGS="--cachesize 256 --maxfiles 1000" PROD_TAG=-c256m \
-  TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
+for c in 8192 1024 256; do
+  RUN=bear0056-prod-c$c VARIANTS="base sweep" STEPS="survey build prodtex" \
+    PROD_ARGS="--cachesize $c --maxfiles 1000" PROD_TAG=-c$c \
+    TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
+done
 ```
 
-Each prodtex pass takes about 4 min per variant, plus builds. These runs measure
-redundant tile reads and eviction pressure without open churn. That is the
-baseline for phase 3 (microcache size, m_input_mutex), and the setting
-where microcache-held tiles would matter most.
+Each prodtex pass takes about 4 min per variant, plus builds (incremental
+after the first config). Every proposed change (phase 2, and later phase 3)
+should be judged on both the 8 GB and 1 GB rows: a change can help one and hurt the
+other (for example, a bigger microcache adds eviction pressure only when the cache is full).
