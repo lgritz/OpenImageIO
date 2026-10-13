@@ -70,6 +70,16 @@ RUN=bear0056-prod-c8g VARIANTS="base sweep" STEPS="survey build prodtex" \
   TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
 ```
 
-Optionally also run the 8 GB cache with the default 100-file limit, to separate
-the two effects (another new RUN name, `PROD_ARGS="--cachesize 8192"`,
-`PROD_TAG=-c8g-f100`). Each prodtex pass is about 4 min per variant plus builds.
+Production uses max_open_files of about 10000, so redundant opens are rare
+in practice; any value of 392 or more removes them here. **Redundant tile reads
+are the real production issue.** At 8 GB the whole 3.5 GB working set fits, so
+that run measures contention without eviction. To stress redundant reads
+without open churn, also run a 1 GB cache with 1000 files (new RUN name):
+
+```bash
+RUN=bear0056-prod-c1g VARIANTS="base sweep" STEPS="survey build prodtex" \
+  PROD_ARGS="--cachesize 1024 --maxfiles 1000" PROD_TAG=-c1g \
+  TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
+```
+
+Each prodtex pass takes about 4 min per variant, plus builds.
