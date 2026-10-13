@@ -1,0 +1,29 @@
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/testtex --maketests 10 test{:04}.exr --maketest-res 1024 --threadtimes 7 --wedge --threads 32 --trials 3
+Created texture system
+Temp file 0: test0000.exr
+Temp file 1: test0001.exr
+Temp file 2: test0002.exr
+Temp file 3: test0003.exr
+Temp file 4: test0004.exr
+Temp file 5: test0005.exr
+Temp file 6: test0006.exr
+Temp file 7: test0007.exr
+Temp file 8: test0008.exr
+Temp file 9: test0009.exr
+Workload: Coherent access, many files, partially overlapping texture sets
+texture cache size = 1024 MB
+hw threads = 32
+times are best of 3 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+  1         0.91      1.0x   100.0%    range 0.04	(2000000 iters/thread)
+  2         1.12      0.8x    40.7%    range 0.05	(2000000 iters/thread)
+  4         1.20      0.8x    19.0%    range 0.00	(2000000 iters/thread)
+  8         1.33      0.7x     8.6%    range 0.05	(2000000 iters/thread)
+ 12         1.43      0.6x     5.3%    range 0.13	(2000000 iters/thread)
+ 16         1.59      0.6x     3.6%    range 0.07	(2000000 iters/thread)
+ 24         1.91      0.5x     2.0%    range 0.02	(2000000 iters/thread)
+ 32         2.06      0.4x     1.4%    range 0.04	(2000000 iters/thread)
+
+wall=35.666 cpu=500.098 rc=0

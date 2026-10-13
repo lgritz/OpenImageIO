@@ -1,0 +1,104 @@
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/parallel_test --threads 1 --iters 1000000 --trials 3
+hw threads = 32
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+ 1	  0.0   launch 31241901.5 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.132 cpu=0.116 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/parallel_test --threads 2 --iters 1000000 --trials 3
+hw threads = 32
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+ 2	  0.0   launch 55943336.1 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.077 cpu=0.074 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/parallel_test --threads 4 --iters 1000000 --trials 3
+hw threads = 32
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+ 4	  0.0   launch 102183988.6 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.054 cpu=0.053 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/parallel_test --threads 8 --iters 1000000 --trials 3
+hw threads = 32
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+ 8	  0.0   launch 179420407.5 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.040 cpu=0.036 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/parallel_test --threads 16 --iters 1000000 --trials 3
+hw threads = 32
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+16	  0.0   launch 272629250.1 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.033 cpu=0.030 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/parallel_test --threads 32 --iters 1000000 --trials 3
+hw threads = 32
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+32	  0.0   launch 363553605.6 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.030 cpu=0.027 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/parallel_test --threads 48 --iters 1000000 --trials 3
+hw threads = 32
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+48	  0.0   launch 413207991.6 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.029 cpu=0.025 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/parallel_test --threads 64 --iters 1000000 --trials 3
+hw threads = 32
+
+Timing how long it takes to run parallel_for:
+threads	time (best of 3)
+-------	----------
+64	  0.0   launch 443736044.5 threads/sec
+
+Testing thread pool recursion
+
+Testing that pool size 0 makes all jobs run by caller
+OK
+wall=0.028 cpu=0.028 rc=0
