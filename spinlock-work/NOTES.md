@@ -113,3 +113,17 @@ allocations.
 - **Measure first:** the thread pool queue (`thread.cpp:79`).
 - **Fine as is:** fingerprints, perthread_info, shared-cache singletons,
   polecolor, IBA per-chunk merges, the error-message mutexes, TimingLog.
+
+## PR phases (decided 2026-10-12)
+
+1. **spin_mutex fixes**: branch `lg-spinmutex` = main + one commit
+   (af02fb95a, reworded with x86 numbers). Validated on M4 and Zen3. Ready.
+2. **Other locking/contention changes**, pending TEXLIST results or more
+   tuning: tile `use()` (aeb2708da), file `use()` (b32ff9496), file
+   sweep std::mutex (1a9ee4ea5); later std::mutex for
+   average_color_mutex, set_exr_threads, DeepData; atomic counter for
+   maketx_mutex; call_once for the TIFF handler.
+3. **ImageCache architecture**: 8-entry microcache with evicted-tile flag,
+   tiles-only purge under memory pressure, and a stat for evicted bytes
+   still held by microcaches (typical max_memory_MB is 8 GB, so the worst case is ~0.4-3%).
+   Later: bin reads without a shared write.
