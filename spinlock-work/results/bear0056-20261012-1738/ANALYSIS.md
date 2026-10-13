@@ -59,27 +59,28 @@ below).
   can't keep up while files are busy.
 
 ## Next remote run
-Only base and sweep (the bookends), and only the prodtex step, at a realistic
-config. Use a NEW `RUN` name: a reused name skips finished variants.
+Production: about an 8 GB cache vs 250 GB-2 TB of uncompressed texture, so
+the cache is **0.4-3% of the texture set**, with a file limit large enough
+to hold every file. Our set is 49 GB, so the same ratios are a 200 MB-1.6 GB
+cache. An 8 GB cache here would hold everything testtex touches (3.5 GB),
+so it is not representative. Use a 1000-file limit (> 392 files, so no reopens),
+and two cache sizes: 1 GB (2%, mid-range) and 256 MB (0.5%, low end).
+Use base and sweep only, prodtex step only, and a NEW `RUN` name per config (a
+reused name skips finished variants):
 
 ```bash
 cd ~/code/openimageio-feedstock
 git -C oiio pull
-RUN=bear0056-prod-c8g VARIANTS="base sweep" STEPS="survey build prodtex" \
-  PROD_ARGS="--cachesize 8192 --maxfiles 1000" PROD_TAG=-c8g \
-  TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
-```
-
-Production uses max_open_files of about 10000, so redundant opens are rare
-in practice; any value of 392 or more removes them here. **Redundant tile reads
-are the real production issue.** At 8 GB the whole 3.5 GB working set fits, so
-that run measures contention without eviction. To stress redundant reads
-without open churn, also run a 1 GB cache with 1000 files (new RUN name):
-
-```bash
 RUN=bear0056-prod-c1g VARIANTS="base sweep" STEPS="survey build prodtex" \
   PROD_ARGS="--cachesize 1024 --maxfiles 1000" PROD_TAG=-c1g \
   TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
+
+RUN=bear0056-prod-c256m VARIANTS="base sweep" STEPS="survey build prodtex" \
+  PROD_ARGS="--cachesize 256 --maxfiles 1000" PROD_TAG=-c256m \
+  TEXLIST=/path/to/prodtextures.txt oiio/spinlock-work/remote/run_all.sh
 ```
 
-Each prodtex pass takes about 4 min per variant, plus builds.
+Each prodtex pass takes about 4 min per variant, plus builds. These runs measure
+redundant tile reads and eviction pressure without open churn. That is the
+baseline for phase 3 (microcache size, m_input_mutex), and the setting
+where microcache-held tiles would matter most.
