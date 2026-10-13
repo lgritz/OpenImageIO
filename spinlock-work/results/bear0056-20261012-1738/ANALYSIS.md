@@ -51,7 +51,7 @@ below).
 - **Phase 2** (use() fixes, sweep): production data agree with synthetic.
   The use() fixes are as solid as phase 1. sweep shows a small gain under
   file thrash. Ready once the 8 GB rerun shows no surprises.
-- **Phase 3** gets a new candidate, likely bigger than the microcache for
+- **Phase 3** (CORRECTED by the prod-c256 run: the mutex wait was reopen churn, not reads) gets a new candidate, likely bigger than the microcache for
   real I/O-bound renders: **`m_input_mutex` serializes all tile reads per
   file**. Options: a small pool of ImageInputs per hot file, or skipping the
   lock for readers that can do concurrent tile reads (the OpenEXR core
