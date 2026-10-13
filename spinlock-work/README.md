@@ -14,11 +14,17 @@ Working area for branch `lg-spinlock`, not for merging. Contents:
   - `timed.py`, `scrub.py`, `summarize.py`: helpers.
 - `results/<run>/`: outputs. Commit these and push them back.
 
-## CURRENT NEXT RUN (updated 2026-10-12)
+## CURRENT NEXT RUN (updated 2026-10-13): 64-core Xeon
 
-Production textures at three cache sizes (8192, 1024, 256 MB), base vs
-sweep only, `--maxfiles 1000` (no reopens). Roughly 5-10 min per
-config. From TOP:
+Phase 1 and 2 on the many-core machine (Xeon Gold 6226R, probably 4
+sockets). Variants base, spin, sweep. Three result dirs:
+- `<host>-full`: synthetic benchmarks up to 2x hw threads, plus a
+  NUMA-node-0 spinbench if `numactl` exists. ctest too.
+- `<host>-prod-c8192`, `<host>-prod-c1024`: production textures with an
+  8 GB / 1 GB cache and `--maxfiles 1000`.
+
+Expect a few hours; run it in tmux/screen with the machine otherwise idle.
+From TOP, on the Xeon:
 
 ```bash
 cd ~/code/openimageio-feedstock
@@ -26,16 +32,14 @@ git -C oiio checkout lg-spinlock && git -C oiio pull
 oiio/spinlock-work/remote/next_run.sh /path/to/prodtextures.txt
 ```
 
-`next_run.sh` runs the three configs, prints OK/MISSING for each result
-dir, commits **all** of `spinlock-work/results`, and pushes with
-`(cd oiio ; git50 push lgritz lg-spinlock)`. It is safe to rerun:
-finished configs are skipped. `bear0056-prod-c256` is already pushed. If
-the earlier loop's `c8192` and `c1024` dirs are still on the remote
-(untracked), they are skipped and just get committed this time.
-
-Why the last loop only delivered c256: each run's closing message said
-`git add spinlock-work/results/<that run>`, so following the last message
-added only the last run. Fixed: it now says to add the whole results dir.
+- At the end it prints OK/MISSING per result dir, commits **all** of
+  `spinlock-work/results`, and pushes with
+  `(cd oiio ; git50 push lgritz lg-spinlock)`.
+- Safe to rerun after an interruption: finished pieces are skipped.
+- `PERF=1` in front adds perf profiles to the full run, if perf works there.
+- TOP/build and TOP/spinwork are on the shared filesystem: don't run on two
+  machines at once. Afterwards TOP/build holds `sweep`; run `./build.sh`
+  if you need lg-spinlock's own build back.
 
 ## Machine layout this assumes (the "feedstock" machine)
 

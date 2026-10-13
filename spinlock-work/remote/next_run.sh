@@ -1,14 +1,24 @@
 #!/bin/bash
-# The current "next run": production textures at three cache sizes,
-# base vs sweep only, --maxfiles 1000 (no reopens). Then commits ALL
-# results and pushes them with `(cd oiio ; git50 push lgritz lg-spinlock)`.
+# The current "next run" (2026-10-13): phase 1 & 2 on a many-core machine.
+#   1. <host>-full: synthetic benchmarks (spinbench, spinlock_test,
+#      spin_rw_test, parallel_test, testtex workloads, ctest), up to 2x
+#      hw threads, plus a single-NUMA-node spinbench if numactl exists.
+#   2. <host>-prod-c8192 and <host>-prod-c1024: production textures with
+#      an 8 GB / 1 GB cache and --maxfiles 1000.
+# Variants: base, spin (phase 1), sweep (phase 1 + 2).
+# Then commits ALL results and pushes them with
+# `(cd oiio ; git50 push lgritz lg-spinlock)`.
 #
 # Usage, from TOP (~/code/openimageio-feedstock), after
 # `git -C oiio checkout lg-spinlock && git -C oiio pull`:
 #     oiio/spinlock-work/remote/next_run.sh /path/to/prodtextures.txt
+# Optional: PERF=1 adds perf c2c / perf record to the full run (if perf works).
 #
-# Safe to rerun: a config whose RUN dir already finished is skipped by
-# run_all.sh (via its .done markers), so only the missing pieces run.
+# Safe to rerun: finished pieces are skipped by run_all.sh (via .done
+# markers in each RUN dir), so only the missing ones run.
+#
+# TOP/build and TOP/spinwork are shared with other machines on the same
+# filesystem: do not run this on two machines at once.
 
 set -u
 TEXLIST=${1:-${TEXLIST:-}}
@@ -23,15 +33,23 @@ if [ ! -x ./build.sh ] || [ ! -e oiio/.git ]; then
 fi
 
 HOST=$(hostname -s)
+VARIANTS="base spin sweep"
 RUNS=()
-for c in 8192 1024 256; do
-    run=$HOST-prod-c$c
+runone() {   # run-name, then env assignments for run_all.sh
+    local run=$1; shift
     RUNS+=("$run")
-    echo "=== $run"
-    RUN=$run VARIANTS="base sweep" STEPS="survey build prodtex" \
-        PROD_ARGS="--cachesize $c --maxfiles 1000" PROD_TAG=-c$c \
-        TEXLIST="$TEXLIST" oiio/spinlock-work/remote/run_all.sh \
+    echo "=== $run  ($(date))"
+    env RUN=$run VARIANTS="$VARIANTS" TEXLIST="$TEXLIST" "$@" \
+        oiio/spinlock-work/remote/run_all.sh \
         || echo "*** $run exited with an error; continuing"
+}
+
+full_steps="survey build ctest spinbench spinlock spinrw parallel testtex"
+[ "${PERF:-0}" = 1 ] && full_steps="$full_steps perf"
+runone $HOST-full STEPS="$full_steps" PERF=${PERF:-0}
+for c in 8192 1024; do
+    runone $HOST-prod-c$c STEPS="survey build prodtex" \
+        PROD_ARGS="--cachesize $c --maxfiles 1000" PROD_TAG=-c$c
 done
 
 echo
