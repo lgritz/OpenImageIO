@@ -14,17 +14,13 @@ Working area for branch `lg-spinlock`, not for merging. Contents:
   - `timed.py`, `scrub.py`, `summarize.py`: helpers.
 - `results/<run>/`: outputs. Commit these and push them back.
 
-## CURRENT NEXT RUN (updated 2026-10-13): 64-core Xeon
+## CURRENT NEXT RUN (updated 2026-10-13b): scaling ceiling, about 20 min
 
-Phase 1 and 2 on the many-core machine (Xeon Gold 6226R, probably 4
-sockets). Variants base, spin, sweep. Three result dirs:
-- `<host>-full`: synthetic benchmarks up to 2x hw threads, plus a
-  NUMA-node-0 spinbench if `numactl` exists. ctest too.
-- `<host>-prod-c8192`, `<host>-prod-c1024`: production textures with an
-  8 GB / 1 GB cache and `--maxfiles 1000`.
-
-Expect a few hours; run it in tmux/screen with the machine otherwise idle.
-From TOP, on the Xeon:
+This sizes phase 3 before it gets built. On goat0225 (or any many-core box), it runs a
+compute-only control (`bench/scalectl.cpp`) plus testtex w1/w7 on the lg-spinlock
+build, free and pinned with `taskset` to one socket, split across sockets,
+one thread per core, and socket 0 with SMT. Writes `results/<host>-ceiling/`.
+From TOP:
 
 ```bash
 cd ~/code/openimageio-feedstock
@@ -32,14 +28,12 @@ git -C oiio checkout lg-spinlock && git -C oiio pull
 oiio/spinlock-work/remote/next_run.sh /path/to/prodtextures.txt
 ```
 
-- At the end it prints OK/MISSING per result dir, commits **all** of
-  `spinlock-work/results`, and pushes with
+- The texture list is optional (it adds prod w7 at 8 GB).
+- At the end it commits **all** of `spinlock-work/results` and pushes with
   `(cd oiio ; git50 push lgritz lg-spinlock)`.
-- Safe to rerun after an interruption: finished pieces are skipped.
-- `PERF=1` in front adds perf profiles to the full run, if perf works there.
-- TOP/build and TOP/spinwork are on the shared filesystem: don't run on two
-  machines at once. Afterwards TOP/build holds `sweep`; run `./build.sh`
-  if you need lg-spinlock's own build back.
+- TOP/build is shared: don't run on two machines at once. It rebuilds
+  TOP/build from lg-spinlock (incremental).
+- The previous full/prod run script is in git history (94fe319a6).
 
 ## Machine layout this assumes (the "feedstock" machine)
 

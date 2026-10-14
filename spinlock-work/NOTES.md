@@ -130,3 +130,8 @@ allocations.
 - 2026-10-12 prod cache sweep (results/prod-cache-sweep-2026-10-12.md): phase 2
   helps equally at 8 GB / 1 GB / 256 MB and hurts nothing, so phase 2 is ready. On 16
   cores, phase 3 has little left to win; it needs a 64+ core machine or a render trace.
+- 2026-10-13 goat0225, 2-socket Xeon 6226R, 32C/64T (results/goat0225-full/ANALYSIS.md):
+  phase 1 holds (spinlock_test 7x at 8T, never worse; keep 128y64). Phase 2 gives
+  3-6x at 64T on the hot-file workloads and never hurts. Above 16T, even w1
+  (0% microcache misses) degrades 2x, so most of that is the machine, not IC. Phase 3
+  ceiling is about 15-30% on w7/w8. Next: ceiling run (scalectl control + taskset).
