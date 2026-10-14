@@ -1,7 +1,7 @@
 #!/bin/bash
-# The current "next run" (2026-10-14c): check the sweep that skips tiles in
-# use (3064a6bea) on a multi-socket box, incl. untiled single-tile images.
-# About 35 minutes. Writes results/<host>-mc3/.
+# The current "next run" (2026-10-14d): victim-slot memory limit (after mc3)
+# and the sweep that skips tiles in use, incl. untiled single-tile images.
+# About 35 minutes. Writes results/<host>-mc4/.
 # One build (lg-spinlock = phase 1 + 2 + victim microcache + controller).
 # The victim cache size is set at run time with
 #   OPENIMAGEIO_IMAGECACHE_OPTIONS=microcache_size=N   (N=0 is phase 2 behavior)
@@ -33,7 +33,7 @@ if [ ! -x ./build.sh ] || [ ! -e oiio/.git ]; then
 fi
 TOP=$(pwd)
 HOST=$(hostname -s)
-RUN=${RUN:-$HOST-mc3}
+RUN=${RUN:-$HOST-mc4}
 OUT=$TOP/oiio/spinlock-work/results/$RUN
 SW=$TOP/spinwork/mc
 mkdir -p "$OUT" "$SW"
@@ -199,7 +199,7 @@ fi
     for f in "$OUT"/stats-prod-*.txt "$OUT"/stats-untiled-*.txt; do
         [ -e "$f" ] || continue
         echo; echo "### $(basename "$f" .txt)"; echo '```'
-        grep -E 'micro-cache|redundant|Peak cache|held by|Sweeps|Tiles:|File I/O|^ *[0-9]+ +[0-9.]+ +[0-9.]+x' "$f"
+        grep -E 'micro-cache|redundant|Peak cache|victim slots|Sweeps|Tiles:|File I/O|^ *[0-9]+ +[0-9.]+ +[0-9.]+x' "$f"
         echo '```'
     done
 } > "$OUT/SUMMARY.md"

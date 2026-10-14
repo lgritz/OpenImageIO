@@ -14,13 +14,13 @@ Working area for branch `lg-spinlock`, not for merging. Contents:
   - `timed.py`, `scrub.py`, `summarize.py`: helpers.
 - `results/<run>/`: outputs. Commit these and push them back.
 
-## CURRENT NEXT RUN (updated 2026-10-14c): sweep skips tiles in use, about 35 min
+## CURRENT NEXT RUN (updated 2026-10-14d): victim-slot memory limit, about 35 min
 
 On goat0225. One build of lg-spinlock (phase 1 + 2 + victim microcache +
-controller + sweep that skips held tiles, 3064a6bea). microcache_size 0/64/256
+controller + sweep that skips held tiles + victim-slot memory limit). microcache_size 0/64/256
 at run time; configs free-1, allcores-32, free-64; synthetic w7/w8, prod w7/w8
 at 8 GB and 256 MB, `--runstats` at 1 GB / 256 MB, untiled 16 MB single-tile
-images at 32/128/512 MB caches, and ctest. Writes `results/<host>-mc3/`.
+images at 32/128/512 MB caches, and ctest. Writes `results/<host>-mc4/`.
 From TOP:
 
 ```bash
@@ -35,7 +35,7 @@ oiio/spinlock-work/remote/next_run.sh /path/to/prodtextures.txt
   top of the script.
 - TOP/build is shared: don't run on two machines at once.
 - Earlier run scripts are in git history (94fe319a6 full+prod, 61fa1c335 ceiling,
-  16c091bc3 mc, 3d7a9324d mc2).
+  16c091bc3 mc, 3d7a9324d mc2, bf7f4335e mc3).
 
 ## Machine layout this assumes (the "feedstock" machine)
 
