@@ -1,0 +1,12 @@
+2026-10-13 20:34:18 START build lg-spinlock 3d7a9324d
+2026-10-13 20:34:40 END build
+2026-10-13 20:34:40 START ctest
+2026-10-13 20:35:02 END ctest: 100% tests passed, 0 tests failed out of 80
+2026-10-13 20:35:02 START free-1
+2026-10-13 20:36:28 END free-1
+2026-10-13 20:36:28 START allcores-32
+2026-10-13 20:38:27 END allcores-32
+2026-10-13 20:38:27 START free-64
+2026-10-13 20:41:50 END free-64
+2026-10-13 20:41:50 START stats
+2026-10-13 20:42:16 END stats
