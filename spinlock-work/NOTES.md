@@ -153,3 +153,4 @@ allocations.
 - 2026-10-14 goat0225-mc2: controller fixes mc256 at 256 MB (2.6 GB redundant, 256 MB peak, 3.51 s); no timing regression; default 64; phase 3 ready.
 - 2026-10-14 untiled single-tile images (user concern): held tiles > limit made every insert empty the cache. 3064a6bea: sweep skips refcount>1 tiles, stops after a fruitless pass, waits for max/64 change. M4 untiled 32 MB: 178 -> 91 s, peak 496 -> 256 MB.
 - 2026-10-14 goat0225-mc3: untiled bounded; but prod 256 MB mc256 ended 363.7 MB (victim tiles pinned). Fix: per-thread victim bytes, halve above max/2.
+- 2026-10-14 goat0225-mc4: limit holds (prod 256 MB mc256 at 256 MB); mc3 had 139 s trials hidden by best-of-3; phase 3 squashed to lg-ic-microcache.
