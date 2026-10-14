@@ -1,0 +1,1899 @@
+14:45:10 START spinbench17o3 unc A_cur
+14:45:10 END
+14:45:11 START spinbench17o3 con A_cur 1 tiny
+14:45:11 END rc=0
+14:45:11 START spinbench17o3 con A_cur 2 tiny
+14:45:11 END rc=0
+14:45:11 START spinbench17o3 con A_cur 4 tiny
+14:45:12 END rc=0
+14:45:12 START spinbench17o3 con A_cur 8 tiny
+14:45:15 END rc=0
+14:45:15 START spinbench17o3 con A_cur 16 tiny
+14:45:20 END rc=0
+14:45:20 START spinbench17o3 con A_cur 32 tiny
+14:45:25 END rc=0
+14:45:25 START spinbench17o3 con A_cur 48 tiny
+14:45:31 END rc=0
+14:45:32 START spinbench17o3 con A_cur 64 tiny
+14:45:38 END rc=0
+14:45:38 START spinbench17o3 con A_cur 96 tiny
+14:45:43 END rc=0
+14:45:43 START spinbench17o3 con A_cur 128 tiny
+14:45:48 END rc=0
+14:45:48 START spinbench17o3 con A_cur 1 medium
+14:45:48 END rc=0
+14:45:48 START spinbench17o3 con A_cur 2 medium
+14:45:49 END rc=0
+14:45:49 START spinbench17o3 con A_cur 4 medium
+14:45:51 END rc=0
+14:45:51 START spinbench17o3 con A_cur 8 medium
+14:45:55 END rc=0
+14:45:55 START spinbench17o3 con A_cur 16 medium
+14:46:03 END rc=0
+14:46:03 START spinbench17o3 con A_cur 32 medium
+14:46:14 END rc=0
+14:46:14 START spinbench17o3 con A_cur 48 medium
+14:46:23 END rc=0
+14:46:23 START spinbench17o3 con A_cur 64 medium
+14:46:31 END rc=0
+14:46:31 START spinbench17o3 con A_cur 96 medium
+14:46:38 END rc=0
+14:46:38 START spinbench17o3 con A_cur 128 medium
+14:46:44 END rc=0
+14:46:44 START spinbench17o3 con A_cur 1 coloc
+14:46:45 END rc=0
+14:46:45 START spinbench17o3 con A_cur 2 coloc
+14:46:45 END rc=0
+14:46:45 START spinbench17o3 con A_cur 4 coloc
+14:46:46 END rc=0
+14:46:46 START spinbench17o3 con A_cur 8 coloc
+14:46:50 END rc=0
+14:46:50 START spinbench17o3 con A_cur 16 coloc
+14:46:56 END rc=0
+14:46:56 START spinbench17o3 con A_cur 32 coloc
+14:47:05 END rc=0
+14:47:05 START spinbench17o3 con A_cur 48 coloc
+14:47:12 END rc=0
+14:47:12 START spinbench17o3 con A_cur 64 coloc
+14:47:22 END rc=0
+14:47:22 START spinbench17o3 con A_cur 96 coloc
+14:47:27 END rc=0
+14:47:27 START spinbench17o3 con A_cur 128 coloc
+14:47:32 END rc=0
+14:47:32 START spinbench17o3 unc A2_cur_nodclp
+14:47:32 END
+14:47:32 START spinbench17o3 con A2_cur_nodclp 1 tiny
+14:47:33 END rc=0
+14:47:33 START spinbench17o3 con A2_cur_nodclp 2 tiny
+14:47:33 END rc=0
+14:47:33 START spinbench17o3 con A2_cur_nodclp 4 tiny
+14:47:34 END rc=0
+14:47:34 START spinbench17o3 con A2_cur_nodclp 8 tiny
+14:47:36 END rc=0
+14:47:36 START spinbench17o3 con A2_cur_nodclp 16 tiny
+14:47:43 END rc=0
+14:47:43 START spinbench17o3 con A2_cur_nodclp 32 tiny
+14:47:58 END rc=0
+14:47:58 START spinbench17o3 con A2_cur_nodclp 48 tiny
+14:48:19 END rc=0
+14:48:19 START spinbench17o3 con A2_cur_nodclp 64 tiny
+14:48:41 END rc=0
+14:48:41 START spinbench17o3 con A2_cur_nodclp 96 tiny
+14:48:53 END rc=0
+14:48:53 START spinbench17o3 con A2_cur_nodclp 128 tiny
+14:49:07 END rc=0
+14:49:07 START spinbench17o3 con A2_cur_nodclp 1 medium
+14:49:08 END rc=0
+14:49:08 START spinbench17o3 con A2_cur_nodclp 2 medium
+14:49:09 END rc=0
+14:49:09 START spinbench17o3 con A2_cur_nodclp 4 medium
+14:49:10 END rc=0
+14:49:10 START spinbench17o3 con A2_cur_nodclp 8 medium
+14:49:15 END rc=0
+14:49:15 START spinbench17o3 con A2_cur_nodclp 16 medium
+14:49:25 END rc=0
+14:49:25 START spinbench17o3 con A2_cur_nodclp 32 medium
+14:49:42 END rc=0
+14:49:42 START spinbench17o3 con A2_cur_nodclp 48 medium
+14:50:05 END rc=0
+14:50:05 START spinbench17o3 con A2_cur_nodclp 64 medium
+14:50:31 END rc=0
+14:50:31 START spinbench17o3 con A2_cur_nodclp 96 medium
+14:50:53 END rc=0
+14:50:53 START spinbench17o3 con A2_cur_nodclp 128 medium
+14:51:11 END rc=0
+14:51:11 START spinbench17o3 con A2_cur_nodclp 1 coloc
+14:51:11 END rc=0
+14:51:11 START spinbench17o3 con A2_cur_nodclp 2 coloc
+14:51:11 END rc=0
+14:51:11 START spinbench17o3 con A2_cur_nodclp 4 coloc
+14:51:12 END rc=0
+14:51:12 START spinbench17o3 con A2_cur_nodclp 8 coloc
+14:51:15 END rc=0
+14:51:15 START spinbench17o3 con A2_cur_nodclp 16 coloc
+14:51:23 END rc=0
+14:51:23 START spinbench17o3 con A2_cur_nodclp 32 coloc
+14:51:41 END rc=0
+14:51:41 START spinbench17o3 con A2_cur_nodclp 48 coloc
+14:52:04 END rc=0
+14:52:04 START spinbench17o3 con A2_cur_nodclp 64 coloc
+14:52:28 END rc=0
+14:52:28 START spinbench17o3 con A2_cur_nodclp 96 coloc
+14:52:50 END rc=0
+14:52:50 START spinbench17o3 con A2_cur_nodclp 128 coloc
+14:53:10 END rc=0
+14:53:10 START spinbench17o3 unc B_flag_isb_16y1
+14:53:11 END
+14:53:11 START spinbench17o3 con B_flag_isb_16y1 1 tiny
+14:53:11 END rc=0
+14:53:11 START spinbench17o3 con B_flag_isb_16y1 2 tiny
+14:53:11 END rc=0
+14:53:11 START spinbench17o3 con B_flag_isb_16y1 4 tiny
+14:53:12 END rc=0
+14:53:12 START spinbench17o3 con B_flag_isb_16y1 8 tiny
+14:53:15 END rc=0
+14:53:15 START spinbench17o3 con B_flag_isb_16y1 16 tiny
+14:53:20 END rc=0
+14:53:20 START spinbench17o3 con B_flag_isb_16y1 32 tiny
+14:53:28 END rc=0
+14:53:28 START spinbench17o3 con B_flag_isb_16y1 48 tiny
+14:53:34 END rc=0
+14:53:34 START spinbench17o3 con B_flag_isb_16y1 64 tiny
+14:53:39 END rc=0
+14:53:39 START spinbench17o3 con B_flag_isb_16y1 96 tiny
+14:53:45 END rc=0
+14:53:45 START spinbench17o3 con B_flag_isb_16y1 128 tiny
+14:53:51 END rc=0
+14:53:51 START spinbench17o3 con B_flag_isb_16y1 1 medium
+14:53:51 END rc=0
+14:53:51 START spinbench17o3 con B_flag_isb_16y1 2 medium
+14:53:52 END rc=0
+14:53:52 START spinbench17o3 con B_flag_isb_16y1 4 medium
+14:53:54 END rc=0
+14:53:54 START spinbench17o3 con B_flag_isb_16y1 8 medium
+14:54:00 END rc=0
+14:54:00 START spinbench17o3 con B_flag_isb_16y1 16 medium
+14:54:07 END rc=0
+14:54:07 START spinbench17o3 con B_flag_isb_16y1 32 medium
+14:54:19 END rc=0
+14:54:19 START spinbench17o3 con B_flag_isb_16y1 48 medium
+14:54:31 END rc=0
+14:54:31 START spinbench17o3 con B_flag_isb_16y1 64 medium
+14:54:38 END rc=0
+14:54:38 START spinbench17o3 con B_flag_isb_16y1 96 medium
+14:54:45 END rc=0
+14:54:45 START spinbench17o3 con B_flag_isb_16y1 128 medium
+14:54:52 END rc=0
+14:54:52 START spinbench17o3 con B_flag_isb_16y1 1 coloc
+14:54:52 END rc=0
+14:54:52 START spinbench17o3 con B_flag_isb_16y1 2 coloc
+14:54:52 END rc=0
+14:54:52 START spinbench17o3 con B_flag_isb_16y1 4 coloc
+14:54:53 END rc=0
+14:54:53 START spinbench17o3 con B_flag_isb_16y1 8 coloc
+14:54:57 END rc=0
+14:54:57 START spinbench17o3 con B_flag_isb_16y1 16 coloc
+14:55:03 END rc=0
+14:55:03 START spinbench17o3 con B_flag_isb_16y1 32 coloc
+14:55:08 END rc=0
+14:55:08 START spinbench17o3 con B_flag_isb_16y1 48 coloc
+14:55:14 END rc=0
+14:55:14 START spinbench17o3 con B_flag_isb_16y1 64 coloc
+14:55:19 END rc=0
+14:55:19 START spinbench17o3 con B_flag_isb_16y1 96 coloc
+14:55:25 END rc=0
+14:55:25 START spinbench17o3 con B_flag_isb_16y1 128 coloc
+14:55:30 END rc=0
+14:55:30 START spinbench17o3 unc C_bool_isb_16y1
+14:55:30 END
+14:55:30 START spinbench17o3 con C_bool_isb_16y1 1 tiny
+14:55:30 END rc=0
+14:55:30 START spinbench17o3 con C_bool_isb_16y1 2 tiny
+14:55:31 END rc=0
+14:55:31 START spinbench17o3 con C_bool_isb_16y1 4 tiny
+14:55:31 END rc=0
+14:55:31 START spinbench17o3 con C_bool_isb_16y1 8 tiny
+14:55:35 END rc=0
+14:55:35 START spinbench17o3 con C_bool_isb_16y1 16 tiny
+14:55:40 END rc=0
+14:55:40 START spinbench17o3 con C_bool_isb_16y1 32 tiny
+14:55:44 END rc=0
+14:55:44 START spinbench17o3 con C_bool_isb_16y1 48 tiny
+14:55:50 END rc=0
+14:55:50 START spinbench17o3 con C_bool_isb_16y1 64 tiny
+14:55:55 END rc=0
+14:55:56 START spinbench17o3 con C_bool_isb_16y1 96 tiny
+14:56:01 END rc=0
+14:56:01 START spinbench17o3 con C_bool_isb_16y1 128 tiny
+14:56:06 END rc=0
+14:56:06 START spinbench17o3 con C_bool_isb_16y1 1 medium
+14:56:07 END rc=0
+14:56:07 START spinbench17o3 con C_bool_isb_16y1 2 medium
+14:56:08 END rc=0
+14:56:08 START spinbench17o3 con C_bool_isb_16y1 4 medium
+14:56:10 END rc=0
+14:56:10 START spinbench17o3 con C_bool_isb_16y1 8 medium
+14:56:15 END rc=0
+14:56:16 START spinbench17o3 con C_bool_isb_16y1 16 medium
+14:56:23 END rc=0
+14:56:23 START spinbench17o3 con C_bool_isb_16y1 32 medium
+14:56:35 END rc=0
+14:56:35 START spinbench17o3 con C_bool_isb_16y1 48 medium
+14:56:47 END rc=0
+14:56:47 START spinbench17o3 con C_bool_isb_16y1 64 medium
+14:56:55 END rc=0
+14:56:55 START spinbench17o3 con C_bool_isb_16y1 96 medium
+14:57:01 END rc=0
+14:57:01 START spinbench17o3 con C_bool_isb_16y1 128 medium
+14:57:08 END rc=0
+14:57:08 START spinbench17o3 con C_bool_isb_16y1 1 coloc
+14:57:08 END rc=0
+14:57:08 START spinbench17o3 con C_bool_isb_16y1 2 coloc
+14:57:08 END rc=0
+14:57:08 START spinbench17o3 con C_bool_isb_16y1 4 coloc
+14:57:09 END rc=0
+14:57:09 START spinbench17o3 con C_bool_isb_16y1 8 coloc
+14:57:13 END rc=0
+14:57:13 START spinbench17o3 con C_bool_isb_16y1 16 coloc
+14:57:19 END rc=0
+14:57:19 START spinbench17o3 con C_bool_isb_16y1 32 coloc
+14:57:28 END rc=0
+14:57:28 START spinbench17o3 con C_bool_isb_16y1 48 coloc
+14:57:34 END rc=0
+14:57:34 START spinbench17o3 con C_bool_isb_16y1 64 coloc
+14:57:41 END rc=0
+14:57:41 START spinbench17o3 con C_bool_isb_16y1 96 coloc
+14:57:46 END rc=0
+14:57:46 START spinbench17o3 con C_bool_isb_16y1 128 coloc
+14:57:51 END rc=0
+14:57:51 START spinbench17o3 unc D_article
+14:57:51 END
+14:57:51 START spinbench17o3 con D_article 1 tiny
+14:57:51 END rc=0
+14:57:51 START spinbench17o3 con D_article 2 tiny
+14:57:52 END rc=0
+14:57:52 START spinbench17o3 con D_article 4 tiny
+14:57:52 END rc=0
+14:57:52 START spinbench17o3 con D_article 8 tiny
+14:57:53 END rc=0
+14:57:53 START spinbench17o3 con D_article 16 tiny
+14:57:56 END rc=0
+14:57:56 START spinbench17o3 con D_article 32 tiny
+14:58:00 END rc=0
+14:58:00 START spinbench17o3 con D_article 48 tiny
+14:58:05 END rc=0
+14:58:05 START spinbench17o3 con D_article 64 tiny
+14:58:11 END rc=0
+14:58:11 START spinbench17o3 con D_article 1 medium
+14:58:11 END rc=0
+14:58:11 START spinbench17o3 con D_article 2 medium
+14:58:12 END rc=0
+14:58:12 START spinbench17o3 con D_article 4 medium
+14:58:14 END rc=0
+14:58:14 START spinbench17o3 con D_article 8 medium
+14:58:17 END rc=0
+14:58:17 START spinbench17o3 con D_article 16 medium
+14:58:23 END rc=0
+14:58:23 START spinbench17o3 con D_article 32 medium
+14:58:28 END rc=0
+14:58:28 START spinbench17o3 con D_article 48 medium
+14:58:36 END rc=0
+14:58:36 START spinbench17o3 con D_article 64 medium
+14:58:45 END rc=0
+14:58:45 START spinbench17o3 con D_article 1 coloc
+14:58:45 END rc=0
+14:58:45 START spinbench17o3 con D_article 2 coloc
+14:58:45 END rc=0
+14:58:45 START spinbench17o3 con D_article 4 coloc
+14:58:46 END rc=0
+14:58:46 START spinbench17o3 con D_article 8 coloc
+14:58:47 END rc=0
+14:58:47 START spinbench17o3 con D_article 16 coloc
+14:58:50 END rc=0
+14:58:50 START spinbench17o3 con D_article 32 coloc
+14:58:53 END rc=0
+14:58:53 START spinbench17o3 con D_article 48 coloc
+14:58:59 END rc=0
+14:58:59 START spinbench17o3 con D_article 64 coloc
+14:59:05 END rc=0
+14:59:05 START spinbench17o3 unc E_bool_isb_64y64
+14:59:06 END
+14:59:06 START spinbench17o3 con E_bool_isb_64y64 1 tiny
+14:59:06 END rc=0
+14:59:06 START spinbench17o3 con E_bool_isb_64y64 2 tiny
+14:59:06 END rc=0
+14:59:06 START spinbench17o3 con E_bool_isb_64y64 4 tiny
+14:59:07 END rc=0
+14:59:07 START spinbench17o3 con E_bool_isb_64y64 8 tiny
+14:59:08 END rc=0
+14:59:08 START spinbench17o3 con E_bool_isb_64y64 16 tiny
+14:59:11 END rc=0
+14:59:11 START spinbench17o3 con E_bool_isb_64y64 32 tiny
+14:59:15 END rc=0
+14:59:15 START spinbench17o3 con E_bool_isb_64y64 48 tiny
+14:59:20 END rc=0
+14:59:20 START spinbench17o3 con E_bool_isb_64y64 64 tiny
+14:59:26 END rc=0
+14:59:26 START spinbench17o3 con E_bool_isb_64y64 96 tiny
+14:59:32 END rc=0
+14:59:32 START spinbench17o3 con E_bool_isb_64y64 128 tiny
+14:59:38 END rc=0
+14:59:38 START spinbench17o3 con E_bool_isb_64y64 1 medium
+14:59:38 END rc=0
+14:59:38 START spinbench17o3 con E_bool_isb_64y64 2 medium
+14:59:39 END rc=0
+14:59:39 START spinbench17o3 con E_bool_isb_64y64 4 medium
+14:59:41 END rc=0
+14:59:41 START spinbench17o3 con E_bool_isb_64y64 8 medium
+14:59:44 END rc=0
+14:59:44 START spinbench17o3 con E_bool_isb_64y64 16 medium
+14:59:50 END rc=0
+14:59:50 START spinbench17o3 con E_bool_isb_64y64 32 medium
+15:00:00 END rc=0
+15:00:00 START spinbench17o3 con E_bool_isb_64y64 48 medium
+15:00:09 END rc=0
+15:00:09 START spinbench17o3 con E_bool_isb_64y64 64 medium
+15:00:20 END rc=0
+15:00:20 START spinbench17o3 con E_bool_isb_64y64 96 medium
+15:00:27 END rc=0
+15:00:27 START spinbench17o3 con E_bool_isb_64y64 128 medium
+15:00:35 END rc=0
+15:00:35 START spinbench17o3 con E_bool_isb_64y64 1 coloc
+15:00:35 END rc=0
+15:00:35 START spinbench17o3 con E_bool_isb_64y64 2 coloc
+15:00:35 END rc=0
+15:00:35 START spinbench17o3 con E_bool_isb_64y64 4 coloc
+15:00:36 END rc=0
+15:00:36 START spinbench17o3 con E_bool_isb_64y64 8 coloc
+15:00:37 END rc=0
+15:00:37 START spinbench17o3 con E_bool_isb_64y64 16 coloc
+15:00:41 END rc=0
+15:00:41 START spinbench17o3 con E_bool_isb_64y64 32 coloc
+15:00:50 END rc=0
+15:00:50 START spinbench17o3 con E_bool_isb_64y64 48 coloc
+15:00:56 END rc=0
+15:00:56 START spinbench17o3 con E_bool_isb_64y64 64 coloc
+15:01:06 END rc=0
+15:01:06 START spinbench17o3 con E_bool_isb_64y64 96 coloc
+15:01:12 END rc=0
+15:01:12 START spinbench17o3 con E_bool_isb_64y64 128 coloc
+15:01:18 END rc=0
+15:01:18 START spinbench17o3 unc X_bool_isb_64y64
+15:01:19 END
+15:01:19 START spinbench17o3 con X_bool_isb_64y64 1 tiny
+15:01:19 END rc=0
+15:01:19 START spinbench17o3 con X_bool_isb_64y64 2 tiny
+15:01:19 END rc=0
+15:01:19 START spinbench17o3 con X_bool_isb_64y64 4 tiny
+15:01:20 END rc=0
+15:01:20 START spinbench17o3 con X_bool_isb_64y64 8 tiny
+15:01:21 END rc=0
+15:01:21 START spinbench17o3 con X_bool_isb_64y64 16 tiny
+15:01:25 END rc=0
+15:01:25 START spinbench17o3 con X_bool_isb_64y64 32 tiny
+15:01:31 END rc=0
+15:01:31 START spinbench17o3 con X_bool_isb_64y64 48 tiny
+15:01:36 END rc=0
+15:01:36 START spinbench17o3 con X_bool_isb_64y64 64 tiny
+15:01:44 END rc=0
+15:01:44 START spinbench17o3 con X_bool_isb_64y64 96 tiny
+15:01:49 END rc=0
+15:01:49 START spinbench17o3 con X_bool_isb_64y64 128 tiny
+15:01:55 END rc=0
+15:01:55 START spinbench17o3 con X_bool_isb_64y64 1 medium
+15:01:55 END rc=0
+15:01:55 START spinbench17o3 con X_bool_isb_64y64 2 medium
+15:01:56 END rc=0
+15:01:56 START spinbench17o3 con X_bool_isb_64y64 4 medium
+15:01:58 END rc=0
+15:01:58 START spinbench17o3 con X_bool_isb_64y64 8 medium
+15:02:01 END rc=0
+15:02:01 START spinbench17o3 con X_bool_isb_64y64 16 medium
+15:02:08 END rc=0
+15:02:08 START spinbench17o3 con X_bool_isb_64y64 32 medium
+15:02:14 END rc=0
+15:02:14 START spinbench17o3 con X_bool_isb_64y64 48 medium
+15:02:24 END rc=0
+15:02:24 START spinbench17o3 con X_bool_isb_64y64 64 medium
+15:02:32 END rc=0
+15:02:32 START spinbench17o3 con X_bool_isb_64y64 96 medium
+15:02:40 END rc=0
+15:02:40 START spinbench17o3 con X_bool_isb_64y64 128 medium
+15:02:48 END rc=0
+15:02:48 START spinbench17o3 con X_bool_isb_64y64 1 coloc
+15:02:49 END rc=0
+15:02:49 START spinbench17o3 con X_bool_isb_64y64 2 coloc
+15:02:49 END rc=0
+15:02:49 START spinbench17o3 con X_bool_isb_64y64 4 coloc
+15:02:49 END rc=0
+15:02:49 START spinbench17o3 con X_bool_isb_64y64 8 coloc
+15:02:51 END rc=0
+15:02:51 START spinbench17o3 con X_bool_isb_64y64 16 coloc
+15:02:55 END rc=0
+15:02:55 START spinbench17o3 con X_bool_isb_64y64 32 coloc
+15:02:59 END rc=0
+15:02:59 START spinbench17o3 con X_bool_isb_64y64 48 coloc
+15:03:04 END rc=0
+15:03:04 START spinbench17o3 con X_bool_isb_64y64 64 coloc
+15:03:10 END rc=0
+15:03:10 START spinbench17o3 con X_bool_isb_64y64 96 coloc
+15:03:16 END rc=0
+15:03:16 START spinbench17o3 con X_bool_isb_64y64 128 coloc
+15:03:22 END rc=0
+15:03:22 START spinbench17o3 unc X_bool_isb_64y256
+15:03:22 END
+15:03:22 START spinbench17o3 con X_bool_isb_64y256 1 tiny
+15:03:22 END rc=0
+15:03:22 START spinbench17o3 con X_bool_isb_64y256 2 tiny
+15:03:22 END rc=0
+15:03:22 START spinbench17o3 con X_bool_isb_64y256 4 tiny
+15:03:23 END rc=0
+15:03:23 START spinbench17o3 con X_bool_isb_64y256 8 tiny
+15:03:24 END rc=0
+15:03:24 START spinbench17o3 con X_bool_isb_64y256 16 tiny
+15:03:27 END rc=0
+15:03:27 START spinbench17o3 con X_bool_isb_64y256 32 tiny
+15:03:33 END rc=0
+15:03:33 START spinbench17o3 con X_bool_isb_64y256 48 tiny
+15:03:38 END rc=0
+15:03:38 START spinbench17o3 con X_bool_isb_64y256 64 tiny
+15:03:46 END rc=0
+15:03:46 START spinbench17o3 con X_bool_isb_64y256 96 tiny
+15:03:52 END rc=0
+15:03:52 START spinbench17o3 con X_bool_isb_64y256 128 tiny
+15:03:59 END rc=0
+15:04:00 START spinbench17o3 con X_bool_isb_64y256 1 medium
+15:04:00 END rc=0
+15:04:00 START spinbench17o3 con X_bool_isb_64y256 2 medium
+15:04:01 END rc=0
+15:04:01 START spinbench17o3 con X_bool_isb_64y256 4 medium
+15:04:02 END rc=0
+15:04:02 START spinbench17o3 con X_bool_isb_64y256 8 medium
+15:04:06 END rc=0
+15:04:06 START spinbench17o3 con X_bool_isb_64y256 16 medium
+15:04:12 END rc=0
+15:04:12 START spinbench17o3 con X_bool_isb_64y256 32 medium
+15:04:21 END rc=0
+15:04:21 START spinbench17o3 con X_bool_isb_64y256 48 medium
+15:04:30 END rc=0
+15:04:30 START spinbench17o3 con X_bool_isb_64y256 64 medium
+15:04:40 END rc=0
+15:04:40 START spinbench17o3 con X_bool_isb_64y256 96 medium
+15:04:49 END rc=0
+15:04:50 START spinbench17o3 con X_bool_isb_64y256 128 medium
+15:04:59 END rc=0
+15:04:59 START spinbench17o3 con X_bool_isb_64y256 1 coloc
+15:04:59 END rc=0
+15:04:59 START spinbench17o3 con X_bool_isb_64y256 2 coloc
+15:05:00 END rc=0
+15:05:00 START spinbench17o3 con X_bool_isb_64y256 4 coloc
+15:05:00 END rc=0
+15:05:00 START spinbench17o3 con X_bool_isb_64y256 8 coloc
+15:05:01 END rc=0
+15:05:01 START spinbench17o3 con X_bool_isb_64y256 16 coloc
+15:05:04 END rc=0
+15:05:04 START spinbench17o3 con X_bool_isb_64y256 32 coloc
+15:05:08 END rc=0
+15:05:08 START spinbench17o3 con X_bool_isb_64y256 48 coloc
+15:05:14 END rc=0
+15:05:14 START spinbench17o3 con X_bool_isb_64y256 64 coloc
+15:05:22 END rc=0
+15:05:22 START spinbench17o3 con X_bool_isb_64y256 96 coloc
+15:05:30 END rc=0
+15:05:30 START spinbench17o3 con X_bool_isb_64y256 128 coloc
+15:05:38 END rc=0
+15:05:38 START spinbench17o3 unc X_bool_isb_64y1k
+15:05:38 END
+15:05:38 START spinbench17o3 con X_bool_isb_64y1k 1 tiny
+15:05:38 END rc=0
+15:05:39 START spinbench17o3 con X_bool_isb_64y1k 2 tiny
+15:05:39 END rc=0
+15:05:39 START spinbench17o3 con X_bool_isb_64y1k 4 tiny
+15:05:39 END rc=0
+15:05:39 START spinbench17o3 con X_bool_isb_64y1k 8 tiny
+15:05:40 END rc=0
+15:05:40 START spinbench17o3 con X_bool_isb_64y1k 16 tiny
+15:05:43 END rc=0
+15:05:43 START spinbench17o3 con X_bool_isb_64y1k 32 tiny
+15:05:48 END rc=0
+15:05:48 START spinbench17o3 con X_bool_isb_64y1k 48 tiny
+15:05:52 END rc=0
+15:05:52 START spinbench17o3 con X_bool_isb_64y1k 64 tiny
+15:05:58 END rc=0
+15:05:58 START spinbench17o3 con X_bool_isb_64y1k 96 tiny
+15:06:05 END rc=0
+15:06:05 START spinbench17o3 con X_bool_isb_64y1k 128 tiny
+15:06:13 END rc=0
+15:06:13 START spinbench17o3 con X_bool_isb_64y1k 1 medium
+15:06:13 END rc=0
+15:06:13 START spinbench17o3 con X_bool_isb_64y1k 2 medium
+15:06:14 END rc=0
+15:06:14 START spinbench17o3 con X_bool_isb_64y1k 4 medium
+15:06:16 END rc=0
+15:06:16 START spinbench17o3 con X_bool_isb_64y1k 8 medium
+15:06:19 END rc=0
+15:06:19 START spinbench17o3 con X_bool_isb_64y1k 16 medium
+15:06:25 END rc=0
+15:06:25 START spinbench17o3 con X_bool_isb_64y1k 32 medium
+15:06:34 END rc=0
+15:06:34 START spinbench17o3 con X_bool_isb_64y1k 48 medium
+15:06:43 END rc=0
+15:06:43 START spinbench17o3 con X_bool_isb_64y1k 64 medium
+15:06:52 END rc=0
+15:06:52 START spinbench17o3 con X_bool_isb_64y1k 96 medium
+15:07:02 END rc=0
+15:07:02 START spinbench17o3 con X_bool_isb_64y1k 128 medium
+15:07:13 END rc=0
+15:07:13 START spinbench17o3 con X_bool_isb_64y1k 1 coloc
+15:07:13 END rc=0
+15:07:14 START spinbench17o3 con X_bool_isb_64y1k 2 coloc
+15:07:14 END rc=0
+15:07:14 START spinbench17o3 con X_bool_isb_64y1k 4 coloc
+15:07:14 END rc=0
+15:07:14 START spinbench17o3 con X_bool_isb_64y1k 8 coloc
+15:07:15 END rc=0
+15:07:15 START spinbench17o3 con X_bool_isb_64y1k 16 coloc
+15:07:19 END rc=0
+15:07:19 START spinbench17o3 con X_bool_isb_64y1k 32 coloc
+15:07:25 END rc=0
+15:07:25 START spinbench17o3 con X_bool_isb_64y1k 48 coloc
+15:07:30 END rc=0
+15:07:30 START spinbench17o3 con X_bool_isb_64y1k 64 coloc
+15:07:36 END rc=0
+15:07:36 START spinbench17o3 con X_bool_isb_64y1k 96 coloc
+15:07:43 END rc=0
+15:07:44 START spinbench17o3 con X_bool_isb_64y1k 128 coloc
+15:07:52 END rc=0
+15:07:52 START spinbench17o3 unc X_bool_isb_128y16
+15:07:52 END
+15:07:52 START spinbench17o3 con X_bool_isb_128y16 1 tiny
+15:07:53 END rc=0
+15:07:53 START spinbench17o3 con X_bool_isb_128y16 2 tiny
+15:07:53 END rc=0
+15:07:53 START spinbench17o3 con X_bool_isb_128y16 4 tiny
+15:07:53 END rc=0
+15:07:53 START spinbench17o3 con X_bool_isb_128y16 8 tiny
+15:07:54 END rc=0
+15:07:54 START spinbench17o3 con X_bool_isb_128y16 16 tiny
+15:07:58 END rc=0
+15:07:58 START spinbench17o3 con X_bool_isb_128y16 32 tiny
+15:08:06 END rc=0
+15:08:06 START spinbench17o3 con X_bool_isb_128y16 48 tiny
+15:08:11 END rc=0
+15:08:11 START spinbench17o3 con X_bool_isb_128y16 64 tiny
+15:08:16 END rc=0
+15:08:16 START spinbench17o3 con X_bool_isb_128y16 96 tiny
+15:08:21 END rc=0
+15:08:21 START spinbench17o3 con X_bool_isb_128y16 128 tiny
+15:08:26 END rc=0
+15:08:26 START spinbench17o3 con X_bool_isb_128y16 1 medium
+15:08:27 END rc=0
+15:08:27 START spinbench17o3 con X_bool_isb_128y16 2 medium
+15:08:27 END rc=0
+15:08:27 START spinbench17o3 con X_bool_isb_128y16 4 medium
+15:08:29 END rc=0
+15:08:29 START spinbench17o3 con X_bool_isb_128y16 8 medium
+15:08:31 END rc=0
+15:08:31 START spinbench17o3 con X_bool_isb_128y16 16 medium
+15:08:37 END rc=0
+15:08:37 START spinbench17o3 con X_bool_isb_128y16 32 medium
+15:08:47 END rc=0
+15:08:47 START spinbench17o3 con X_bool_isb_128y16 48 medium
+15:08:55 END rc=0
+15:08:55 START spinbench17o3 con X_bool_isb_128y16 64 medium
+15:09:05 END rc=0
+15:09:05 START spinbench17o3 con X_bool_isb_128y16 96 medium
+15:09:12 END rc=0
+15:09:12 START spinbench17o3 con X_bool_isb_128y16 128 medium
+15:09:19 END rc=0
+15:09:19 START spinbench17o3 con X_bool_isb_128y16 1 coloc
+15:09:19 END rc=0
+15:09:19 START spinbench17o3 con X_bool_isb_128y16 2 coloc
+15:09:19 END rc=0
+15:09:19 START spinbench17o3 con X_bool_isb_128y16 4 coloc
+15:09:19 END rc=0
+15:09:19 START spinbench17o3 con X_bool_isb_128y16 8 coloc
+15:09:20 END rc=0
+15:09:20 START spinbench17o3 con X_bool_isb_128y16 16 coloc
+15:09:25 END rc=0
+15:09:25 START spinbench17o3 con X_bool_isb_128y16 32 coloc
+15:09:29 END rc=0
+15:09:29 START spinbench17o3 con X_bool_isb_128y16 48 coloc
+15:09:34 END rc=0
+15:09:34 START spinbench17o3 con X_bool_isb_128y16 64 coloc
+15:09:43 END rc=0
+15:09:43 START spinbench17o3 con X_bool_isb_128y16 96 coloc
+15:09:48 END rc=0
+15:09:48 START spinbench17o3 con X_bool_isb_128y16 128 coloc
+15:09:53 END rc=0
+15:09:53 START spinbench17o3 unc X_bool_isb_128y64
+15:09:54 END
+15:09:54 START spinbench17o3 con X_bool_isb_128y64 1 tiny
+15:09:54 END rc=0
+15:09:54 START spinbench17o3 con X_bool_isb_128y64 2 tiny
+15:09:54 END rc=0
+15:09:54 START spinbench17o3 con X_bool_isb_128y64 4 tiny
+15:09:54 END rc=0
+15:09:54 START spinbench17o3 con X_bool_isb_128y64 8 tiny
+15:09:55 END rc=0
+15:09:55 START spinbench17o3 con X_bool_isb_128y64 16 tiny
+15:09:57 END rc=0
+15:09:57 START spinbench17o3 con X_bool_isb_128y64 32 tiny
+15:10:02 END rc=0
+15:10:02 START spinbench17o3 con X_bool_isb_128y64 48 tiny
+15:10:08 END rc=0
+15:10:08 START spinbench17o3 con X_bool_isb_128y64 64 tiny
+15:10:12 END rc=0
+15:10:12 START spinbench17o3 con X_bool_isb_128y64 96 tiny
+15:10:18 END rc=0
+15:10:18 START spinbench17o3 con X_bool_isb_128y64 128 tiny
+15:10:22 END rc=0
+15:10:23 START spinbench17o3 con X_bool_isb_128y64 1 medium
+15:10:23 END rc=0
+15:10:23 START spinbench17o3 con X_bool_isb_128y64 2 medium
+15:10:24 END rc=0
+15:10:24 START spinbench17o3 con X_bool_isb_128y64 4 medium
+15:10:25 END rc=0
+15:10:25 START spinbench17o3 con X_bool_isb_128y64 8 medium
+15:10:27 END rc=0
+15:10:27 START spinbench17o3 con X_bool_isb_128y64 16 medium
+15:10:31 END rc=0
+15:10:31 START spinbench17o3 con X_bool_isb_128y64 32 medium
+15:10:40 END rc=0
+15:10:40 START spinbench17o3 con X_bool_isb_128y64 48 medium
+15:10:48 END rc=0
+15:10:48 START spinbench17o3 con X_bool_isb_128y64 64 medium
+15:10:55 END rc=0
+15:10:55 START spinbench17o3 con X_bool_isb_128y64 96 medium
+15:11:03 END rc=0
+15:11:03 START spinbench17o3 con X_bool_isb_128y64 128 medium
+15:11:12 END rc=0
+15:11:12 START spinbench17o3 con X_bool_isb_128y64 1 coloc
+15:11:12 END rc=0
+15:11:12 START spinbench17o3 con X_bool_isb_128y64 2 coloc
+15:11:12 END rc=0
+15:11:12 START spinbench17o3 con X_bool_isb_128y64 4 coloc
+15:11:13 END rc=0
+15:11:13 START spinbench17o3 con X_bool_isb_128y64 8 coloc
+15:11:13 END rc=0
+15:11:13 START spinbench17o3 con X_bool_isb_128y64 16 coloc
+15:11:15 END rc=0
+15:11:15 START spinbench17o3 con X_bool_isb_128y64 32 coloc
+15:11:21 END rc=0
+15:11:21 START spinbench17o3 con X_bool_isb_128y64 48 coloc
+15:11:26 END rc=0
+15:11:26 START spinbench17o3 con X_bool_isb_128y64 64 coloc
+15:11:33 END rc=0
+15:11:33 START spinbench17o3 con X_bool_isb_128y64 96 coloc
+15:11:38 END rc=0
+15:11:38 START spinbench17o3 con X_bool_isb_128y64 128 coloc
+15:11:44 END rc=0
+15:11:44 START spinbench17o3 unc X_bool_isb_128y256
+15:11:44 END
+15:11:44 START spinbench17o3 con X_bool_isb_128y256 1 tiny
+15:11:44 END rc=0
+15:11:44 START spinbench17o3 con X_bool_isb_128y256 2 tiny
+15:11:45 END rc=0
+15:11:45 START spinbench17o3 con X_bool_isb_128y256 4 tiny
+15:11:45 END rc=0
+15:11:45 START spinbench17o3 con X_bool_isb_128y256 8 tiny
+15:11:46 END rc=0
+15:11:46 START spinbench17o3 con X_bool_isb_128y256 16 tiny
+15:11:47 END rc=0
+15:11:47 START spinbench17o3 con X_bool_isb_128y256 32 tiny
+15:11:50 END rc=0
+15:11:50 START spinbench17o3 con X_bool_isb_128y256 48 tiny
+15:11:53 END rc=0
+15:11:53 START spinbench17o3 con X_bool_isb_128y256 64 tiny
+15:11:57 END rc=0
+15:11:57 START spinbench17o3 con X_bool_isb_128y256 96 tiny
+15:12:01 END rc=0
+15:12:01 START spinbench17o3 con X_bool_isb_128y256 128 tiny
+15:12:05 END rc=0
+15:12:05 START spinbench17o3 con X_bool_isb_128y256 1 medium
+15:12:06 END rc=0
+15:12:06 START spinbench17o3 con X_bool_isb_128y256 2 medium
+15:12:07 END rc=0
+15:12:07 START spinbench17o3 con X_bool_isb_128y256 4 medium
+15:12:08 END rc=0
+15:12:08 START spinbench17o3 con X_bool_isb_128y256 8 medium
+15:12:10 END rc=0
+15:12:10 START spinbench17o3 con X_bool_isb_128y256 16 medium
+15:12:14 END rc=0
+15:12:14 START spinbench17o3 con X_bool_isb_128y256 32 medium
+15:12:20 END rc=0
+15:12:20 START spinbench17o3 con X_bool_isb_128y256 48 medium
+15:12:26 END rc=0
+15:12:26 START spinbench17o3 con X_bool_isb_128y256 64 medium
+15:12:34 END rc=0
+15:12:34 START spinbench17o3 con X_bool_isb_128y256 96 medium
+15:12:41 END rc=0
+15:12:41 START spinbench17o3 con X_bool_isb_128y256 128 medium
+15:12:49 END rc=0
+15:12:49 START spinbench17o3 con X_bool_isb_128y256 1 coloc
+15:12:49 END rc=0
+15:12:49 START spinbench17o3 con X_bool_isb_128y256 2 coloc
+15:12:49 END rc=0
+15:12:49 START spinbench17o3 con X_bool_isb_128y256 4 coloc
+15:12:50 END rc=0
+15:12:50 START spinbench17o3 con X_bool_isb_128y256 8 coloc
+15:12:50 END rc=0
+15:12:50 START spinbench17o3 con X_bool_isb_128y256 16 coloc
+15:12:52 END rc=0
+15:12:52 START spinbench17o3 con X_bool_isb_128y256 32 coloc
+15:12:55 END rc=0
+15:12:55 START spinbench17o3 con X_bool_isb_128y256 48 coloc
+15:12:58 END rc=0
+15:12:58 START spinbench17o3 con X_bool_isb_128y256 64 coloc
+15:13:03 END rc=0
+15:13:03 START spinbench17o3 con X_bool_isb_128y256 96 coloc
+15:13:07 END rc=0
+15:13:07 START spinbench17o3 con X_bool_isb_128y256 128 coloc
+15:13:11 END rc=0
+15:13:11 START spinbench17o3 unc X_bool_isb_32y256
+15:13:12 END
+15:13:12 START spinbench17o3 con X_bool_isb_32y256 1 tiny
+15:13:12 END rc=0
+15:13:12 START spinbench17o3 con X_bool_isb_32y256 2 tiny
+15:13:12 END rc=0
+15:13:12 START spinbench17o3 con X_bool_isb_32y256 4 tiny
+15:13:13 END rc=0
+15:13:13 START spinbench17o3 con X_bool_isb_32y256 8 tiny
+15:13:15 END rc=0
+15:13:15 START spinbench17o3 con X_bool_isb_32y256 16 tiny
+15:13:19 END rc=0
+15:13:19 START spinbench17o3 con X_bool_isb_32y256 32 tiny
+15:13:26 END rc=0
+15:13:26 START spinbench17o3 con X_bool_isb_32y256 48 tiny
+15:13:32 END rc=0
+15:13:32 START spinbench17o3 con X_bool_isb_32y256 64 tiny
+15:13:40 END rc=0
+15:13:40 START spinbench17o3 con X_bool_isb_32y256 96 tiny
+15:13:48 END rc=0
+15:13:48 START spinbench17o3 con X_bool_isb_32y256 128 tiny
+15:13:57 END rc=0
+15:13:57 START spinbench17o3 con X_bool_isb_32y256 1 medium
+15:13:58 END rc=0
+15:13:58 START spinbench17o3 con X_bool_isb_32y256 2 medium
+15:13:59 END rc=0
+15:13:59 START spinbench17o3 con X_bool_isb_32y256 4 medium
+15:14:01 END rc=0
+15:14:01 START spinbench17o3 con X_bool_isb_32y256 8 medium
+15:14:05 END rc=0
+15:14:05 START spinbench17o3 con X_bool_isb_32y256 16 medium
+15:14:13 END rc=0
+15:14:13 START spinbench17o3 con X_bool_isb_32y256 32 medium
+15:14:24 END rc=0
+15:14:24 START spinbench17o3 con X_bool_isb_32y256 48 medium
+15:14:35 END rc=0
+15:14:35 START spinbench17o3 con X_bool_isb_32y256 64 medium
+15:14:46 END rc=0
+15:14:46 START spinbench17o3 con X_bool_isb_32y256 96 medium
+15:14:58 END rc=0
+15:14:58 START spinbench17o3 con X_bool_isb_32y256 128 medium
+15:15:09 END rc=0
+15:15:09 START spinbench17o3 con X_bool_isb_32y256 1 coloc
+15:15:09 END rc=0
+15:15:09 START spinbench17o3 con X_bool_isb_32y256 2 coloc
+15:15:10 END rc=0
+15:15:10 START spinbench17o3 con X_bool_isb_32y256 4 coloc
+15:15:10 END rc=0
+15:15:10 START spinbench17o3 con X_bool_isb_32y256 8 coloc
+15:15:13 END rc=0
+15:15:13 START spinbench17o3 con X_bool_isb_32y256 16 coloc
+15:15:18 END rc=0
+15:15:18 START spinbench17o3 con X_bool_isb_32y256 32 coloc
+15:15:27 END rc=0
+15:15:27 START spinbench17o3 con X_bool_isb_32y256 48 coloc
+15:15:35 END rc=0
+15:15:35 START spinbench17o3 con X_bool_isb_32y256 64 coloc
+15:15:45 END rc=0
+15:15:45 START spinbench17o3 con X_bool_isb_32y256 96 coloc
+15:15:55 END rc=0
+15:15:55 START spinbench17o3 con X_bool_isb_32y256 128 coloc
+15:16:05 END rc=0
+15:16:05 START spinbench17o3 unc H_stdmutex
+15:16:06 END
+15:16:06 START spinbench17o3 con H_stdmutex 1 tiny
+15:16:06 END rc=0
+15:16:06 START spinbench17o3 con H_stdmutex 2 tiny
+15:16:08 END rc=0
+15:16:08 START spinbench17o3 con H_stdmutex 4 tiny
+15:16:11 END rc=0
+15:16:11 START spinbench17o3 con H_stdmutex 8 tiny
+15:16:13 END rc=0
+15:16:13 START spinbench17o3 con H_stdmutex 16 tiny
+15:16:15 END rc=0
+15:16:15 START spinbench17o3 con H_stdmutex 32 tiny
+15:16:18 END rc=0
+15:16:18 START spinbench17o3 con H_stdmutex 48 tiny
+15:16:20 END rc=0
+15:16:20 START spinbench17o3 con H_stdmutex 64 tiny
+15:16:23 END rc=0
+15:16:23 START spinbench17o3 con H_stdmutex 96 tiny
+15:16:25 END rc=0
+15:16:25 START spinbench17o3 con H_stdmutex 128 tiny
+15:16:28 END rc=0
+15:16:28 START spinbench17o3 con H_stdmutex 1 medium
+15:16:28 END rc=0
+15:16:28 START spinbench17o3 con H_stdmutex 2 medium
+15:16:31 END rc=0
+15:16:31 START spinbench17o3 con H_stdmutex 4 medium
+15:16:36 END rc=0
+15:16:36 START spinbench17o3 con H_stdmutex 8 medium
+15:16:40 END rc=0
+15:16:40 START spinbench17o3 con H_stdmutex 16 medium
+15:16:44 END rc=0
+15:16:44 START spinbench17o3 con H_stdmutex 32 medium
+15:16:48 END rc=0
+15:16:48 START spinbench17o3 con H_stdmutex 48 medium
+15:16:52 END rc=0
+15:16:52 START spinbench17o3 con H_stdmutex 64 medium
+15:16:57 END rc=0
+15:16:57 START spinbench17o3 con H_stdmutex 96 medium
+15:17:02 END rc=0
+15:17:02 START spinbench17o3 con H_stdmutex 128 medium
+15:17:06 END rc=0
+15:17:06 START spinbench17o3 con H_stdmutex 1 coloc
+15:17:06 END rc=0
+15:17:06 START spinbench17o3 con H_stdmutex 2 coloc
+15:17:08 END rc=0
+15:17:08 START spinbench17o3 con H_stdmutex 4 coloc
+15:17:10 END rc=0
+15:17:10 START spinbench17o3 con H_stdmutex 8 coloc
+15:17:11 END rc=0
+15:17:11 START spinbench17o3 con H_stdmutex 16 coloc
+15:17:12 END rc=0
+15:17:13 START spinbench17o3 con H_stdmutex 32 coloc
+15:17:14 END rc=0
+15:17:14 START spinbench17o3 con H_stdmutex 48 coloc
+15:17:15 END rc=0
+15:17:15 START spinbench17o3 con H_stdmutex 64 coloc
+15:17:17 END rc=0
+15:17:17 START spinbench17o3 con H_stdmutex 96 coloc
+15:17:19 END rc=0
+15:17:19 START spinbench17o3 con H_stdmutex 128 coloc
+15:17:20 END rc=0
+15:17:20 START spinbench17o3 unc O_oiio_spin_mutex
+15:17:21 END
+15:17:21 START spinbench17o3 con O_oiio_spin_mutex 1 tiny
+15:17:21 END rc=0
+15:17:21 START spinbench17o3 con O_oiio_spin_mutex 2 tiny
+15:17:21 END rc=0
+15:17:21 START spinbench17o3 con O_oiio_spin_mutex 4 tiny
+15:17:21 END rc=0
+15:17:22 START spinbench17o3 con O_oiio_spin_mutex 8 tiny
+15:17:22 END rc=0
+15:17:22 START spinbench17o3 con O_oiio_spin_mutex 16 tiny
+15:17:24 END rc=0
+15:17:24 START spinbench17o3 con O_oiio_spin_mutex 32 tiny
+15:17:30 END rc=0
+15:17:30 START spinbench17o3 con O_oiio_spin_mutex 48 tiny
+15:17:35 END rc=0
+15:17:35 START spinbench17o3 con O_oiio_spin_mutex 64 tiny
+15:17:41 END rc=0
+15:17:41 START spinbench17o3 con O_oiio_spin_mutex 96 tiny
+15:17:47 END rc=0
+15:17:47 START spinbench17o3 con O_oiio_spin_mutex 128 tiny
+15:17:52 END rc=0
+15:17:52 START spinbench17o3 con O_oiio_spin_mutex 1 medium
+15:17:52 END rc=0
+15:17:52 START spinbench17o3 con O_oiio_spin_mutex 2 medium
+15:17:53 END rc=0
+15:17:53 START spinbench17o3 con O_oiio_spin_mutex 4 medium
+15:17:54 END rc=0
+15:17:54 START spinbench17o3 con O_oiio_spin_mutex 8 medium
+15:17:56 END rc=0
+15:17:56 START spinbench17o3 con O_oiio_spin_mutex 16 medium
+15:18:01 END rc=0
+15:18:01 START spinbench17o3 con O_oiio_spin_mutex 32 medium
+15:18:05 END rc=0
+15:18:05 START spinbench17o3 con O_oiio_spin_mutex 48 medium
+15:18:13 END rc=0
+15:18:13 START spinbench17o3 con O_oiio_spin_mutex 64 medium
+15:18:22 END rc=0
+15:18:22 START spinbench17o3 con O_oiio_spin_mutex 96 medium
+15:18:30 END rc=0
+15:18:30 START spinbench17o3 con O_oiio_spin_mutex 128 medium
+15:18:38 END rc=0
+15:18:38 START spinbench17o3 con O_oiio_spin_mutex 1 coloc
+15:18:38 END rc=0
+15:18:38 START spinbench17o3 con O_oiio_spin_mutex 2 coloc
+15:18:38 END rc=0
+15:18:39 START spinbench17o3 con O_oiio_spin_mutex 4 coloc
+15:18:39 END rc=0
+15:18:39 START spinbench17o3 con O_oiio_spin_mutex 8 coloc
+15:18:40 END rc=0
+15:18:40 START spinbench17o3 con O_oiio_spin_mutex 16 coloc
+15:18:41 END rc=0
+15:18:41 START spinbench17o3 con O_oiio_spin_mutex 32 coloc
+15:18:47 END rc=0
+15:18:47 START spinbench17o3 con O_oiio_spin_mutex 48 coloc
+15:18:52 END rc=0
+15:18:52 START spinbench17o3 con O_oiio_spin_mutex 64 coloc
+15:18:58 END rc=0
+15:18:58 START spinbench17o3 con O_oiio_spin_mutex 96 coloc
+15:19:04 END rc=0
+15:19:04 START spinbench17o3 con O_oiio_spin_mutex 128 coloc
+15:19:10 END rc=0
+15:19:10 START spinbench20o3 unc A_cur
+15:19:10 END
+15:19:10 START spinbench20o3 con A_cur 1 tiny
+15:19:10 END rc=0
+15:19:10 START spinbench20o3 con A_cur 2 tiny
+15:19:11 END rc=0
+15:19:11 START spinbench20o3 con A_cur 4 tiny
+15:19:11 END rc=0
+15:19:11 START spinbench20o3 con A_cur 8 tiny
+15:19:15 END rc=0
+15:19:15 START spinbench20o3 con A_cur 16 tiny
+15:19:20 END rc=0
+15:19:20 START spinbench20o3 con A_cur 32 tiny
+15:19:28 END rc=0
+15:19:28 START spinbench20o3 con A_cur 48 tiny
+15:19:33 END rc=0
+15:19:33 START spinbench20o3 con A_cur 64 tiny
+15:19:39 END rc=0
+15:19:39 START spinbench20o3 con A_cur 96 tiny
+15:19:44 END rc=0
+15:19:44 START spinbench20o3 con A_cur 128 tiny
+15:19:49 END rc=0
+15:19:49 START spinbench20o3 con A_cur 1 medium
+15:19:50 END rc=0
+15:19:50 START spinbench20o3 con A_cur 2 medium
+15:19:50 END rc=0
+15:19:50 START spinbench20o3 con A_cur 4 medium
+15:19:52 END rc=0
+15:19:52 START spinbench20o3 con A_cur 8 medium
+15:19:57 END rc=0
+15:19:57 START spinbench20o3 con A_cur 16 medium
+15:20:05 END rc=0
+15:20:05 START spinbench20o3 con A_cur 32 medium
+15:20:17 END rc=0
+15:20:17 START spinbench20o3 con A_cur 48 medium
+15:20:28 END rc=0
+15:20:28 START spinbench20o3 con A_cur 64 medium
+15:20:39 END rc=0
+15:20:39 START spinbench20o3 con A_cur 96 medium
+15:20:46 END rc=0
+15:20:46 START spinbench20o3 con A_cur 128 medium
+15:20:53 END rc=0
+15:20:53 START spinbench20o3 con A_cur 1 coloc
+15:20:53 END rc=0
+15:20:53 START spinbench20o3 con A_cur 2 coloc
+15:20:53 END rc=0
+15:20:53 START spinbench20o3 con A_cur 4 coloc
+15:20:54 END rc=0
+15:20:54 START spinbench20o3 con A_cur 8 coloc
+15:20:58 END rc=0
+15:20:58 START spinbench20o3 con A_cur 16 coloc
+15:21:04 END rc=0
+15:21:04 START spinbench20o3 con A_cur 32 coloc
+15:21:14 END rc=0
+15:21:14 START spinbench20o3 con A_cur 48 coloc
+15:21:20 END rc=0
+15:21:20 START spinbench20o3 con A_cur 64 coloc
+15:21:27 END rc=0
+15:21:27 START spinbench20o3 con A_cur 96 coloc
+15:21:33 END rc=0
+15:21:33 START spinbench20o3 con A_cur 128 coloc
+15:21:38 END rc=0
+15:21:38 START spinbench20o3 unc A2_cur_nodclp
+15:21:38 END
+15:21:38 START spinbench20o3 con A2_cur_nodclp 1 tiny
+15:21:38 END rc=0
+15:21:38 START spinbench20o3 con A2_cur_nodclp 2 tiny
+15:21:39 END rc=0
+15:21:39 START spinbench20o3 con A2_cur_nodclp 4 tiny
+15:21:39 END rc=0
+15:21:39 START spinbench20o3 con A2_cur_nodclp 8 tiny
+15:21:42 END rc=0
+15:21:42 START spinbench20o3 con A2_cur_nodclp 16 tiny
+15:21:49 END rc=0
+15:21:49 START spinbench20o3 con A2_cur_nodclp 32 tiny
+15:22:04 END rc=0
+15:22:04 START spinbench20o3 con A2_cur_nodclp 48 tiny
+15:22:24 END rc=0
+15:22:24 START spinbench20o3 con A2_cur_nodclp 64 tiny
+15:22:44 END rc=0
+15:22:44 START spinbench20o3 con A2_cur_nodclp 96 tiny
+15:22:55 END rc=0
+15:22:55 START spinbench20o3 con A2_cur_nodclp 128 tiny
+15:23:07 END rc=0
+15:23:07 START spinbench20o3 con A2_cur_nodclp 1 medium
+15:23:08 END rc=0
+15:23:08 START spinbench20o3 con A2_cur_nodclp 2 medium
+15:23:09 END rc=0
+15:23:09 START spinbench20o3 con A2_cur_nodclp 4 medium
+15:23:11 END rc=0
+15:23:11 START spinbench20o3 con A2_cur_nodclp 8 medium
+15:23:16 END rc=0
+15:23:16 START spinbench20o3 con A2_cur_nodclp 16 medium
+15:23:26 END rc=0
+15:23:26 START spinbench20o3 con A2_cur_nodclp 32 medium
+15:23:47 END rc=0
+15:23:47 START spinbench20o3 con A2_cur_nodclp 48 medium
+15:24:13 END rc=0
+15:24:13 START spinbench20o3 con A2_cur_nodclp 64 medium
+15:24:39 END rc=0
+15:24:39 START spinbench20o3 con A2_cur_nodclp 96 medium
+15:25:02 END rc=0
+15:25:02 START spinbench20o3 con A2_cur_nodclp 128 medium
+15:25:21 END rc=0
+15:25:21 START spinbench20o3 con A2_cur_nodclp 1 coloc
+15:25:21 END rc=0
+15:25:21 START spinbench20o3 con A2_cur_nodclp 2 coloc
+15:25:22 END rc=0
+15:25:22 START spinbench20o3 con A2_cur_nodclp 4 coloc
+15:25:23 END rc=0
+15:25:23 START spinbench20o3 con A2_cur_nodclp 8 coloc
+15:25:26 END rc=0
+15:25:26 START spinbench20o3 con A2_cur_nodclp 16 coloc
+15:25:34 END rc=0
+15:25:34 START spinbench20o3 con A2_cur_nodclp 32 coloc
+15:25:51 END rc=0
+15:25:51 START spinbench20o3 con A2_cur_nodclp 48 coloc
+15:26:14 END rc=0
+15:26:14 START spinbench20o3 con A2_cur_nodclp 64 coloc
+15:26:41 END rc=0
+15:26:41 START spinbench20o3 con A2_cur_nodclp 96 coloc
+15:27:05 END rc=0
+15:27:05 START spinbench20o3 con A2_cur_nodclp 128 coloc
+15:27:26 END rc=0
+15:27:26 START spinbench20o3 unc B_flag_isb_16y1
+15:27:26 END
+15:27:26 START spinbench20o3 con B_flag_isb_16y1 1 tiny
+15:27:26 END rc=0
+15:27:26 START spinbench20o3 con B_flag_isb_16y1 2 tiny
+15:27:27 END rc=0
+15:27:27 START spinbench20o3 con B_flag_isb_16y1 4 tiny
+15:27:28 END rc=0
+15:27:28 START spinbench20o3 con B_flag_isb_16y1 8 tiny
+15:27:30 END rc=0
+15:27:30 START spinbench20o3 con B_flag_isb_16y1 16 tiny
+15:27:35 END rc=0
+15:27:35 START spinbench20o3 con B_flag_isb_16y1 32 tiny
+15:27:40 END rc=0
+15:27:40 START spinbench20o3 con B_flag_isb_16y1 48 tiny
+15:27:46 END rc=0
+15:27:46 START spinbench20o3 con B_flag_isb_16y1 64 tiny
+15:27:51 END rc=0
+15:27:51 START spinbench20o3 con B_flag_isb_16y1 96 tiny
+15:27:57 END rc=0
+15:27:57 START spinbench20o3 con B_flag_isb_16y1 128 tiny
+15:28:02 END rc=0
+15:28:02 START spinbench20o3 con B_flag_isb_16y1 1 medium
+15:28:03 END rc=0
+15:28:03 START spinbench20o3 con B_flag_isb_16y1 2 medium
+15:28:04 END rc=0
+15:28:04 START spinbench20o3 con B_flag_isb_16y1 4 medium
+15:28:06 END rc=0
+15:28:06 START spinbench20o3 con B_flag_isb_16y1 8 medium
+15:28:12 END rc=0
+15:28:12 START spinbench20o3 con B_flag_isb_16y1 16 medium
+15:28:20 END rc=0
+15:28:20 START spinbench20o3 con B_flag_isb_16y1 32 medium
+15:28:31 END rc=0
+15:28:31 START spinbench20o3 con B_flag_isb_16y1 48 medium
+15:28:40 END rc=0
+15:28:40 START spinbench20o3 con B_flag_isb_16y1 64 medium
+15:28:51 END rc=0
+15:28:51 START spinbench20o3 con B_flag_isb_16y1 96 medium
+15:28:57 END rc=0
+15:28:57 START spinbench20o3 con B_flag_isb_16y1 128 medium
+15:29:04 END rc=0
+15:29:04 START spinbench20o3 con B_flag_isb_16y1 1 coloc
+15:29:04 END rc=0
+15:29:04 START spinbench20o3 con B_flag_isb_16y1 2 coloc
+15:29:05 END rc=0
+15:29:05 START spinbench20o3 con B_flag_isb_16y1 4 coloc
+15:29:05 END rc=0
+15:29:05 START spinbench20o3 con B_flag_isb_16y1 8 coloc
+15:29:09 END rc=0
+15:29:09 START spinbench20o3 con B_flag_isb_16y1 16 coloc
+15:29:15 END rc=0
+15:29:15 START spinbench20o3 con B_flag_isb_16y1 32 coloc
+15:29:24 END rc=0
+15:29:25 START spinbench20o3 con B_flag_isb_16y1 48 coloc
+15:29:30 END rc=0
+15:29:31 START spinbench20o3 con B_flag_isb_16y1 64 coloc
+15:29:41 END rc=0
+15:29:41 START spinbench20o3 con B_flag_isb_16y1 96 coloc
+15:29:46 END rc=0
+15:29:46 START spinbench20o3 con B_flag_isb_16y1 128 coloc
+15:29:51 END rc=0
+15:29:51 START spinbench20o3 unc C_bool_isb_16y1
+15:29:51 END
+15:29:51 START spinbench20o3 con C_bool_isb_16y1 1 tiny
+15:29:52 END rc=0
+15:29:52 START spinbench20o3 con C_bool_isb_16y1 2 tiny
+15:29:52 END rc=0
+15:29:52 START spinbench20o3 con C_bool_isb_16y1 4 tiny
+15:29:53 END rc=0
+15:29:53 START spinbench20o3 con C_bool_isb_16y1 8 tiny
+15:29:56 END rc=0
+15:29:56 START spinbench20o3 con C_bool_isb_16y1 16 tiny
+15:30:01 END rc=0
+15:30:01 START spinbench20o3 con C_bool_isb_16y1 32 tiny
+15:30:09 END rc=0
+15:30:09 START spinbench20o3 con C_bool_isb_16y1 48 tiny
+15:30:15 END rc=0
+15:30:15 START spinbench20o3 con C_bool_isb_16y1 64 tiny
+15:30:20 END rc=0
+15:30:20 START spinbench20o3 con C_bool_isb_16y1 96 tiny
+15:30:26 END rc=0
+15:30:26 START spinbench20o3 con C_bool_isb_16y1 128 tiny
+15:30:31 END rc=0
+15:30:31 START spinbench20o3 con C_bool_isb_16y1 1 medium
+15:30:32 END rc=0
+15:30:32 START spinbench20o3 con C_bool_isb_16y1 2 medium
+15:30:33 END rc=0
+15:30:33 START spinbench20o3 con C_bool_isb_16y1 4 medium
+15:30:35 END rc=0
+15:30:35 START spinbench20o3 con C_bool_isb_16y1 8 medium
+15:30:40 END rc=0
+15:30:40 START spinbench20o3 con C_bool_isb_16y1 16 medium
+15:30:48 END rc=0
+15:30:48 START spinbench20o3 con C_bool_isb_16y1 32 medium
+15:30:59 END rc=0
+15:30:59 START spinbench20o3 con C_bool_isb_16y1 48 medium
+15:31:10 END rc=0
+15:31:10 START spinbench20o3 con C_bool_isb_16y1 64 medium
+15:31:22 END rc=0
+15:31:22 START spinbench20o3 con C_bool_isb_16y1 96 medium
+15:31:28 END rc=0
+15:31:28 START spinbench20o3 con C_bool_isb_16y1 128 medium
+15:31:34 END rc=0
+15:31:34 START spinbench20o3 con C_bool_isb_16y1 1 coloc
+15:31:34 END rc=0
+15:31:34 START spinbench20o3 con C_bool_isb_16y1 2 coloc
+15:31:34 END rc=0
+15:31:35 START spinbench20o3 con C_bool_isb_16y1 4 coloc
+15:31:35 END rc=0
+15:31:35 START spinbench20o3 con C_bool_isb_16y1 8 coloc
+15:31:39 END rc=0
+15:31:39 START spinbench20o3 con C_bool_isb_16y1 16 coloc
+15:31:45 END rc=0
+15:31:45 START spinbench20o3 con C_bool_isb_16y1 32 coloc
+15:31:54 END rc=0
+15:31:54 START spinbench20o3 con C_bool_isb_16y1 48 coloc
+15:32:01 END rc=0
+15:32:01 START spinbench20o3 con C_bool_isb_16y1 64 coloc
+15:32:11 END rc=0
+15:32:11 START spinbench20o3 con C_bool_isb_16y1 96 coloc
+15:32:16 END rc=0
+15:32:16 START spinbench20o3 con C_bool_isb_16y1 128 coloc
+15:32:21 END rc=0
+15:32:21 START spinbench20o3 unc D_article
+15:32:21 END
+15:32:21 START spinbench20o3 con D_article 1 tiny
+15:32:21 END rc=0
+15:32:21 START spinbench20o3 con D_article 2 tiny
+15:32:22 END rc=0
+15:32:22 START spinbench20o3 con D_article 4 tiny
+15:32:22 END rc=0
+15:32:22 START spinbench20o3 con D_article 8 tiny
+15:32:23 END rc=0
+15:32:23 START spinbench20o3 con D_article 16 tiny
+15:32:26 END rc=0
+15:32:26 START spinbench20o3 con D_article 32 tiny
+15:32:30 END rc=0
+15:32:30 START spinbench20o3 con D_article 48 tiny
+15:32:35 END rc=0
+15:32:35 START spinbench20o3 con D_article 64 tiny
+15:32:41 END rc=0
+15:32:41 START spinbench20o3 con D_article 1 medium
+15:32:41 END rc=0
+15:32:41 START spinbench20o3 con D_article 2 medium
+15:32:42 END rc=0
+15:32:42 START spinbench20o3 con D_article 4 medium
+15:32:44 END rc=0
+15:32:44 START spinbench20o3 con D_article 8 medium
+15:32:47 END rc=0
+15:32:47 START spinbench20o3 con D_article 16 medium
+15:32:53 END rc=0
+15:32:53 START spinbench20o3 con D_article 32 medium
+15:33:02 END rc=0
+15:33:02 START spinbench20o3 con D_article 48 medium
+15:33:10 END rc=0
+15:33:10 START spinbench20o3 con D_article 64 medium
+15:33:19 END rc=0
+15:33:19 START spinbench20o3 con D_article 1 coloc
+15:33:19 END rc=0
+15:33:19 START spinbench20o3 con D_article 2 coloc
+15:33:20 END rc=0
+15:33:20 START spinbench20o3 con D_article 4 coloc
+15:33:20 END rc=0
+15:33:20 START spinbench20o3 con D_article 8 coloc
+15:33:21 END rc=0
+15:33:21 START spinbench20o3 con D_article 16 coloc
+15:33:24 END rc=0
+15:33:24 START spinbench20o3 con D_article 32 coloc
+15:33:28 END rc=0
+15:33:28 START spinbench20o3 con D_article 48 coloc
+15:33:33 END rc=0
+15:33:33 START spinbench20o3 con D_article 64 coloc
+15:33:39 END rc=0
+15:33:39 START spinbench20o3 unc E_bool_isb_64y64
+15:33:40 END
+15:33:40 START spinbench20o3 con E_bool_isb_64y64 1 tiny
+15:33:40 END rc=0
+15:33:40 START spinbench20o3 con E_bool_isb_64y64 2 tiny
+15:33:40 END rc=0
+15:33:40 START spinbench20o3 con E_bool_isb_64y64 4 tiny
+15:33:41 END rc=0
+15:33:41 START spinbench20o3 con E_bool_isb_64y64 8 tiny
+15:33:42 END rc=0
+15:33:42 START spinbench20o3 con E_bool_isb_64y64 16 tiny
+15:33:46 END rc=0
+15:33:46 START spinbench20o3 con E_bool_isb_64y64 32 tiny
+15:33:53 END rc=0
+15:33:54 START spinbench20o3 con E_bool_isb_64y64 48 tiny
+15:33:59 END rc=0
+15:33:59 START spinbench20o3 con E_bool_isb_64y64 64 tiny
+15:34:07 END rc=0
+15:34:07 START spinbench20o3 con E_bool_isb_64y64 96 tiny
+15:34:13 END rc=0
+15:34:13 START spinbench20o3 con E_bool_isb_64y64 128 tiny
+15:34:19 END rc=0
+15:34:19 START spinbench20o3 con E_bool_isb_64y64 1 medium
+15:34:20 END rc=0
+15:34:20 START spinbench20o3 con E_bool_isb_64y64 2 medium
+15:34:20 END rc=0
+15:34:20 START spinbench20o3 con E_bool_isb_64y64 4 medium
+15:34:22 END rc=0
+15:34:22 START spinbench20o3 con E_bool_isb_64y64 8 medium
+15:34:25 END rc=0
+15:34:25 START spinbench20o3 con E_bool_isb_64y64 16 medium
+15:34:31 END rc=0
+15:34:31 START spinbench20o3 con E_bool_isb_64y64 32 medium
+15:34:41 END rc=0
+15:34:41 START spinbench20o3 con E_bool_isb_64y64 48 medium
+15:34:50 END rc=0
+15:34:50 START spinbench20o3 con E_bool_isb_64y64 64 medium
+15:34:57 END rc=0
+15:34:57 START spinbench20o3 con E_bool_isb_64y64 96 medium
+15:35:05 END rc=0
+15:35:05 START spinbench20o3 con E_bool_isb_64y64 128 medium
+15:35:13 END rc=0
+15:35:13 START spinbench20o3 con E_bool_isb_64y64 1 coloc
+15:35:13 END rc=0
+15:35:13 START spinbench20o3 con E_bool_isb_64y64 2 coloc
+15:35:13 END rc=0
+15:35:13 START spinbench20o3 con E_bool_isb_64y64 4 coloc
+15:35:14 END rc=0
+15:35:14 START spinbench20o3 con E_bool_isb_64y64 8 coloc
+15:35:15 END rc=0
+15:35:15 START spinbench20o3 con E_bool_isb_64y64 16 coloc
+15:35:19 END rc=0
+15:35:19 START spinbench20o3 con E_bool_isb_64y64 32 coloc
+15:35:23 END rc=0
+15:35:23 START spinbench20o3 con E_bool_isb_64y64 48 coloc
+15:35:29 END rc=0
+15:35:29 START spinbench20o3 con E_bool_isb_64y64 64 coloc
+15:35:37 END rc=0
+15:35:37 START spinbench20o3 con E_bool_isb_64y64 96 coloc
+15:35:43 END rc=0
+15:35:43 START spinbench20o3 con E_bool_isb_64y64 128 coloc
+15:35:49 END rc=0
+15:35:49 START spinbench20o3 unc X_bool_isb_64y64
+15:35:49 END
+15:35:49 START spinbench20o3 con X_bool_isb_64y64 1 tiny
+15:35:49 END rc=0
+15:35:49 START spinbench20o3 con X_bool_isb_64y64 2 tiny
+15:35:50 END rc=0
+15:35:50 START spinbench20o3 con X_bool_isb_64y64 4 tiny
+15:35:50 END rc=0
+15:35:50 START spinbench20o3 con X_bool_isb_64y64 8 tiny
+15:35:51 END rc=0
+15:35:51 START spinbench20o3 con X_bool_isb_64y64 16 tiny
+15:35:55 END rc=0
+15:35:55 START spinbench20o3 con X_bool_isb_64y64 32 tiny
+15:35:59 END rc=0
+15:35:59 START spinbench20o3 con X_bool_isb_64y64 48 tiny
+15:36:04 END rc=0
+15:36:04 START spinbench20o3 con X_bool_isb_64y64 64 tiny
+15:36:10 END rc=0
+15:36:10 START spinbench20o3 con X_bool_isb_64y64 96 tiny
+15:36:15 END rc=0
+15:36:15 START spinbench20o3 con X_bool_isb_64y64 128 tiny
+15:36:21 END rc=0
+15:36:21 START spinbench20o3 con X_bool_isb_64y64 1 medium
+15:36:22 END rc=0
+15:36:22 START spinbench20o3 con X_bool_isb_64y64 2 medium
+15:36:22 END rc=0
+15:36:22 START spinbench20o3 con X_bool_isb_64y64 4 medium
+15:36:24 END rc=0
+15:36:24 START spinbench20o3 con X_bool_isb_64y64 8 medium
+15:36:28 END rc=0
+15:36:28 START spinbench20o3 con X_bool_isb_64y64 16 medium
+15:36:34 END rc=0
+15:36:34 START spinbench20o3 con X_bool_isb_64y64 32 medium
+15:36:40 END rc=0
+15:36:40 START spinbench20o3 con X_bool_isb_64y64 48 medium
+15:36:48 END rc=0
+15:36:48 START spinbench20o3 con X_bool_isb_64y64 64 medium
+15:36:59 END rc=0
+15:36:59 START spinbench20o3 con X_bool_isb_64y64 96 medium
+15:37:07 END rc=0
+15:37:07 START spinbench20o3 con X_bool_isb_64y64 128 medium
+15:37:15 END rc=0
+15:37:15 START spinbench20o3 con X_bool_isb_64y64 1 coloc
+15:37:15 END rc=0
+15:37:16 START spinbench20o3 con X_bool_isb_64y64 2 coloc
+15:37:16 END rc=0
+15:37:16 START spinbench20o3 con X_bool_isb_64y64 4 coloc
+15:37:16 END rc=0
+15:37:16 START spinbench20o3 con X_bool_isb_64y64 8 coloc
+15:37:17 END rc=0
+15:37:17 START spinbench20o3 con X_bool_isb_64y64 16 coloc
+15:37:22 END rc=0
+15:37:22 START spinbench20o3 con X_bool_isb_64y64 32 coloc
+15:37:30 END rc=0
+15:37:30 START spinbench20o3 con X_bool_isb_64y64 48 coloc
+15:37:35 END rc=0
+15:37:35 START spinbench20o3 con X_bool_isb_64y64 64 coloc
+15:37:43 END rc=0
+15:37:43 START spinbench20o3 con X_bool_isb_64y64 96 coloc
+15:37:49 END rc=0
+15:37:49 START spinbench20o3 con X_bool_isb_64y64 128 coloc
+15:37:55 END rc=0
+15:37:55 START spinbench20o3 unc X_bool_isb_64y256
+15:37:56 END
+15:37:56 START spinbench20o3 con X_bool_isb_64y256 1 tiny
+15:37:56 END rc=0
+15:37:56 START spinbench20o3 con X_bool_isb_64y256 2 tiny
+15:37:56 END rc=0
+15:37:56 START spinbench20o3 con X_bool_isb_64y256 4 tiny
+15:37:56 END rc=0
+15:37:57 START spinbench20o3 con X_bool_isb_64y256 8 tiny
+15:37:58 END rc=0
+15:37:58 START spinbench20o3 con X_bool_isb_64y256 16 tiny
+15:38:00 END rc=0
+15:38:00 START spinbench20o3 con X_bool_isb_64y256 32 tiny
+15:38:06 END rc=0
+15:38:06 START spinbench20o3 con X_bool_isb_64y256 48 tiny
+15:38:11 END rc=0
+15:38:11 START spinbench20o3 con X_bool_isb_64y256 64 tiny
+15:38:18 END rc=0
+15:38:18 START spinbench20o3 con X_bool_isb_64y256 96 tiny
+15:38:25 END rc=0
+15:38:25 START spinbench20o3 con X_bool_isb_64y256 128 tiny
+15:38:33 END rc=0
+15:38:33 START spinbench20o3 con X_bool_isb_64y256 1 medium
+15:38:33 END rc=0
+15:38:33 START spinbench20o3 con X_bool_isb_64y256 2 medium
+15:38:34 END rc=0
+15:38:34 START spinbench20o3 con X_bool_isb_64y256 4 medium
+15:38:35 END rc=0
+15:38:35 START spinbench20o3 con X_bool_isb_64y256 8 medium
+15:38:39 END rc=0
+15:38:39 START spinbench20o3 con X_bool_isb_64y256 16 medium
+15:38:45 END rc=0
+15:38:45 START spinbench20o3 con X_bool_isb_64y256 32 medium
+15:38:54 END rc=0
+15:38:54 START spinbench20o3 con X_bool_isb_64y256 48 medium
+15:39:03 END rc=0
+15:39:03 START spinbench20o3 con X_bool_isb_64y256 64 medium
+15:39:13 END rc=0
+15:39:13 START spinbench20o3 con X_bool_isb_64y256 96 medium
+15:39:23 END rc=0
+15:39:23 START spinbench20o3 con X_bool_isb_64y256 128 medium
+15:39:33 END rc=0
+15:39:33 START spinbench20o3 con X_bool_isb_64y256 1 coloc
+15:39:33 END rc=0
+15:39:33 START spinbench20o3 con X_bool_isb_64y256 2 coloc
+15:39:33 END rc=0
+15:39:33 START spinbench20o3 con X_bool_isb_64y256 4 coloc
+15:39:34 END rc=0
+15:39:34 START spinbench20o3 con X_bool_isb_64y256 8 coloc
+15:39:35 END rc=0
+15:39:35 START spinbench20o3 con X_bool_isb_64y256 16 coloc
+15:39:38 END rc=0
+15:39:38 START spinbench20o3 con X_bool_isb_64y256 32 coloc
+15:39:41 END rc=0
+15:39:41 START spinbench20o3 con X_bool_isb_64y256 48 coloc
+15:39:47 END rc=0
+15:39:47 START spinbench20o3 con X_bool_isb_64y256 64 coloc
+15:39:56 END rc=0
+15:39:56 START spinbench20o3 con X_bool_isb_64y256 96 coloc
+15:40:04 END rc=0
+15:40:04 START spinbench20o3 con X_bool_isb_64y256 128 coloc
+15:40:12 END rc=0
+15:40:12 START spinbench20o3 unc X_bool_isb_64y1k
+15:40:12 END
+15:40:12 START spinbench20o3 con X_bool_isb_64y1k 1 tiny
+15:40:13 END rc=0
+15:40:13 START spinbench20o3 con X_bool_isb_64y1k 2 tiny
+15:40:13 END rc=0
+15:40:13 START spinbench20o3 con X_bool_isb_64y1k 4 tiny
+15:40:13 END rc=0
+15:40:13 START spinbench20o3 con X_bool_isb_64y1k 8 tiny
+15:40:14 END rc=0
+15:40:14 START spinbench20o3 con X_bool_isb_64y1k 16 tiny
+15:40:17 END rc=0
+15:40:17 START spinbench20o3 con X_bool_isb_64y1k 32 tiny
+15:40:22 END rc=0
+15:40:22 START spinbench20o3 con X_bool_isb_64y1k 48 tiny
+15:40:27 END rc=0
+15:40:27 START spinbench20o3 con X_bool_isb_64y1k 64 tiny
+15:40:33 END rc=0
+15:40:33 START spinbench20o3 con X_bool_isb_64y1k 96 tiny
+15:40:39 END rc=0
+15:40:39 START spinbench20o3 con X_bool_isb_64y1k 128 tiny
+15:40:47 END rc=0
+15:40:47 START spinbench20o3 con X_bool_isb_64y1k 1 medium
+15:40:48 END rc=0
+15:40:48 START spinbench20o3 con X_bool_isb_64y1k 2 medium
+15:40:48 END rc=0
+15:40:48 START spinbench20o3 con X_bool_isb_64y1k 4 medium
+15:40:50 END rc=0
+15:40:50 START spinbench20o3 con X_bool_isb_64y1k 8 medium
+15:40:53 END rc=0
+15:40:53 START spinbench20o3 con X_bool_isb_64y1k 16 medium
+15:40:59 END rc=0
+15:40:59 START spinbench20o3 con X_bool_isb_64y1k 32 medium
+15:41:05 END rc=0
+15:41:05 START spinbench20o3 con X_bool_isb_64y1k 48 medium
+15:41:13 END rc=0
+15:41:13 START spinbench20o3 con X_bool_isb_64y1k 64 medium
+15:41:22 END rc=0
+15:41:22 START spinbench20o3 con X_bool_isb_64y1k 96 medium
+15:41:32 END rc=0
+15:41:33 START spinbench20o3 con X_bool_isb_64y1k 128 medium
+15:41:44 END rc=0
+15:41:44 START spinbench20o3 con X_bool_isb_64y1k 1 coloc
+15:41:44 END rc=0
+15:41:44 START spinbench20o3 con X_bool_isb_64y1k 2 coloc
+15:41:44 END rc=0
+15:41:44 START spinbench20o3 con X_bool_isb_64y1k 4 coloc
+15:41:45 END rc=0
+15:41:45 START spinbench20o3 con X_bool_isb_64y1k 8 coloc
+15:41:46 END rc=0
+15:41:46 START spinbench20o3 con X_bool_isb_64y1k 16 coloc
+15:41:49 END rc=0
+15:41:49 START spinbench20o3 con X_bool_isb_64y1k 32 coloc
+15:41:55 END rc=0
+15:41:55 START spinbench20o3 con X_bool_isb_64y1k 48 coloc
+15:42:01 END rc=0
+15:42:01 START spinbench20o3 con X_bool_isb_64y1k 64 coloc
+15:42:07 END rc=0
+15:42:07 START spinbench20o3 con X_bool_isb_64y1k 96 coloc
+15:42:14 END rc=0
+15:42:14 START spinbench20o3 con X_bool_isb_64y1k 128 coloc
+15:42:22 END rc=0
+15:42:22 START spinbench20o3 unc X_bool_isb_128y16
+15:42:22 END
+15:42:22 START spinbench20o3 con X_bool_isb_128y16 1 tiny
+15:42:22 END rc=0
+15:42:22 START spinbench20o3 con X_bool_isb_128y16 2 tiny
+15:42:22 END rc=0
+15:42:22 START spinbench20o3 con X_bool_isb_128y16 4 tiny
+15:42:23 END rc=0
+15:42:23 START spinbench20o3 con X_bool_isb_128y16 8 tiny
+15:42:24 END rc=0
+15:42:24 START spinbench20o3 con X_bool_isb_128y16 16 tiny
+15:42:27 END rc=0
+15:42:27 START spinbench20o3 con X_bool_isb_128y16 32 tiny
+15:42:34 END rc=0
+15:42:35 START spinbench20o3 con X_bool_isb_128y16 48 tiny
+15:42:39 END rc=0
+15:42:39 START spinbench20o3 con X_bool_isb_128y16 64 tiny
+15:42:43 END rc=0
+15:42:43 START spinbench20o3 con X_bool_isb_128y16 96 tiny
+15:42:49 END rc=0
+15:42:49 START spinbench20o3 con X_bool_isb_128y16 128 tiny
+15:42:54 END rc=0
+15:42:54 START spinbench20o3 con X_bool_isb_128y16 1 medium
+15:42:54 END rc=0
+15:42:54 START spinbench20o3 con X_bool_isb_128y16 2 medium
+15:42:55 END rc=0
+15:42:55 START spinbench20o3 con X_bool_isb_128y16 4 medium
+15:42:56 END rc=0
+15:42:56 START spinbench20o3 con X_bool_isb_128y16 8 medium
+15:42:59 END rc=0
+15:42:59 START spinbench20o3 con X_bool_isb_128y16 16 medium
+15:43:05 END rc=0
+15:43:05 START spinbench20o3 con X_bool_isb_128y16 32 medium
+15:43:11 END rc=0
+15:43:11 START spinbench20o3 con X_bool_isb_128y16 48 medium
+15:43:19 END rc=0
+15:43:19 START spinbench20o3 con X_bool_isb_128y16 64 medium
+15:43:30 END rc=0
+15:43:30 START spinbench20o3 con X_bool_isb_128y16 96 medium
+15:43:36 END rc=0
+15:43:36 START spinbench20o3 con X_bool_isb_128y16 128 medium
+15:43:43 END rc=0
+15:43:43 START spinbench20o3 con X_bool_isb_128y16 1 coloc
+15:43:43 END rc=0
+15:43:43 START spinbench20o3 con X_bool_isb_128y16 2 coloc
+15:43:43 END rc=0
+15:43:43 START spinbench20o3 con X_bool_isb_128y16 4 coloc
+15:43:44 END rc=0
+15:43:44 START spinbench20o3 con X_bool_isb_128y16 8 coloc
+15:43:45 END rc=0
+15:43:45 START spinbench20o3 con X_bool_isb_128y16 16 coloc
+15:43:49 END rc=0
+15:43:49 START spinbench20o3 con X_bool_isb_128y16 32 coloc
+15:43:58 END rc=0
+15:43:58 START spinbench20o3 con X_bool_isb_128y16 48 coloc
+15:44:03 END rc=0
+15:44:03 START spinbench20o3 con X_bool_isb_128y16 64 coloc
+15:44:08 END rc=0
+15:44:08 START spinbench20o3 con X_bool_isb_128y16 96 coloc
+15:44:13 END rc=0
+15:44:13 START spinbench20o3 con X_bool_isb_128y16 128 coloc
+15:44:18 END rc=0
+15:44:18 START spinbench20o3 unc X_bool_isb_128y64
+15:44:19 END
+15:44:19 START spinbench20o3 con X_bool_isb_128y64 1 tiny
+15:44:19 END rc=0
+15:44:19 START spinbench20o3 con X_bool_isb_128y64 2 tiny
+15:44:19 END rc=0
+15:44:19 START spinbench20o3 con X_bool_isb_128y64 4 tiny
+15:44:20 END rc=0
+15:44:20 START spinbench20o3 con X_bool_isb_128y64 8 tiny
+15:44:20 END rc=0
+15:44:20 START spinbench20o3 con X_bool_isb_128y64 16 tiny
+15:44:22 END rc=0
+15:44:22 START spinbench20o3 con X_bool_isb_128y64 32 tiny
+15:44:28 END rc=0
+15:44:28 START spinbench20o3 con X_bool_isb_128y64 48 tiny
+15:44:33 END rc=0
+15:44:33 START spinbench20o3 con X_bool_isb_128y64 64 tiny
+15:44:39 END rc=0
+15:44:39 START spinbench20o3 con X_bool_isb_128y64 96 tiny
+15:44:45 END rc=0
+15:44:45 START spinbench20o3 con X_bool_isb_128y64 128 tiny
+15:44:50 END rc=0
+15:44:50 START spinbench20o3 con X_bool_isb_128y64 1 medium
+15:44:51 END rc=0
+15:44:51 START spinbench20o3 con X_bool_isb_128y64 2 medium
+15:44:51 END rc=0
+15:44:51 START spinbench20o3 con X_bool_isb_128y64 4 medium
+15:44:53 END rc=0
+15:44:53 START spinbench20o3 con X_bool_isb_128y64 8 medium
+15:44:55 END rc=0
+15:44:55 START spinbench20o3 con X_bool_isb_128y64 16 medium
+15:44:58 END rc=0
+15:44:58 START spinbench20o3 con X_bool_isb_128y64 32 medium
+15:45:07 END rc=0
+15:45:07 START spinbench20o3 con X_bool_isb_128y64 48 medium
+15:45:15 END rc=0
+15:45:15 START spinbench20o3 con X_bool_isb_128y64 64 medium
+15:45:24 END rc=0
+15:45:24 START spinbench20o3 con X_bool_isb_128y64 96 medium
+15:45:32 END rc=0
+15:45:32 START spinbench20o3 con X_bool_isb_128y64 128 medium
+15:45:40 END rc=0
+15:45:40 START spinbench20o3 con X_bool_isb_128y64 1 coloc
+15:45:40 END rc=0
+15:45:40 START spinbench20o3 con X_bool_isb_128y64 2 coloc
+15:45:40 END rc=0
+15:45:40 START spinbench20o3 con X_bool_isb_128y64 4 coloc
+15:45:41 END rc=0
+15:45:41 START spinbench20o3 con X_bool_isb_128y64 8 coloc
+15:45:41 END rc=0
+15:45:41 START spinbench20o3 con X_bool_isb_128y64 16 coloc
+15:45:43 END rc=0
+15:45:43 START spinbench20o3 con X_bool_isb_128y64 32 coloc
+15:45:49 END rc=0
+15:45:49 START spinbench20o3 con X_bool_isb_128y64 48 coloc
+15:45:53 END rc=0
+15:45:53 START spinbench20o3 con X_bool_isb_128y64 64 coloc
+15:45:59 END rc=0
+15:46:00 START spinbench20o3 con X_bool_isb_128y64 96 coloc
+15:46:05 END rc=0
+15:46:05 START spinbench20o3 con X_bool_isb_128y64 128 coloc
+15:46:11 END rc=0
+15:46:11 START spinbench20o3 unc X_bool_isb_128y256
+15:46:11 END
+15:46:11 START spinbench20o3 con X_bool_isb_128y256 1 tiny
+15:46:11 END rc=0
+15:46:11 START spinbench20o3 con X_bool_isb_128y256 2 tiny
+15:46:11 END rc=0
+15:46:12 START spinbench20o3 con X_bool_isb_128y256 4 tiny
+15:46:12 END rc=0
+15:46:12 START spinbench20o3 con X_bool_isb_128y256 8 tiny
+15:46:12 END rc=0
+15:46:13 START spinbench20o3 con X_bool_isb_128y256 16 tiny
+15:46:14 END rc=0
+15:46:14 START spinbench20o3 con X_bool_isb_128y256 32 tiny
+15:46:17 END rc=0
+15:46:17 START spinbench20o3 con X_bool_isb_128y256 48 tiny
+15:46:20 END rc=0
+15:46:20 START spinbench20o3 con X_bool_isb_128y256 64 tiny
+15:46:24 END rc=0
+15:46:24 START spinbench20o3 con X_bool_isb_128y256 96 tiny
+15:46:28 END rc=0
+15:46:28 START spinbench20o3 con X_bool_isb_128y256 128 tiny
+15:46:32 END rc=0
+15:46:32 START spinbench20o3 con X_bool_isb_128y256 1 medium
+15:46:33 END rc=0
+15:46:33 START spinbench20o3 con X_bool_isb_128y256 2 medium
+15:46:33 END rc=0
+15:46:33 START spinbench20o3 con X_bool_isb_128y256 4 medium
+15:46:35 END rc=0
+15:46:35 START spinbench20o3 con X_bool_isb_128y256 8 medium
+15:46:37 END rc=0
+15:46:37 START spinbench20o3 con X_bool_isb_128y256 16 medium
+15:46:40 END rc=0
+15:46:40 START spinbench20o3 con X_bool_isb_128y256 32 medium
+15:46:45 END rc=0
+15:46:45 START spinbench20o3 con X_bool_isb_128y256 48 medium
+15:46:51 END rc=0
+15:46:51 START spinbench20o3 con X_bool_isb_128y256 64 medium
+15:46:58 END rc=0
+15:46:58 START spinbench20o3 con X_bool_isb_128y256 96 medium
+15:47:05 END rc=0
+15:47:05 START spinbench20o3 con X_bool_isb_128y256 128 medium
+15:47:13 END rc=0
+15:47:13 START spinbench20o3 con X_bool_isb_128y256 1 coloc
+15:47:13 END rc=0
+15:47:13 START spinbench20o3 con X_bool_isb_128y256 2 coloc
+15:47:14 END rc=0
+15:47:14 START spinbench20o3 con X_bool_isb_128y256 4 coloc
+15:47:14 END rc=0
+15:47:14 START spinbench20o3 con X_bool_isb_128y256 8 coloc
+15:47:15 END rc=0
+15:47:15 START spinbench20o3 con X_bool_isb_128y256 16 coloc
+15:47:16 END rc=0
+15:47:16 START spinbench20o3 con X_bool_isb_128y256 32 coloc
+15:47:19 END rc=0
+15:47:19 START spinbench20o3 con X_bool_isb_128y256 48 coloc
+15:47:22 END rc=0
+15:47:22 START spinbench20o3 con X_bool_isb_128y256 64 coloc
+15:47:27 END rc=0
+15:47:27 START spinbench20o3 con X_bool_isb_128y256 96 coloc
+15:47:31 END rc=0
+15:47:31 START spinbench20o3 con X_bool_isb_128y256 128 coloc
+15:47:36 END rc=0
+15:47:36 START spinbench20o3 unc X_bool_isb_32y256
+15:47:36 END
+15:47:36 START spinbench20o3 con X_bool_isb_32y256 1 tiny
+15:47:36 END rc=0
+15:47:36 START spinbench20o3 con X_bool_isb_32y256 2 tiny
+15:47:37 END rc=0
+15:47:37 START spinbench20o3 con X_bool_isb_32y256 4 tiny
+15:47:37 END rc=0
+15:47:37 START spinbench20o3 con X_bool_isb_32y256 8 tiny
+15:47:39 END rc=0
+15:47:39 START spinbench20o3 con X_bool_isb_32y256 16 tiny
+15:47:43 END rc=0
+15:47:43 START spinbench20o3 con X_bool_isb_32y256 32 tiny
+15:47:47 END rc=0
+15:47:47 START spinbench20o3 con X_bool_isb_32y256 48 tiny
+15:47:52 END rc=0
+15:47:52 START spinbench20o3 con X_bool_isb_32y256 64 tiny
+15:48:00 END rc=0
+15:48:00 START spinbench20o3 con X_bool_isb_32y256 96 tiny
+15:48:08 END rc=0
+15:48:08 START spinbench20o3 con X_bool_isb_32y256 128 tiny
+15:48:17 END rc=0
+15:48:17 START spinbench20o3 con X_bool_isb_32y256 1 medium
+15:48:18 END rc=0
+15:48:18 START spinbench20o3 con X_bool_isb_32y256 2 medium
+15:48:19 END rc=0
+15:48:19 START spinbench20o3 con X_bool_isb_32y256 4 medium
+15:48:22 END rc=0
+15:48:22 START spinbench20o3 con X_bool_isb_32y256 8 medium
+15:48:26 END rc=0
+15:48:26 START spinbench20o3 con X_bool_isb_32y256 16 medium
+15:48:34 END rc=0
+15:48:34 START spinbench20o3 con X_bool_isb_32y256 32 medium
+15:48:45 END rc=0
+15:48:45 START spinbench20o3 con X_bool_isb_32y256 48 medium
+15:48:55 END rc=0
+15:48:55 START spinbench20o3 con X_bool_isb_32y256 64 medium
+15:49:07 END rc=0
+15:49:07 START spinbench20o3 con X_bool_isb_32y256 96 medium
+15:49:18 END rc=0
+15:49:18 START spinbench20o3 con X_bool_isb_32y256 128 medium
+15:49:29 END rc=0
+15:49:29 START spinbench20o3 con X_bool_isb_32y256 1 coloc
+15:49:30 END rc=0
+15:49:30 START spinbench20o3 con X_bool_isb_32y256 2 coloc
+15:49:30 END rc=0
+15:49:30 START spinbench20o3 con X_bool_isb_32y256 4 coloc
+15:49:31 END rc=0
+15:49:31 START spinbench20o3 con X_bool_isb_32y256 8 coloc
+15:49:33 END rc=0
+15:49:33 START spinbench20o3 con X_bool_isb_32y256 16 coloc
+15:49:38 END rc=0
+15:49:38 START spinbench20o3 con X_bool_isb_32y256 32 coloc
+15:49:47 END rc=0
+15:49:47 START spinbench20o3 con X_bool_isb_32y256 48 coloc
+15:49:55 END rc=0
+15:49:55 START spinbench20o3 con X_bool_isb_32y256 64 coloc
+15:50:04 END rc=0
+15:50:04 START spinbench20o3 con X_bool_isb_32y256 96 coloc
+15:50:14 END rc=0
+15:50:14 START spinbench20o3 con X_bool_isb_32y256 128 coloc
+15:50:23 END rc=0
+15:50:23 START spinbench20o3 unc H_stdmutex
+15:50:23 END
+15:50:23 START spinbench20o3 con H_stdmutex 1 tiny
+15:50:24 END rc=0
+15:50:24 START spinbench20o3 con H_stdmutex 2 tiny
+15:50:26 END rc=0
+15:50:26 START spinbench20o3 con H_stdmutex 4 tiny
+15:50:28 END rc=0
+15:50:28 START spinbench20o3 con H_stdmutex 8 tiny
+15:50:31 END rc=0
+15:50:31 START spinbench20o3 con H_stdmutex 16 tiny
+15:50:33 END rc=0
+15:50:33 START spinbench20o3 con H_stdmutex 32 tiny
+15:50:35 END rc=0
+15:50:35 START spinbench20o3 con H_stdmutex 48 tiny
+15:50:38 END rc=0
+15:50:38 START spinbench20o3 con H_stdmutex 64 tiny
+15:50:40 END rc=0
+15:50:40 START spinbench20o3 con H_stdmutex 96 tiny
+15:50:43 END rc=0
+15:50:43 START spinbench20o3 con H_stdmutex 128 tiny
+15:50:45 END rc=0
+15:50:45 START spinbench20o3 con H_stdmutex 1 medium
+15:50:46 END rc=0
+15:50:46 START spinbench20o3 con H_stdmutex 2 medium
+15:50:49 END rc=0
+15:50:49 START spinbench20o3 con H_stdmutex 4 medium
+15:50:53 END rc=0
+15:50:53 START spinbench20o3 con H_stdmutex 8 medium
+15:50:57 END rc=0
+15:50:57 START spinbench20o3 con H_stdmutex 16 medium
+15:51:01 END rc=0
+15:51:01 START spinbench20o3 con H_stdmutex 32 medium
+15:51:05 END rc=0
+15:51:05 START spinbench20o3 con H_stdmutex 48 medium
+15:51:10 END rc=0
+15:51:10 START spinbench20o3 con H_stdmutex 64 medium
+15:51:14 END rc=0
+15:51:14 START spinbench20o3 con H_stdmutex 96 medium
+15:51:18 END rc=0
+15:51:18 START spinbench20o3 con H_stdmutex 128 medium
+15:51:23 END rc=0
+15:51:23 START spinbench20o3 con H_stdmutex 1 coloc
+15:51:24 END rc=0
+15:51:24 START spinbench20o3 con H_stdmutex 2 coloc
+15:51:25 END rc=0
+15:51:25 START spinbench20o3 con H_stdmutex 4 coloc
+15:51:27 END rc=0
+15:51:27 START spinbench20o3 con H_stdmutex 8 coloc
+15:51:28 END rc=0
+15:51:28 START spinbench20o3 con H_stdmutex 16 coloc
+15:51:29 END rc=0
+15:51:29 START spinbench20o3 con H_stdmutex 32 coloc
+15:51:31 END rc=0
+15:51:31 START spinbench20o3 con H_stdmutex 48 coloc
+15:51:32 END rc=0
+15:51:32 START spinbench20o3 con H_stdmutex 64 coloc
+15:51:34 END rc=0
+15:51:34 START spinbench20o3 con H_stdmutex 96 coloc
+15:51:36 END rc=0
+15:51:36 START spinbench20o3 con H_stdmutex 128 coloc
+15:51:37 END rc=0
+15:51:37 START spinbench20o3 unc F_flagtest_isb_64y16
+15:51:38 END
+15:51:38 START spinbench20o3 con F_flagtest_isb_64y16 1 tiny
+15:51:38 END rc=0
+15:51:38 START spinbench20o3 con F_flagtest_isb_64y16 2 tiny
+15:51:38 END rc=0
+15:51:38 START spinbench20o3 con F_flagtest_isb_64y16 4 tiny
+15:51:39 END rc=0
+15:51:39 START spinbench20o3 con F_flagtest_isb_64y16 8 tiny
+15:51:41 END rc=0
+15:51:41 START spinbench20o3 con F_flagtest_isb_64y16 16 tiny
+15:51:45 END rc=0
+15:51:45 START spinbench20o3 con F_flagtest_isb_64y16 32 tiny
+15:51:49 END rc=0
+15:51:49 START spinbench20o3 con F_flagtest_isb_64y16 48 tiny
+15:51:54 END rc=0
+15:51:54 START spinbench20o3 con F_flagtest_isb_64y16 64 tiny
+15:52:00 END rc=0
+15:52:01 START spinbench20o3 con F_flagtest_isb_64y16 96 tiny
+15:52:06 END rc=0
+15:52:06 START spinbench20o3 con F_flagtest_isb_64y16 128 tiny
+15:52:12 END rc=0
+15:52:12 START spinbench20o3 con F_flagtest_isb_64y16 1 medium
+15:52:12 END rc=0
+15:52:12 START spinbench20o3 con F_flagtest_isb_64y16 2 medium
+15:52:13 END rc=0
+15:52:13 START spinbench20o3 con F_flagtest_isb_64y16 4 medium
+15:52:15 END rc=0
+15:52:15 START spinbench20o3 con F_flagtest_isb_64y16 8 medium
+15:52:19 END rc=0
+15:52:19 START spinbench20o3 con F_flagtest_isb_64y16 16 medium
+15:52:26 END rc=0
+15:52:26 START spinbench20o3 con F_flagtest_isb_64y16 32 medium
+15:52:37 END rc=0
+15:52:37 START spinbench20o3 con F_flagtest_isb_64y16 48 medium
+15:52:47 END rc=0
+15:52:48 START spinbench20o3 con F_flagtest_isb_64y16 64 medium
+15:52:55 END rc=0
+15:52:55 START spinbench20o3 con F_flagtest_isb_64y16 96 medium
+15:53:01 END rc=0
+15:53:01 START spinbench20o3 con F_flagtest_isb_64y16 128 medium
+15:53:08 END rc=0
+15:53:08 START spinbench20o3 con F_flagtest_isb_64y16 1 coloc
+15:53:08 END rc=0
+15:53:08 START spinbench20o3 con F_flagtest_isb_64y16 2 coloc
+15:53:09 END rc=0
+15:53:09 START spinbench20o3 con F_flagtest_isb_64y16 4 coloc
+15:53:09 END rc=0
+15:53:09 START spinbench20o3 con F_flagtest_isb_64y16 8 coloc
+15:53:12 END rc=0
+15:53:12 START spinbench20o3 con F_flagtest_isb_64y16 16 coloc
+15:53:17 END rc=0
+15:53:17 START spinbench20o3 con F_flagtest_isb_64y16 32 coloc
+15:53:23 END rc=0
+15:53:23 START spinbench20o3 con F_flagtest_isb_64y16 48 coloc
+15:53:29 END rc=0
+15:53:29 START spinbench20o3 con F_flagtest_isb_64y16 64 coloc
+15:53:39 END rc=0
+15:53:39 START spinbench20o3 con F_flagtest_isb_64y16 96 coloc
+15:53:44 END rc=0
+15:53:44 START spinbench20o3 con F_flagtest_isb_64y16 128 coloc
+15:53:50 END rc=0
+15:53:50 START spinbench20o3 unc O_oiio_spin_mutex
+15:53:50 END
+15:53:50 START spinbench20o3 con O_oiio_spin_mutex 1 tiny
+15:53:51 END rc=0
+15:53:51 START spinbench20o3 con O_oiio_spin_mutex 2 tiny
+15:53:51 END rc=0
+15:53:51 START spinbench20o3 con O_oiio_spin_mutex 4 tiny
+15:53:51 END rc=0
+15:53:51 START spinbench20o3 con O_oiio_spin_mutex 8 tiny
+15:53:52 END rc=0
+15:53:52 START spinbench20o3 con O_oiio_spin_mutex 16 tiny
+15:53:54 END rc=0
+15:53:54 START spinbench20o3 con O_oiio_spin_mutex 32 tiny
+15:53:59 END rc=0
+15:53:59 START spinbench20o3 con O_oiio_spin_mutex 48 tiny
+15:54:04 END rc=0
+15:54:04 START spinbench20o3 con O_oiio_spin_mutex 64 tiny
+15:54:10 END rc=0
+15:54:10 START spinbench20o3 con O_oiio_spin_mutex 96 tiny
+15:54:15 END rc=0
+15:54:15 START spinbench20o3 con O_oiio_spin_mutex 128 tiny
+15:54:20 END rc=0
+15:54:20 START spinbench20o3 con O_oiio_spin_mutex 1 medium
+15:54:21 END rc=0
+15:54:21 START spinbench20o3 con O_oiio_spin_mutex 2 medium
+15:54:22 END rc=0
+15:54:22 START spinbench20o3 con O_oiio_spin_mutex 4 medium
+15:54:23 END rc=0
+15:54:23 START spinbench20o3 con O_oiio_spin_mutex 8 medium
+15:54:25 END rc=0
+15:54:25 START spinbench20o3 con O_oiio_spin_mutex 16 medium
+15:54:29 END rc=0
+15:54:29 START spinbench20o3 con O_oiio_spin_mutex 32 medium
+15:54:38 END rc=0
+15:54:38 START spinbench20o3 con O_oiio_spin_mutex 48 medium
+15:54:46 END rc=0
+15:54:46 START spinbench20o3 con O_oiio_spin_mutex 64 medium
+15:54:54 END rc=0
+15:54:54 START spinbench20o3 con O_oiio_spin_mutex 96 medium
+15:55:02 END rc=0
+15:55:02 START spinbench20o3 con O_oiio_spin_mutex 128 medium
+15:55:11 END rc=0
+15:55:11 START spinbench20o3 con O_oiio_spin_mutex 1 coloc
+15:55:11 END rc=0
+15:55:11 START spinbench20o3 con O_oiio_spin_mutex 2 coloc
+15:55:11 END rc=0
+15:55:11 START spinbench20o3 con O_oiio_spin_mutex 4 coloc
+15:55:11 END rc=0
+15:55:11 START spinbench20o3 con O_oiio_spin_mutex 8 coloc
+15:55:12 END rc=0
+15:55:12 START spinbench20o3 con O_oiio_spin_mutex 16 coloc
+15:55:14 END rc=0
+15:55:14 START spinbench20o3 con O_oiio_spin_mutex 32 coloc
+15:55:17 END rc=0
+15:55:17 START spinbench20o3 con O_oiio_spin_mutex 48 coloc
+15:55:22 END rc=0
+15:55:22 START spinbench20o3 con O_oiio_spin_mutex 64 coloc
+15:55:30 END rc=0
+15:55:30 START spinbench20o3 con O_oiio_spin_mutex 96 coloc
+15:55:36 END rc=0
+15:55:36 START spinbench20o3 con O_oiio_spin_mutex 128 coloc
+15:55:42 END rc=0
+15:55:42 ALL DONE /net/soft_scratch/users/lg/code/openimageio-feedstock/oiio/spinlock-work/results/goat0225-full/spinbench.txt

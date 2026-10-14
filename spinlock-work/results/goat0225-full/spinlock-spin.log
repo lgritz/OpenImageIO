@@ -1,0 +1,120 @@
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 1 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    7.0 ns (+/- 0.0ns),  143.2 M/s
+std::mutex      :    6.2 ns (+/- 0.0ns),  161.5 M/s
+std::recursive_mutex:    8.7 ns (+/- 0.0ns),  114.4 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+   1        1.2     1.00x    100.00%  160000000     0.01
+OK
+wall=4.077 cpu=4.044 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 2 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    7.1 ns (+/- 0.0ns),  141.3 M/s
+std::mutex      :    6.2 ns (+/- 0.0ns),  161.2 M/s
+std::recursive_mutex:    8.7 ns (+/- 0.0ns),  114.5 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+   2        1.3     2.00x    100.00%   80000000     0.04
+OK
+wall=4.321 cpu=7.245 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 4 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    7.0 ns (+/- 0.0ns),  142.8 M/s
+std::mutex      :    6.2 ns (+/- 0.0ns),  161.3 M/s
+std::recursive_mutex:    8.7 ns (+/- 0.1ns),  114.7 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+   4        2.2     4.00x    100.00%   40000000     0.26
+OK
+wall=7.478 cpu=27.223 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 8 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    7.0 ns (+/- 0.0ns),  143.3 M/s
+std::mutex      :    6.2 ns (+/- 0.0ns),  161.0 M/s
+std::recursive_mutex:    8.7 ns (+/- 0.0ns),  115.0 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+   8        3.9     8.00x    100.00%   20000000     0.90
+OK
+wall=13.761 cpu=99.455 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 16 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    7.9 ns (+/- 0.3ns),  127.2 M/s
+std::mutex      :    6.2 ns (+/- 0.0ns),  162.4 M/s
+std::recursive_mutex:    8.7 ns (+/- 0.1ns),  115.0 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+  16       10.9    16.00x    100.00%   10000000     0.35
+OK
+wall=33.660 cpu=509.078 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 32 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    7.0 ns (+/- 0.0ns),  143.2 M/s
+std::mutex      :    6.2 ns (+/- 0.0ns),  161.3 M/s
+std::recursive_mutex:    8.7 ns (+/- 0.0ns),  114.6 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+  32       47.2    32.00x    100.00%    5000000     4.29
+OK
+wall=150.249 cpu=4628.618 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 48 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    7.4 ns (+/- 0.2ns),  135.5 M/s
+std::mutex      :    6.2 ns (+/- 0.0ns),  162.3 M/s
+std::recursive_mutex:    8.7 ns (+/- 0.1ns),  115.5 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+  48       52.8    48.00x    100.00%    3333333     0.27
+OK
+wall=159.405 cpu=6858.101 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 64 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    7.2 ns (+/- 0.2ns),  138.4 M/s
+std::mutex      :    6.1 ns (+/- 0.0ns),  162.7 M/s
+std::recursive_mutex:    8.6 ns (+/- 0.1ns),  115.9 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+  64       61.6    64.00x    100.00%    2500000     2.76
+OK
+wall=190.594 cpu=11560.984 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 96 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    6.8 ns (+/- 0.1ns),  146.4 M/s
+std::mutex      :    6.0 ns (+/- 0.0ns),  165.9 M/s
+std::recursive_mutex:    8.5 ns (+/- 0.1ns),  117.4 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+  96       59.1    96.00x    100.00%    1666666     2.96
+OK
+wall=183.573 cpu=11169.244 rc=0
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/spinlock_test --threads 128 --iters 160000000 --trials 3
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    7.2 ns (+/- 0.1ns),  138.8 M/s
+std::mutex      :    6.1 ns (+/- 0.1ns),  162.8 M/s
+std::recursive_mutex:    8.6 ns (+/- 0.1ns),  115.8 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+ 128       54.4   128.00x    100.00%    1250000     4.61
+OK
+wall=170.936 cpu=10646.011 rc=0

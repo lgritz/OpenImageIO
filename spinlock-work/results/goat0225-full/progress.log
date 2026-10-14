@@ -1,0 +1,164 @@
+2026-10-13 14:04:03 === run_all.sh RUN=goat0225-full TOP=/net/soft_scratch/users/lg/code/openimageio-feedstock NCPU=64 QUICK=0 STEPS='survey build ctest spinbench spinlock spinrw parallel testtex'
+2026-10-13 14:04:04 variants: base spin sweep   threads: 1 2 4 8 16 32 48 64 96 128    production files: 392
+2026-10-13 14:04:04 TOP/oiio started at lg-spinlock
+2026-10-13 14:04:04 START survey
+2026-10-13 14:04:04 END survey
+2026-10-13 14:04:04 START checkout base (a1d18bda9)
+2026-10-13 14:04:04 START build.sh base
+2026-10-13 14:04:18 END build.sh base OK
+2026-10-13 14:04:18 START spinlock base threads=1
+2026-10-13 14:04:22 END spinlock base threads=1 wall=4.123 cpu=4.084 rc=0
+2026-10-13 14:04:22 START spinlock base threads=2
+2026-10-13 14:04:28 END spinlock base threads=2 wall=5.925 cpu=10.852 rc=0
+2026-10-13 14:04:28 START spinlock base threads=4
+2026-10-13 14:04:52 END spinlock base threads=4 wall=24.072 cpu=85.802 rc=0
+2026-10-13 14:04:52 START spinlock base threads=8
+2026-10-13 14:06:16 END spinlock base threads=8 wall=83.629 cpu=640.621 rc=0
+2026-10-13 14:06:16 START spinlock base threads=16
+2026-10-13 14:08:42 END spinlock base threads=16 wall=146.501 cpu=2240.253 rc=0
+2026-10-13 14:08:42 START spinlock base threads=32
+2026-10-13 14:12:32 END spinlock base threads=32 wall=229.336 cpu=6901.438 rc=0
+2026-10-13 14:12:32 START spinlock base threads=48
+2026-10-13 14:16:23 END spinlock base threads=48 wall=230.983 cpu=9283.154 rc=0
+2026-10-13 14:16:23 START spinlock base threads=64
+2026-10-13 14:20:25 END spinlock base threads=64 wall=242.377 cpu=14836.924 rc=0
+2026-10-13 14:20:25 START spinlock base threads=96
+2026-10-13 14:23:39 END spinlock base threads=96 wall=194.057 cpu=10898.316 rc=0
+2026-10-13 14:23:39 START spinlock base threads=128
+2026-10-13 14:27:00 END spinlock base threads=128 wall=200.521 cpu=11858.114 rc=0
+2026-10-13 14:27:00 START parallel base threads=1
+2026-10-13 14:27:00 END parallel base threads=1 wall=0.248 cpu=0.239 rc=0
+2026-10-13 14:27:00 START parallel base threads=2
+2026-10-13 14:27:00 END parallel base threads=2 wall=0.133 cpu=0.141 rc=0
+2026-10-13 14:27:00 START parallel base threads=4
+2026-10-13 14:27:01 END parallel base threads=4 wall=0.082 cpu=0.086 rc=0
+2026-10-13 14:27:01 START parallel base threads=8
+2026-10-13 14:27:01 END parallel base threads=8 wall=0.058 cpu=0.064 rc=0
+2026-10-13 14:27:01 START parallel base threads=16
+2026-10-13 14:27:01 END parallel base threads=16 wall=0.043 cpu=0.045 rc=0
+2026-10-13 14:27:01 START parallel base threads=32
+2026-10-13 14:27:01 END parallel base threads=32 wall=0.037 cpu=0.039 rc=0
+2026-10-13 14:27:01 START parallel base threads=48
+2026-10-13 14:27:01 END parallel base threads=48 wall=0.035 cpu=0.040 rc=0
+2026-10-13 14:27:01 START parallel base threads=64
+2026-10-13 14:27:01 END parallel base threads=64 wall=0.034 cpu=0.039 rc=0
+2026-10-13 14:27:01 START parallel base threads=96
+2026-10-13 14:27:01 END parallel base threads=96 wall=0.033 cpu=0.037 rc=0
+2026-10-13 14:27:01 START parallel base threads=128
+2026-10-13 14:27:01 END parallel base threads=128 wall=0.032 cpu=0.039 rc=0
+2026-10-13 14:27:01 START spinrw base wedge to 128
+2026-10-13 14:34:18 END spinrw base wall=436.638 cpu=14383.915 rc=0
+2026-10-13 14:34:18 START testtex base w1
+2026-10-13 14:36:19 END testtex base w1 wall=121.147 cpu=3364.241 rc=0
+2026-10-13 14:36:19 START testtex base w2
+2026-10-13 14:38:35 END testtex base w2 wall=135.853 cpu=4153.511 rc=0
+2026-10-13 14:38:35 START testtex base w4
+2026-10-13 14:39:55 END testtex base w4 wall=79.457 cpu=2139.919 rc=0
+2026-10-13 14:39:55 START testtex base w7
+2026-10-13 14:41:05 END testtex base w7 wall=70.631 cpu=1781.096 rc=0
+2026-10-13 14:41:05 START testtex base w8
+2026-10-13 14:41:59 END testtex base w8 wall=53.265 cpu=1463.119 rc=0
+2026-10-13 14:41:59 START testtex base maxfiles16
+2026-10-13 14:43:12 END testtex base maxfiles16 wall=73.720 cpu=1690.805 rc=0
+2026-10-13 14:43:12 START testtex base cache64
+2026-10-13 14:44:23 END testtex base cache64 wall=70.395 cpu=1686.366 rc=0
+2026-10-13 14:44:23 START testtex base stats-w1
+2026-10-13 14:44:36 END testtex base stats-w1 wall=12.963 cpu=776.428 rc=0
+2026-10-13 14:44:36 START testtex base stats-w7
+2026-10-13 14:44:42 END testtex base stats-w7 wall=5.698 cpu=313.435 rc=0
+2026-10-13 14:44:42 === variant base complete
+2026-10-13 14:44:42 START checkout spin (af02fb95a)
+2026-10-13 14:44:42 START build.sh spin
+2026-10-13 14:44:49 END build.sh spin OK
+2026-10-13 14:44:49 START spinbench compile
+2026-10-13 14:45:10 END spinbench compile
+2026-10-13 14:45:10 START spinbench run (per-process progress in bench.log)
+2026-10-13 15:55:42 END spinbench run
+2026-10-13 15:55:42 START spinlock spin threads=1
+2026-10-13 15:55:46 END spinlock spin threads=1 wall=4.077 cpu=4.044 rc=0
+2026-10-13 15:55:46 START spinlock spin threads=2
+2026-10-13 15:55:50 END spinlock spin threads=2 wall=4.321 cpu=7.245 rc=0
+2026-10-13 15:55:50 START spinlock spin threads=4
+2026-10-13 15:55:58 END spinlock spin threads=4 wall=7.478 cpu=27.223 rc=0
+2026-10-13 15:55:58 START spinlock spin threads=8
+2026-10-13 15:56:12 END spinlock spin threads=8 wall=13.761 cpu=99.455 rc=0
+2026-10-13 15:56:12 START spinlock spin threads=16
+2026-10-13 15:56:45 END spinlock spin threads=16 wall=33.660 cpu=509.078 rc=0
+2026-10-13 15:56:45 START spinlock spin threads=32
+2026-10-13 15:59:16 END spinlock spin threads=32 wall=150.249 cpu=4628.618 rc=0
+2026-10-13 15:59:16 START spinlock spin threads=48
+2026-10-13 16:01:55 END spinlock spin threads=48 wall=159.405 cpu=6858.101 rc=0
+2026-10-13 16:01:55 START spinlock spin threads=64
+2026-10-13 16:05:06 END spinlock spin threads=64 wall=190.594 cpu=11560.984 rc=0
+2026-10-13 16:05:06 START spinlock spin threads=96
+2026-10-13 16:08:09 END spinlock spin threads=96 wall=183.573 cpu=11169.244 rc=0
+2026-10-13 16:08:09 START spinlock spin threads=128
+2026-10-13 16:11:00 END spinlock spin threads=128 wall=170.936 cpu=10646.011 rc=0
+2026-10-13 16:11:00 START parallel spin threads=1
+2026-10-13 16:11:01 END parallel spin threads=1 wall=0.344 cpu=0.246 rc=0
+2026-10-13 16:11:01 START parallel spin threads=2
+2026-10-13 16:11:01 END parallel spin threads=2 wall=0.154 cpu=0.157 rc=0
+2026-10-13 16:11:01 START parallel spin threads=4
+2026-10-13 16:11:01 END parallel spin threads=4 wall=0.086 cpu=0.096 rc=0
+2026-10-13 16:11:01 START parallel spin threads=8
+2026-10-13 16:11:01 END parallel spin threads=8 wall=0.059 cpu=0.064 rc=0
+2026-10-13 16:11:01 START parallel spin threads=16
+2026-10-13 16:11:01 END parallel spin threads=16 wall=0.043 cpu=0.046 rc=0
+2026-10-13 16:11:01 START parallel spin threads=32
+2026-10-13 16:11:01 END parallel spin threads=32 wall=0.037 cpu=0.039 rc=0
+2026-10-13 16:11:01 START parallel spin threads=48
+2026-10-13 16:11:01 END parallel spin threads=48 wall=0.035 cpu=0.036 rc=0
+2026-10-13 16:11:01 START parallel spin threads=64
+2026-10-13 16:11:02 END parallel spin threads=64 wall=0.033 cpu=0.034 rc=0
+2026-10-13 16:11:02 START parallel spin threads=96
+2026-10-13 16:11:02 END parallel spin threads=96 wall=0.032 cpu=0.036 rc=0
+2026-10-13 16:11:02 START parallel spin threads=128
+2026-10-13 16:11:02 END parallel spin threads=128 wall=0.031 cpu=0.034 rc=0
+2026-10-13 16:11:02 START spinrw spin wedge to 128
+2026-10-13 16:18:41 END spinrw spin wall=458.900 cpu=15152.954 rc=0
+2026-10-13 16:18:41 START testtex spin w1
+2026-10-13 16:21:09 END testtex spin w1 wall=148.240 cpu=4651.128 rc=0
+2026-10-13 16:21:09 START testtex spin w2
+2026-10-13 16:23:21 END testtex spin w2 wall=131.868 cpu=3879.226 rc=0
+2026-10-13 16:23:21 START testtex spin w4
+2026-10-13 16:24:42 END testtex spin w4 wall=80.994 cpu=2121.321 rc=0
+2026-10-13 16:24:42 START testtex spin w7
+2026-10-13 16:25:50 END testtex spin w7 wall=68.044 cpu=1644.507 rc=0
+2026-10-13 16:25:50 START testtex spin w8
+2026-10-13 16:26:42 END testtex spin w8 wall=51.927 cpu=1368.566 rc=0
+2026-10-13 16:26:42 START testtex spin maxfiles16
+2026-10-13 16:27:55 END testtex spin maxfiles16 wall=73.164 cpu=1672.736 rc=0
+2026-10-13 16:27:55 START testtex spin cache64
+2026-10-13 16:29:07 END testtex spin cache64 wall=72.045 cpu=1711.696 rc=0
+2026-10-13 16:29:07 START testtex spin stats-w1
+2026-10-13 16:29:18 END testtex spin stats-w1 wall=10.701 cpu=627.041 rc=0
+2026-10-13 16:29:18 START testtex spin stats-w7
+2026-10-13 16:29:24 END testtex spin stats-w7 wall=5.898 cpu=324.397 rc=0
+2026-10-13 16:29:24 === variant spin complete
+2026-10-13 16:29:24 START checkout sweep (1a9ee4ea5)
+2026-10-13 16:29:25 START build.sh sweep
+2026-10-13 16:29:30 END build.sh sweep OK
+2026-10-13 16:29:30 START ctest on sweep
+2026-10-13 16:29:59 END ctest rc=0 : 100% tests passed, 0 tests failed out of 86
+2026-10-13 16:29:59 START testtex sweep w1
+2026-10-13 16:30:33 END testtex sweep w1 wall=33.917 cpu=729.003 rc=0
+2026-10-13 16:30:33 START testtex sweep w2
+2026-10-13 16:31:09 END testtex sweep w2 wall=35.659 cpu=784.651 rc=0
+2026-10-13 16:31:09 START testtex sweep w4
+2026-10-13 16:31:47 END testtex sweep w4 wall=38.069 cpu=839.823 rc=0
+2026-10-13 16:31:47 START testtex sweep w7
+2026-10-13 16:32:46 END testtex sweep w7 wall=58.694 cpu=1399.807 rc=0
+2026-10-13 16:32:46 START testtex sweep w8
+2026-10-13 16:33:28 END testtex sweep w8 wall=41.473 cpu=1081.748 rc=0
+2026-10-13 16:33:28 START testtex sweep maxfiles16
+2026-10-13 16:34:35 END testtex sweep maxfiles16 wall=67.616 cpu=1542.723 rc=0
+2026-10-13 16:34:35 START testtex sweep cache64
+2026-10-13 16:35:40 END testtex sweep cache64 wall=64.546 cpu=1515.428 rc=0
+2026-10-13 16:35:40 START testtex sweep stats-w1
+2026-10-13 16:35:42 END testtex sweep stats-w1 wall=2.581 cpu=121.375 rc=0
+2026-10-13 16:35:42 START testtex sweep stats-w7
+2026-10-13 16:35:48 END testtex sweep stats-w7 wall=5.042 cpu=270.998 rc=0
+2026-10-13 16:35:48 === variant sweep complete
+2026-10-13 16:35:48 === done. Summary: /net/soft_scratch/users/lg/code/openimageio-feedstock/oiio/spinlock-work/results/goat0225-full/SUMMARY.md
+2026-10-13 16:35:51 restored TOP/oiio to lg-spinlock
+2026-10-13 16:35:51 NOTE: TOP/build and TOP/dist now hold the last variant built; run ./build.sh to rebuild lg-spinlock if needed.

@@ -1,0 +1,50 @@
+2026-10-13 16:58:01 === run_all.sh RUN=goat0225-prod-c1024 TOP=/net/soft_scratch/users/lg/code/openimageio-feedstock NCPU=64 QUICK=0 STEPS='survey build prodtex'
+2026-10-13 16:58:01 variants: base spin sweep   threads: 1 2 4 8 16 32 48 64 96 128    production files: 392
+2026-10-13 16:58:01 TOP/oiio started at lg-spinlock
+2026-10-13 16:58:01 START survey
+2026-10-13 16:58:01 END survey
+2026-10-13 16:58:01 START checkout base (a1d18bda9)
+2026-10-13 16:58:01 START build.sh base
+2026-10-13 16:58:11 END build.sh base OK
+2026-10-13 16:58:11 START testtex base prod-c1024-w1
+2026-10-13 17:00:07 END testtex base prod-c1024-w1 wall=115.801 cpu=3583.851 rc=0
+2026-10-13 17:00:07 START testtex base prod-c1024-w4
+2026-10-13 17:01:31 END testtex base prod-c1024-w4 wall=83.237 cpu=2178.992 rc=0
+2026-10-13 17:01:31 START testtex base prod-c1024-w7
+2026-10-13 17:02:48 END testtex base prod-c1024-w7 wall=76.946 cpu=1624.981 rc=0
+2026-10-13 17:02:48 START testtex base prod-c1024-w8
+2026-10-13 17:03:45 END testtex base prod-c1024-w8 wall=57.517 cpu=1189.479 rc=0
+2026-10-13 17:03:45 START testtex base prod-c1024-stats-w7
+2026-10-13 17:03:51 END testtex base prod-c1024-stats-w7 wall=6.024 cpu=308.134 rc=0
+2026-10-13 17:03:51 === variant base complete
+2026-10-13 17:03:51 START checkout spin (af02fb95a)
+2026-10-13 17:03:52 START build.sh spin
+2026-10-13 17:03:59 END build.sh spin OK
+2026-10-13 17:03:59 START testtex spin prod-c1024-w1
+2026-10-13 17:05:57 END testtex spin prod-c1024-w1 wall=117.750 cpu=3492.771 rc=0
+2026-10-13 17:05:57 START testtex spin prod-c1024-w4
+2026-10-13 17:07:20 END testtex spin prod-c1024-w4 wall=82.825 cpu=2108.814 rc=0
+2026-10-13 17:07:20 START testtex spin prod-c1024-w7
+2026-10-13 17:08:37 END testtex spin prod-c1024-w7 wall=77.028 cpu=1617.737 rc=0
+2026-10-13 17:08:37 START testtex spin prod-c1024-w8
+2026-10-13 17:09:34 END testtex spin prod-c1024-w8 wall=56.525 cpu=1179.834 rc=0
+2026-10-13 17:09:34 START testtex spin prod-c1024-stats-w7
+2026-10-13 17:09:40 END testtex spin prod-c1024-stats-w7 wall=5.998 cpu=308.288 rc=0
+2026-10-13 17:09:40 === variant spin complete
+2026-10-13 17:09:40 START checkout sweep (1a9ee4ea5)
+2026-10-13 17:09:40 START build.sh sweep
+2026-10-13 17:09:45 END build.sh sweep OK
+2026-10-13 17:09:45 START testtex sweep prod-c1024-w1
+2026-10-13 17:10:19 END testtex sweep prod-c1024-w1 wall=34.014 cpu=742.103 rc=0
+2026-10-13 17:10:19 START testtex sweep prod-c1024-w4
+2026-10-13 17:10:56 END testtex sweep prod-c1024-w4 wall=36.600 cpu=775.130 rc=0
+2026-10-13 17:10:56 START testtex sweep prod-c1024-w7
+2026-10-13 17:12:08 END testtex sweep prod-c1024-w7 wall=72.254 cpu=1480.348 rc=0
+2026-10-13 17:12:08 START testtex sweep prod-c1024-w8
+2026-10-13 17:13:01 END testtex sweep prod-c1024-w8 wall=52.641 cpu=1031.590 rc=0
+2026-10-13 17:13:01 START testtex sweep prod-c1024-stats-w7
+2026-10-13 17:13:06 END testtex sweep prod-c1024-stats-w7 wall=5.493 cpu=267.478 rc=0
+2026-10-13 17:13:07 === variant sweep complete
+2026-10-13 17:13:07 === done. Summary: /net/soft_scratch/users/lg/code/openimageio-feedstock/oiio/spinlock-work/results/goat0225-prod-c1024/SUMMARY.md
+2026-10-13 17:13:08 restored TOP/oiio to lg-spinlock
+2026-10-13 17:13:08 NOTE: TOP/build and TOP/dist now hold the last variant built; run ./build.sh to rebuild lg-spinlock if needed.

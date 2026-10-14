@@ -1,0 +1,78 @@
+$ /net/soft_scratch/users/lg/code/openimageio-feedstock/build/bin/testtex --threadtimes 7 --threads 64 --runstats --cachesize 1024 --maxfiles 1000 prodtex0 prodtex1 prodtex2 prodtex3 prodtex4 prodtex5 prodtex6 prodtex7 prodtex8 prodtex9 prodtex10 prodtex11 prodtex12 prodtex13 prodtex14 prodtex15 prodtex16 prodtex17 prodtex18 prodtex19 prodtex20 prodtex21 prodtex22 prodtex23 prodtex24 prodtex25 prodtex26 prodtex27 prodtex28 prodtex29 prodtex30 prodtex31 prodtex32 prodtex33 prodtex34 prodtex35 prodtex36 prodtex37 prodtex38 prodtex39 prodtex40 prodtex41 prodtex42 prodtex43 prodtex44 prodtex45 prodtex46 prodtex47 prodtex48 prodtex49 prodtex50 prodtex51 prodtex52 prodtex53 prodtex54 prodtex55 prodtex56 prodtex57 prodtex58 prodtex59 prodtex60 prodtex61 prodtex62 prodtex63 prodtex64 prodtex65 prodtex66 prodtex67 prodtex68 prodtex69 prodtex70 prodtex71 prodtex72 prodtex73 prodtex74 prodtex75 prodtex76 prodtex77 prodtex78 prodtex79 prodtex80 prodtex81 prodtex82 prodtex83 prodtex84 prodtex85 prodtex86 prodtex87 prodtex88 prodtex89 prodtex90 prodtex91 prodtex92 prodtex93 prodtex94 prodtex95 prodtex96 prodtex97 prodtex98 prodtex99 prodtex100 prodtex101 prodtex102 prodtex103 prodtex104 prodtex105 prodtex106 prodtex107 prodtex108 prodtex109 prodtex110 prodtex111 prodtex112 prodtex113 prodtex114 prodtex115 prodtex116 prodtex117 prodtex118 prodtex119 prodtex120 prodtex121 prodtex122 prodtex123 prodtex124 prodtex125 prodtex126 prodtex127 prodtex128 prodtex129 prodtex130 prodtex131 prodtex132 prodtex133 prodtex134 prodtex135 prodtex136 prodtex137 prodtex138 prodtex139 prodtex140 prodtex141 prodtex142 prodtex143 prodtex144 prodtex145 prodtex146 prodtex147 prodtex148 prodtex149 prodtex150 prodtex151 prodtex152 prodtex153 prodtex154 prodtex155 prodtex156 prodtex157 prodtex158 prodtex159 prodtex160 prodtex161 prodtex162 prodtex163 prodtex164 prodtex165 prodtex166 prodtex167 prodtex168 prodtex169 prodtex170 prodtex171 prodtex172 prodtex173 prodtex174 prodtex175 prodtex176 prodtex177 prodtex178 prodtex179 prodtex180 prodtex181 prodtex182 prodtex183 prodtex184 prodtex185 prodtex186 prodtex187 prodtex188 prodtex189 prodtex190 prodtex191 prodtex192 prodtex193 prodtex194 prodtex195 prodtex196 prodtex197 prodtex198 prodtex199 prodtex200 prodtex201 prodtex202 prodtex203 prodtex204 prodtex205 prodtex206 prodtex207 prodtex208 prodtex209 prodtex210 prodtex211 prodtex212 prodtex213 prodtex214 prodtex215 prodtex216 prodtex217 prodtex218 prodtex219 prodtex220 prodtex221 prodtex222 prodtex223 prodtex224 prodtex225 prodtex226 prodtex227 prodtex228 prodtex229 prodtex230 prodtex231 prodtex232 prodtex233 prodtex234 prodtex235 prodtex236 prodtex237 prodtex238 prodtex239 prodtex240 prodtex241 prodtex242 prodtex243 prodtex244 prodtex245 prodtex246 prodtex247 prodtex248 prodtex249 prodtex250 prodtex251 prodtex252 prodtex253 prodtex254 prodtex255 prodtex256 prodtex257 prodtex258 prodtex259 prodtex260 prodtex261 prodtex262 prodtex263 prodtex264 prodtex265 prodtex266 prodtex267 prodtex268 prodtex269 prodtex270 prodtex271 prodtex272 prodtex273 prodtex274 prodtex275 prodtex276 prodtex277 prodtex278 prodtex279 prodtex280 prodtex281 prodtex282 prodtex283 prodtex284 prodtex285 prodtex286 prodtex287 prodtex288 prodtex289 prodtex290 prodtex291 prodtex292 prodtex293 prodtex294 prodtex295 prodtex296 prodtex297 prodtex298 prodtex299 prodtex300 prodtex301 prodtex302 prodtex303 prodtex304 prodtex305 prodtex306 prodtex307 prodtex308 prodtex309 prodtex310 prodtex311 prodtex312 prodtex313 prodtex314 prodtex315 prodtex316 prodtex317 prodtex318 prodtex319 prodtex320 prodtex321 prodtex322 prodtex323 prodtex324 prodtex325 prodtex326 prodtex327 prodtex328 prodtex329 prodtex330 prodtex331 prodtex332 prodtex333 prodtex334 prodtex335 prodtex336 prodtex337 prodtex338 prodtex339 prodtex340 prodtex341 prodtex342 prodtex343 prodtex344 prodtex345 prodtex346 prodtex347 prodtex348 prodtex349 prodtex350 prodtex351 prodtex352 prodtex353 prodtex354 prodtex355 prodtex356 prodtex357 prodtex358 prodtex359 prodtex360 prodtex361 prodtex362 prodtex363 prodtex364 prodtex365 prodtex366 prodtex367 prodtex368 prodtex369 prodtex370 prodtex371 prodtex372 prodtex373 prodtex374 prodtex375 prodtex376 prodtex377 prodtex378 prodtex379 prodtex380 prodtex381 prodtex382 prodtex383 prodtex384 prodtex385 prodtex386 prodtex387 prodtex388 prodtex389 prodtex390 prodtex391
+Created texture system
+Workload: Coherent access, many files, partially overlapping texture sets
+texture cache size = 1024 MB
+hw threads = 64
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+ 64         5.25     64.0x   100.0%    range 0.00	(2000000 iters/thread)
+
+Memory use: 1.3 GB
+OpenImageIO Texture statistics
+  Options:  gray_to_rgb=false flip_t=false max_tile_channels=6
+            stochastic=0 
+  Queries/batches : 
+    texture     :  128000000 queries in 128000000 batches
+    texture 3d  :  0 queries in 0 batches
+    shadow      :  0 queries in 0 batches
+    environment :  0 queries in 0 batches
+    gettextureinfo :  0 queries
+  Interpolations :
+    closest  : 0
+    bilinear : 256000000
+    bicubic  : 0
+  Average anisotropic probes : 1
+  Max anisotropy in the wild : 1
+
+OpenImageIO ImageCache statistics (0x39cdf40) ver 3.3.0.0spi
+  Options:  max_memory_MB=1024.0 max_open_files=1000 autotile=0
+            autoscanline=false automip=false forcefloat=false
+            accept_untiled=true accept_unmipped=true deduplicate=true
+            unassociatedalpha=false failure_retries=0 openexr:core=1 
+  Images : 392 unique
+    ImageInputs : 392 created, 392 current, 392 peak
+    Total pixel data size of all images referenced : 49.0 GB
+    Total actual file size of all images referenced : 19.6 GB
+    Pixel data read : 7.2 GB
+    File I/O time : 1m 30.2s (1.4s average per thread, for 65 threads)
+    File open time only : 4.2s
+    ImageInput mutex locking time : 0.4s
+  Tiles: 316661 created, 43633 current, 44211 peak
+    total tile requests : 272438208
+    micro-cache misses : 264410159 (97.1%)
+    main cache misses : 316661 (0.1%)
+    redundant reads: 113092 tiles, 2.6 GB
+    Peak cache memory : 1024.0 MB
+  Cache : 1.0 GB
+    Strings : 0 B, count : 2
+    Thread info : 420 KB, count : 65
+    Fingerprints : 6 KB, count : 392
+    Tiles : 1.0 GB, count : 43633
+    Files : 1.3 MB, count : 392
+      Format 'openexr' : 1.3 MB, count : 392
+        Image inputs : 113 KB, count : 392
+        Image specs : 434 KB, count : 5488
+        Subimages : 607 KB, count : 392
+          Levels : 486 KB, count : 5096
+  Top files by bytes read:
+    1     73.7 MB ( 1.0%)  4096x4096x3.f16  prodtex1  MIP-COUNT[0,2470,677,0,0,0,0,0,0,0,0,0,0]
+    2     73.6 MB ( 1.0%)  4096x4096x3.f16  prodtex0  MIP-COUNT[0,2473,667,0,0,0,0,0,0,0,0,0,0]
+    3     19.0 MB ( 0.3%)  4096x4096x3.f16  prodtex200  MIP-COUNT[0,422,387,0,0,0,0,0,0,0,0,0,0]
+  Top files by I/O time:
+    1   0.9s      ( 1.0%)   4096x4096x3.f16  prodtex0  MIP-COUNT[0,2473,667,0,0,0,0,0,0,0,0,0,0]
+    2   0.7s      ( 0.8%)   4096x4096x3.f16  prodtex1  MIP-COUNT[0,2470,677,0,0,0,0,0,0,0,0,0,0]
+    3   0.3s      ( 0.3%)   4096x4096x3.f16  prodtex118  MIP-COUNT[0,418,380,0,0,0,0,0,0,0,0,0,0]
+  Files with slowest I/O rates:
+    1    60.84 MB/s (18.40MB/0.30s)   4096x4096x3.f16  prodtex372  MIP-COUNT[0,411,374,0,0,0,0,0,0,0,0,0,0]
+    2    61.07 MB/s (18.70MB/0.31s)   4096x4096x3.f16  prodtex118  MIP-COUNT[0,418,380,0,0,0,0,0,0,0,0,0,0]
+    3    61.63 MB/s (18.80MB/0.31s)   4096x4096x3.f16  prodtex172  MIP-COUNT[0,418,384,0,0,0,0,0,0,0,0,0,0]
+    (fastest was 115.3 MB/s)
+  Top files by redundant I/O:
+    1     46.4 MB ( 1.7%)  4096x4096x3.f16  prodtex1  MIP-COUNT[0,2470,677,0,0,0,0,0,0,0,0,0,0]
+    2     46.3 MB ( 1.7%)  4096x4096x3.f16  prodtex0  MIP-COUNT[0,2473,667,0,0,0,0,0,0,0,0,0,0]
+    3      6.9 MB ( 0.3%)  4096x4096x3.f16  prodtex105  MIP-COUNT[0,420,386,0,0,0,0,0,0,0,0,0,0]
+  Broken or invalid files: 0
+
+wall=5.493 cpu=267.478 rc=0

@@ -1,0 +1,50 @@
+2026-10-13 16:35:52 === run_all.sh RUN=goat0225-prod-c8192 TOP=/net/soft_scratch/users/lg/code/openimageio-feedstock NCPU=64 QUICK=0 STEPS='survey build prodtex'
+2026-10-13 16:35:52 variants: base spin sweep   threads: 1 2 4 8 16 32 48 64 96 128    production files: 392
+2026-10-13 16:35:52 TOP/oiio started at lg-spinlock
+2026-10-13 16:35:52 START survey
+2026-10-13 16:35:52 END survey
+2026-10-13 16:35:52 START checkout base (a1d18bda9)
+2026-10-13 16:35:52 START build.sh base
+2026-10-13 16:35:58 END build.sh base OK
+2026-10-13 16:35:58 START testtex base prod-c8192-w1
+2026-10-13 16:38:12 END testtex base prod-c8192-w1 wall=133.067 cpu=3938.781 rc=0
+2026-10-13 16:38:12 START testtex base prod-c8192-w4
+2026-10-13 16:39:59 END testtex base prod-c8192-w4 wall=107.843 cpu=3032.097 rc=0
+2026-10-13 16:39:59 START testtex base prod-c8192-w7
+2026-10-13 16:46:54 END testtex base prod-c8192-w7 wall=414.903 cpu=2183.417 rc=0
+2026-10-13 16:46:54 START testtex base prod-c8192-w8
+2026-10-13 16:47:53 END testtex base prod-c8192-w8 wall=58.239 cpu=1226.842 rc=0
+2026-10-13 16:47:53 START testtex base prod-c8192-stats-w7
+2026-10-13 16:47:59 END testtex base prod-c8192-stats-w7 wall=6.121 cpu=290.775 rc=0
+2026-10-13 16:47:59 === variant base complete
+2026-10-13 16:47:59 START checkout spin (af02fb95a)
+2026-10-13 16:47:59 START build.sh spin
+2026-10-13 16:48:08 END build.sh spin OK
+2026-10-13 16:48:08 START testtex spin prod-c8192-w1
+2026-10-13 16:50:25 END testtex spin prod-c8192-w1 wall=137.160 cpu=4071.210 rc=0
+2026-10-13 16:50:25 START testtex spin prod-c8192-w4
+2026-10-13 16:52:10 END testtex spin prod-c8192-w4 wall=104.860 cpu=2953.438 rc=0
+2026-10-13 16:52:10 START testtex spin prod-c8192-w7
+2026-10-13 16:53:26 END testtex spin prod-c8192-w7 wall=76.630 cpu=1573.950 rc=0
+2026-10-13 16:53:26 START testtex spin prod-c8192-w8
+2026-10-13 16:54:24 END testtex spin prod-c8192-w8 wall=57.483 cpu=1221.441 rc=0
+2026-10-13 16:54:24 START testtex spin prod-c8192-stats-w7
+2026-10-13 16:54:30 END testtex spin prod-c8192-stats-w7 wall=5.985 cpu=287.676 rc=0
+2026-10-13 16:54:30 === variant spin complete
+2026-10-13 16:54:30 START checkout sweep (1a9ee4ea5)
+2026-10-13 16:54:31 START build.sh sweep
+2026-10-13 16:54:36 END build.sh sweep OK
+2026-10-13 16:54:36 START testtex sweep prod-c8192-w1
+2026-10-13 16:55:10 END testtex sweep prod-c8192-w1 wall=34.828 cpu=750.670 rc=0
+2026-10-13 16:55:11 START testtex sweep prod-c8192-w4
+2026-10-13 16:55:48 END testtex sweep prod-c8192-w4 wall=37.362 cpu=787.563 rc=0
+2026-10-13 16:55:48 START testtex sweep prod-c8192-w7
+2026-10-13 16:56:59 END testtex sweep prod-c8192-w7 wall=71.134 cpu=1401.874 rc=0
+2026-10-13 16:56:59 START testtex sweep prod-c8192-w8
+2026-10-13 16:57:53 END testtex sweep prod-c8192-w8 wall=53.712 cpu=1060.406 rc=0
+2026-10-13 16:57:53 START testtex sweep prod-c8192-stats-w7
+2026-10-13 16:57:59 END testtex sweep prod-c8192-stats-w7 wall=5.708 cpu=260.596 rc=0
+2026-10-13 16:57:59 === variant sweep complete
+2026-10-13 16:57:59 === done. Summary: /net/soft_scratch/users/lg/code/openimageio-feedstock/oiio/spinlock-work/results/goat0225-prod-c8192/SUMMARY.md
+2026-10-13 16:58:01 restored TOP/oiio to lg-spinlock
+2026-10-13 16:58:01 NOTE: TOP/build and TOP/dist now hold the last variant built; run ./build.sh to rebuild lg-spinlock if needed.
