@@ -14,13 +14,14 @@ Working area for branch `lg-spinlock`, not for merging. Contents:
   - `timed.py`, `scrub.py`, `summarize.py`: helpers.
 - `results/<run>/`: outputs. Commit these and push them back.
 
-## CURRENT NEXT RUN (updated 2026-10-13b): scaling ceiling, about 20 min
+## CURRENT NEXT RUN (updated 2026-10-14): phase 3 victim microcache, about 1 hour
 
-This sizes phase 3 before it gets built. On goat0225 (or any many-core box), it runs a
-compute-only control (`bench/scalectl.cpp`) plus testtex w1/w7 on the lg-spinlock
-build, free and pinned with `taskset` to one socket, split across sockets,
-one thread per core, and socket 0 with SMT. Writes `results/<host>-ceiling/`.
-From TOP:
+On goat0225 (multi-socket). One build of lg-spinlock (phase 1 + 2 + the victim
+microcache, commit 099b1ada5). The victim cache size is varied at run time
+(`microcache_size` 0/16/64/256 via `OPENIMAGEIO_IMAGECACHE_OPTIONS`; 0 = phase 2
+behavior), on pinned CPU sets. Synthetic w1/w4/w7/w8, prod w7/w8 at 8 GB and
+1 GB, `--runstats` at 1 GB / 256 MB (redundant reads), and ctest. Writes
+`results/<host>-mc/`. From TOP:
 
 ```bash
 cd ~/code/openimageio-feedstock
@@ -28,12 +29,11 @@ git -C oiio checkout lg-spinlock && git -C oiio pull
 oiio/spinlock-work/remote/next_run.sh /path/to/prodtextures.txt
 ```
 
-- The texture list is optional (it adds prod w7 at 8 GB).
 - At the end it commits **all** of `spinlock-work/results` and pushes with
   `(cd oiio ; git50 push lgritz lg-spinlock)`.
-- TOP/build is shared: don't run on two machines at once. It rebuilds
-  TOP/build from lg-spinlock (incremental).
-- The previous full/prod run script is in git history (94fe319a6).
+- Safe to rerun; finished result files are skipped.
+- TOP/build is shared: don't run on two machines at once.
+- Earlier run scripts are in git history (94fe319a6 full+prod, 61fa1c335 ceiling).
 
 ## Machine layout this assumes (the "feedstock" machine)
 

@@ -139,3 +139,9 @@ allocations.
   limit when pinned; the free-run jump at 24-32T is the scheduler stacking SMT. All remaining IC
   cost is cross-socket: w7 1.6x synth / 1.3x prod over the limit, ~1.0 on one socket.
   Phase 3 (bigger microcache) justified for multi-socket; measure pinned.
+- 2026-10-14 phase 3 prototype (099b1ada5): per-thread 2-way victim tile cache behind
+  tile/lasttile, `microcache_size` attribute (default 64, 0 = off). M4 16T: w7
+  1.80 -> 1.34 s, w8 0.83 -> 0.34 s, w7 misses 95% -> 1%; w1/w4 same. ctest
+  texture/imagecache passes at sizes 0, 2, 64. Held tiles still count in m_mem_used
+  (limit honored); open question is extra redundant reads under eviction, measured
+  by the goat0225 -mc run.

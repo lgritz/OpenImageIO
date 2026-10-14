@@ -1,19 +1,21 @@
 #!/bin/bash
-# The current "next run" (2026-10-13b): scaling-ceiling check, to size phase 3.
-# About 15-25 minutes. Writes results/<host>-ceiling/:
-#   1. scalectl: compute-only control (testtex's ALU loop, no shared data),
-#      free and pinned. Its slowdown is the machine's own limit
-#      (turbo, SMT, scheduler).
-#   2. testtex w1 and w7 (synthetic), plus prod w7 at 8 GB if a list is given,
-#      on the lg-spinlock build (= phase 1 + 2), with the same CPU sets.
-# CPU sets (from /sys topology): free (no pinning), s0cores (socket 0, one
-# thread per core), split (half the cores of each socket, one thread per core),
-# allcores (every core, one thread each), s0all (socket 0 incl. SMT siblings).
+# The current "next run" (2026-10-14): phase 3 victim microcache on a
+# multi-socket box. About 45-60 minutes. Writes results/<host>-mc/.
+# One build (lg-spinlock = phase 1 + 2 + victim microcache). The victim
+# cache size is set at run time with
+#   OPENIMAGEIO_IMAGECACHE_OPTIONS=microcache_size=N   (N=0 is phase 2 behavior)
+# for N in MC_SIZES (default "0 16 64 256"), on pinned CPU sets:
+#   free-1, s0cores (socket 0, 1 thread/core), split (half the cores of
+#   each socket), allcores (1 thread/core everywhere), free-<ncpu>.
+# Workloads: synthetic testtex w1 w4 w7 w8; prod w7 w8 at 8 GB and 1 GB
+# cache (if a list is given), plus --runstats at 1 GB and 256 MB to see
+# whether held tiles raise redundant reads. Also ctest (texture/imagecache).
 # Then commits ALL results and pushes with `(cd oiio ; git50 push lgritz lg-spinlock)`.
 #
 # Usage, from TOP (~/code/openimageio-feedstock), after
 # `git -C oiio checkout lg-spinlock && git -C oiio pull`:
 #     oiio/spinlock-work/remote/next_run.sh [/path/to/prodtextures.txt]
+# Safe to rerun: finished pieces (non-empty result files) are skipped.
 #
 # TOP/build is shared with other machines: do not run on two at once.
 
@@ -29,16 +31,17 @@ if [ ! -x ./build.sh ] || [ ! -e oiio/.git ]; then
 fi
 TOP=$(pwd)
 HOST=$(hostname -s)
-RUN=$HOST-ceiling
+RUN=$HOST-mc
 OUT=$TOP/oiio/spinlock-work/results/$RUN
-SW=$TOP/spinwork/ceiling
+SW=$TOP/spinwork/mc
 mkdir -p "$OUT" "$SW"
 LOG=$OUT/progress.log
 log() { echo "$(date '+%F %T') $*" | tee -a "$LOG"; sync; }
+MC_SIZES=${MC_SIZES:-"0 16 64 256"}
 
-if ! command -v taskset >/dev/null 2>&1; then
-    echo "taskset not found (util-linux); pinned configs will be skipped." | tee -a "$LOG"
-fi
+HAVE_TASKSET=0
+command -v taskset >/dev/null 2>&1 && HAVE_TASKSET=1
+[ $HAVE_TASKSET = 1 ] || log "taskset not found; pinned configs skipped"
 
 # ---- topology -> CPU sets ---------------------------------------------
 topo=$SW/topo.txt
@@ -51,90 +54,119 @@ done | sort -n > "$topo"
 cp "$topo" "$OUT/topology.txt"
 NCPU=$(wc -l < "$topo")
 NCORES=$(awk '$1==$3' "$topo" | wc -l)
+NPKG=$(awk '{print $2}' "$topo" | sort -u | wc -l)
 S0CORES=$(awk '$2==0 && $1==$3 {print $1}' "$topo" | paste -sd, -)
-S0ALL=$(awk '$2==0 {print $1}' "$topo" | paste -sd, -)
 ALLCORES=$(awk '$1==$3 {print $1}' "$topo" | paste -sd, -)
-# Half the cores of each socket.
 SPLIT=$(awk '$1==$3 {c[$2]++; if (c[$2] <= h) print $1}' \
-        h=$(( NCORES / 2 / $(awk '{print $2}' "$topo" | sort -u | wc -l) )) "$topo" | paste -sd, -)
+        h=$(( NCORES / 2 / NPKG )) "$topo" | paste -sd, -)
 count() { echo "$1" | tr , '\n' | wc -l; }
-{
-    echo "NCPU=$NCPU NCORES=$NCORES"
-    echo "s0cores  ($(count "$S0CORES")): $S0CORES"
-    echo "split    ($(count "$SPLIT")): $SPLIT"
-    echo "allcores ($(count "$ALLCORES")): $ALLCORES"
-    echo "s0all    ($(count "$S0ALL")): $S0ALL"
-} | tee "$OUT/cpusets.txt"
-
-# config name, thread count, cpu list ("" = free)
-CONFIGS=(
-    "free 1 -"
-    "free 16 -"
-    "s0cores $(count "$S0CORES") $S0CORES"
-    "split $(count "$SPLIT") $SPLIT"
-    "free 24 -"
-    "free 32 -"
-    "allcores $(count "$ALLCORES") $ALLCORES"
-    "s0all $(count "$S0ALL") $S0ALL"
-    "free $NCPU -"
-)
+CONFIGS=( "free 1 -" )
+if [ $HAVE_TASKSET = 1 ]; then
+    CONFIGS+=( "s0cores $(count "$S0CORES") $S0CORES" )
+    [ "$NPKG" -gt 1 ] && CONFIGS+=( "split $(count "$SPLIT") $SPLIT" )
+    CONFIGS+=( "allcores $(count "$ALLCORES") $ALLCORES" )
+fi
+CONFIGS+=( "free $NCPU -" )
+printf '%s\n' "${CONFIGS[@]}" | tee "$OUT/configs.txt"
 pin() {   # cpulist, then command
     local cpus=$1; shift
-    if [ "$cpus" = - ]; then "$@"
-    elif command -v taskset >/dev/null 2>&1; then taskset -c "$cpus" "$@"
-    else echo "(skipped: no taskset)"; fi
+    if [ "$cpus" = - ]; then "$@"; else taskset -c "$cpus" "$@"; fi
 }
 
-# ---- build ------------------------------------------------------------
+# ---- build + ctest ----------------------------------------------------
 log "START build lg-spinlock $(git -C oiio rev-parse --short HEAD)"
 ( EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS:-} -DOIIO_BUILD_TESTS=ON" ./build.sh ) \
     > "$SW/build.log" 2>&1 || { log "build FAILED; see $SW/build.log"; tail -30 "$SW/build.log"; exit 1; }
 tail -5 "$SW/build.log" > "$OUT/build.tail"
+git -C oiio log -1 --format='%H %s' > "$OUT/git.txt"
 log "END build"
 TESTTEX=$TOP/build/bin/testtex
-${CXX:-c++} -O2 -std=c++17 -pthread oiio/spinlock-work/bench/scalectl.cpp \
-    -o "$SW/scalectl" 2> "$OUT/scalectl-compile.txt" || { log "scalectl compile FAILED"; exit 1; }
+if [ ! -s "$OUT/ctest.txt" ]; then
+    log "START ctest"
+    ( cd "$TOP/build" &&
+      ctest -R '^openvdb$' --timeout 900
+      ctest -R 'texture|imagecache|maketx' -E 'texture-udim' -j 8 --timeout 1800
+    ) > "$OUT/ctest.txt" 2>&1
+    log "END ctest: $(grep -E 'tests passed|tests failed' "$OUT/ctest.txt" | tail -1)"
+fi
 
 PRODFILES=()
 if [ -n "$TEXLIST" ]; then
     while read -r f; do [ -n "$f" ] && PRODFILES+=("$f"); done < "$TEXLIST"
 fi
+GEN='--maketests 10 test{:04}.exr --maketest-res 1024'
 
-# ---- runs -------------------------------------------------------------
+tt() {   # outfile, mc, cpus, testtex args...
+    local f=$1 mc=$2 cpus=$3; shift 3
+    [ -s "$f" ] && return
+    OPENIMAGEIO_IMAGECACHE_OPTIONS="microcache_size=$mc" pin "$cpus" "$TESTTEX" "$@" > "$f" 2>&1
+}
+
+# ---- timing runs ------------------------------------------------------
 cd "$SW"
 for cfg in "${CONFIGS[@]}"; do
     read -r name nt cpus <<< "$cfg"
     tag=$name-$nt
     log "START $tag"
-    pin "$cpus" ./scalectl 2000000 "$nt" > "$OUT/scalectl-$tag.txt" 2>&1
-    for m in 1 7; do
-        pin "$cpus" "$TESTTEX" --maketests 10 'test{:04}.exr' --maketest-res 1024 \
-            --threadtimes $m --threads "$nt" --trials 3 \
-            > "$OUT/testtex-w$m-$tag.txt" 2>&1
+    for mc in $MC_SIZES; do
+        for m in 1 4 7 8; do
+            tt "$OUT/tt-w$m-$tag-mc$mc.txt" $mc "$cpus" $GEN \
+                --threadtimes $m --threads "$nt" --trials 3
+        done
+        if [ ${#PRODFILES[@]} -gt 0 ]; then
+            for c in 8192 1024; do
+                for m in 7 8; do
+                    tt "$OUT/tt-prod-c$c-w$m-$tag-mc$mc.txt" $mc "$cpus" \
+                        --threadtimes $m --threads "$nt" --trials 3 \
+                        --cachesize $c --maxfiles 1000 "${PRODFILES[@]}"
+                done
+            done
+        fi
     done
-    if [ ${#PRODFILES[@]} -gt 0 ]; then
-        pin "$cpus" "$TESTTEX" --threadtimes 7 --threads "$nt" --trials 3 \
-            --cachesize 8192 --maxfiles 1000 "${PRODFILES[@]}" \
-            > "$OUT/testtex-prod-w7-$tag.txt" 2>&1
-    fi
     log "END $tag"
 done
+
+# ---- stats runs: does holding tiles raise redundant reads? -------------
+if [ ${#PRODFILES[@]} -gt 0 ]; then
+    log "START stats"
+    for mc in $MC_SIZES; do
+        for c in 1024 256; do
+            tt "$OUT/stats-prod-c$c-w7-free-$NCPU-mc$mc.txt" $mc - \
+                --threadtimes 7 --threads "$NCPU" --runstats \
+                --cachesize $c --maxfiles 1000 "${PRODFILES[@]}"
+        done
+    done
+    log "END stats"
+fi
 cd "$TOP"
 if [ ${#PRODFILES[@]} -gt 0 ] && [ "${SCRUB_NAMES:-1}" = 1 ]; then
     printf '%s\n' "${PRODFILES[@]}" > "$SW/prodfiles.lst"
-    python3 -I oiio/spinlock-work/remote/scrub.py "$SW/prodfiles.lst" "$OUT"/testtex-prod-*.txt
+    python3 -I oiio/spinlock-work/remote/scrub.py "$SW/prodfiles.lst" \
+        "$OUT"/tt-prod-*.txt "$OUT"/stats-prod-*.txt
 fi
 
-# ---- summary: seconds (best of 3) per config ---------------------------
+# ---- summary ------------------------------------------------------------
 {
-    echo "| config | threads | scalectl | w1 | w7 | prod w7 |"
-    echo "|---|---|---|---|---|---|"
-    for cfg in "${CONFIGS[@]}"; do
-        read -r name nt cpus <<< "$cfg"
-        tag=$name-$nt
-        s=$(awk 'NR==2 {print $2}' "$OUT/scalectl-$tag.txt" 2>/dev/null)
-        t() { awk -v n="$nt" '$1==n && $2 ~ /^[0-9.]+$/ {print $2; exit}' "$1" 2>/dev/null; }
-        echo "| $name | $nt | ${s:--} | $(t "$OUT/testtex-w1-$tag.txt") | $(t "$OUT/testtex-w7-$tag.txt") | $(t "$OUT/testtex-prod-w7-$tag.txt") |"
+    t() { awk -v n="$2" '$1==n && $2 ~ /^[0-9.]+$/ {print $2; exit}' "$1" 2>/dev/null; }
+    hdr="| workload | config |"; sep="|---|---|"
+    for mc in $MC_SIZES; do hdr="$hdr mc$mc |"; sep="$sep---|"; done
+    echo "## testtex seconds (best of 3)"; echo; echo "$hdr"; echo "$sep"
+    for w in w1 w4 w7 w8 prod-c8192-w7 prod-c8192-w8 prod-c1024-w7 prod-c1024-w8; do
+        for cfg in "${CONFIGS[@]}"; do
+            read -r name nt cpus <<< "$cfg"
+            [ -e "$OUT/tt-$w-$name-$nt-mc${MC_SIZES%% *}.txt" ] || continue
+            row="| $w | $name-$nt |"
+            for mc in $MC_SIZES; do row="$row $(t "$OUT/tt-$w-$name-$nt-mc$mc.txt" "$nt") |"; done
+            echo "$row"
+        done
+    done
+    echo
+    echo "## prod w7 --runstats at $NCPU threads"
+    for f in "$OUT"/stats-prod-*.txt; do
+        [ -e "$f" ] || continue
+        echo; echo "### $(basename "$f" .txt)"; echo '```'
+        grep -E 'micro-cache|redundant|Peak cache|Tiles:|File I/O|^ *[0-9]+ +[0-9.]+ ' "$f"
+        echo '```'
     done
 } > "$OUT/SUMMARY.md"
 cat "$OUT/SUMMARY.md"
