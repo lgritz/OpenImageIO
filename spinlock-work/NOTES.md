@@ -150,3 +150,4 @@ allocations.
   w7 is now at the machine limit. mc256 at a 256 MB cache with 64T held more than the cache ->
   added a controller (fcfcb1180) that halves victim slots when evicted-held bytes are
   > max/16. Default 64.
+- 2026-10-14 goat0225-mc2: controller fixes mc256 at 256 MB (2.6 GB redundant, 256 MB peak, 3.51 s); no timing regression; default 64; phase 3 ready.
