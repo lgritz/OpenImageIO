@@ -2303,10 +2303,11 @@ ImageCacheImpl::getstats(int level) const
         }
         OIIO::print(out, "    Peak cache memory : {}\n",
                     Strutil::memformat(m_mem_used));
-        if (m_mem_held_peak || level > 2)
+        if (m_mem_held_peak || m_victim_mem_peak || level > 2)
             OIIO::print(out,
-                        "    Evicted tiles held by microcaches : {} peak, "
-                        "{} flushes\n",
+                        "    Microcache victim slots : {} peak (summed over "
+                        "threads), evicted but held {} peak, {} flushes\n",
+                        Strutil::memformat(m_victim_mem_peak),
                         Strutil::memformat(m_mem_held_peak),
                         int(m_microcache_flushes));
         if (m_stuck_sweeps || level > 2)
@@ -3049,23 +3050,32 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
         ++m_stuck_sweeps;
     }
 
-    // Evicted tiles still held by per-thread microcaches count against
-    // the memory limit but can't be freed here, and held tiles still in
-    // the cache can't be evicted. If either is a problem, tell the threads
-    // to drop their victim tiles and use half as many victim slots. Grow
-    // back slowly once little is held.
-    long long held = m_mem_held;
+    // Tiles in per-thread victim slots can't be evicted (or, if evicted
+    // anyway, can't be freed). If they pin over half the memory limit,
+    // or the sweep couldn't free enough, or evicted-but-held tiles are
+    // significant, tell the threads to drop their victim tiles and use
+    // half as many victim slots. Grow back slowly, and only when twice
+    // the current victim memory would still be under half the limit.
+    long long held   = m_mem_held;
+    long long victim = 0;
+    {
+        spin_lock lock(m_perthread_info_mutex);
+        for (auto& p : m_all_perthread_info)
+            if (p)
+                victim += p->m_victim_bytes.load(std::memory_order_relaxed);
+    }
     atomic_max(m_mem_held_peak, held);
+    atomic_max(m_victim_mem_peak, victim);
+    long long maxmem = (long long)m_max_memory_bytes;
     int maxbits = ImageCachePerThreadInfo::victim_bits(m_microcache_victims);
     int allowed = std::min(int(m_victim_bits_allowed), maxbits);
-    if (allowed > 0 && (stuck || held > (long long)m_max_memory_bytes / 16)) {
+    if (allowed > 0 && (stuck || victim > maxmem / 2 || held > maxmem / 16)) {
         m_victim_bits_allowed = std::max(allowed - 1, 0);
         m_microcache_epoch.fetch_add(1, std::memory_order_relaxed);
         ++m_microcache_flushes;
         m_calm_sweeps = 0;
-    } else if (allowed < maxbits && !stuck
-               && held < (long long)m_max_memory_bytes / 64
-               && ++m_calm_sweeps >= 64) {
+    } else if (allowed < maxbits && !stuck && victim < maxmem / 4
+               && held < maxmem / 64 && ++m_calm_sweeps >= 64) {
         m_victim_bits_allowed = allowed + 1;
         m_microcache_epoch.fetch_add(1, std::memory_order_relaxed);
         m_calm_sweeps = 0;

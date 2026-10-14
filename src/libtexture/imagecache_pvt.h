@@ -910,6 +910,9 @@ public:
     int m_victim_cap_bits = 0;  // log2 of allocated victim slots, 0 = none
     int m_victim_bits     = 0;  // log2 of slots in use (<= cap), 0 = none
     int m_victim_epoch    = 0;  // IC microcache epoch the victims belong to
+    // Bytes of tiles in our victim slots. Only this thread writes it; the
+    // sweep reads it to see how much memory victim slots pin.
+    std::atomic<long long> m_victim_bytes { 0 };
     atomic_int purge;           // If set, tile ptrs need purging!
     ImageCacheStatistics m_stats;
 
@@ -950,6 +953,7 @@ public:
     {
         for (int i = 0, n = victim_slots(); i < n; ++i)
             m_victims[i] = nullptr;
+        m_victim_bytes.store(0, std::memory_order_relaxed);
     }
 
     // Drop all tile refs held by the microcache.
@@ -995,12 +999,16 @@ public:
             return false;
         // 2-way sets: slots s and s^1, the newer one in the even slot.
         ImageCacheTileRef found;
-        size_t s = victim_slot(id) & ~size_t(1);
+        long long bytes = m_victim_bytes.load(std::memory_order_relaxed);
+        size_t s        = victim_slot(id) & ~size_t(1);
         if (m_victims[s] && m_victims[s]->id() == id)
             found.swap(m_victims[s]);
         else if (m_victims[s + 1] && m_victims[s + 1]->id() == id)
             found.swap(m_victims[s + 1]);
+        if (found)
+            bytes -= found->memsize();
         if (tile) {
+            bytes += tile->memsize();
             size_t p = victim_slot(tile->id()) & ~size_t(1);
             if (m_victims[p]) {
                 // Demote the even slot's tile, dropping the odd slot's
@@ -1008,7 +1016,10 @@ public:
                 m_victims[p + 1].swap(m_victims[p]);
             }
             m_victims[p].swap(tile);  // tile now holds the dropped one
+            if (tile)
+                bytes -= tile->memsize();
         }
+        m_victim_bytes.store(bytes, std::memory_order_relaxed);
         tile.swap(found);  // drops whatever fell out of the set
         return bool(tile);
     }
@@ -1487,6 +1498,7 @@ private:
     atomic_ll m_mem_used;       ///< Memory being used for tiles
     atomic_ll m_mem_held { 0 };  ///< ... of which evicted, held by threads
     atomic_ll m_mem_held_peak { 0 };
+    atomic_ll m_victim_mem_peak { 0 };  ///< Peak bytes in victim slots
     atomic_int m_microcache_flushes { 0 };
     // Read on microcache victim lookups, rarely written: own cache line.
     OIIO_CACHE_ALIGN std::atomic<int> m_microcache_epoch { 0 };
