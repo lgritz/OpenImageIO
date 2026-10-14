@@ -1492,6 +1492,8 @@ private:
     OIIO_CACHE_ALIGN std::atomic<int> m_microcache_epoch { 0 };
     std::atomic<int> m_victim_bits_allowed { 16 };  ///< Limit under pressure
     int m_calm_sweeps = 0;  ///< Sweeps in a row with little held memory
+    long long m_sweep_stuck_mem = 0;  ///< m_mem_used when a sweep got stuck
+    atomic_int m_stuck_sweeps { 0 };  ///< Sweeps that couldn't free enough
     int m_statslevel;           ///< Statistics level
     int m_max_errors_per_file;  ///< Max errors to print for each file.
 

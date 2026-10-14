@@ -184,6 +184,9 @@ public:
     ///
     bool _decref() const { return (--m_refcnt) == 0; }
 
+    /// Current number of references (may be stale if others are changing it).
+    int _refcount() const { return m_refcnt.load(std::memory_order_relaxed); }
+
     /// Define operator= to NOT COPY reference counts!  Assigning a struct
     /// doesn't change how many other things point to it.
     const RefCnt& operator=(const RefCnt&) const { return *this; }

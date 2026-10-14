@@ -2309,6 +2309,11 @@ ImageCacheImpl::getstats(int level) const
                         "{} flushes\n",
                         Strutil::memformat(m_mem_held_peak),
                         int(m_microcache_flushes));
+        if (m_stuck_sweeps || level > 2)
+            OIIO::print(out,
+                        "    Sweeps unable to free enough (tiles in use) : "
+                        "{}\n",
+                        int(m_stuck_sweeps));
         if (stats.tile_locking_time > 0.001 || level > 2)
             OIIO::print(out, "    Tile mutex locking time : {}\n",
                         Strutil::timeintervalformat(stats.tile_locking_time));
@@ -2950,6 +2955,16 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     if (!m_tile_sweep_mutex.try_lock())
         return;
 
+    // If the last sweep could free nothing (every tile in the cache was in
+    // use by some thread), don't rescan until memory use has changed.
+    long long slack = (long long)m_max_memory_bytes / 64;
+    if (m_sweep_stuck_mem && m_mem_used < m_sweep_stuck_mem + slack
+        && m_mem_used > m_sweep_stuck_mem - slack) {
+        m_tile_sweep_mutex.unlock();
+        return;
+    }
+    m_sweep_stuck_mem = 0;
+
     // Now, what we want to do is have a "clock hand" that sweeps across
     // the cache, releasing tiles that haven't been used for a long
     // time.  Because of multi-thread, rather than keep an iterator
@@ -2971,12 +2986,21 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     // of looping for too long, exit the loop if we just keep spinning
     // uncontrollably.
     int full_loops = 0;
+    bool freed     = false;  // freed anything since the last wrap?
+    bool stuck     = false;
     while (m_mem_used >= (long long)m_max_memory_bytes && full_loops < 100) {
         // If we have fallen off the end of the cache, loop back to the
         // beginning and increment our full_loops count.
         if (!sweep) {
+            // A whole pass after the used bits were cleared freed nothing:
+            // everything left is in use, so give up for now.
+            if (full_loops >= 2 && !freed) {
+                stuck = true;
+                break;
+            }
             sweep = m_tilecache.begin();
             ++full_loops;
+            freed = false;
         }
         // If we're STILL at the end, it must be that somehow the entire
         // cache is empty.  So just declare ourselves done.
@@ -2984,7 +3008,12 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
             break;
         OIIO_DASSERT(sweep->second);
 
-        if (!sweep->second->release()) {
+        if (!sweep->second->release()
+            // A tile still referenced by some thread (besides the cache's
+            // own ref) frees no memory when erased, and other threads would
+            // have to read it again, so leave it.
+            && sweep->second->_refcount() <= 1) {
+            freed = true;
             // This is a tile we should delete.  To keep iterating
             // safely, we have a good trick:
             // 1. remember the TileID of the tile to delete
@@ -3015,20 +3044,27 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     // the limit again, or the cache is empty, or we've looped over the
     // cache too many times and are giving up.
 
+    if (stuck) {
+        m_sweep_stuck_mem = m_mem_used;
+        ++m_stuck_sweeps;
+    }
+
     // Evicted tiles still held by per-thread microcaches count against
-    // the memory limit but can't be freed here. If they add up to much,
-    // tell the threads to drop their victim tiles and use half as many
-    // victim slots. Grow back slowly once little is held.
+    // the memory limit but can't be freed here, and held tiles still in
+    // the cache can't be evicted. If either is a problem, tell the threads
+    // to drop their victim tiles and use half as many victim slots. Grow
+    // back slowly once little is held.
     long long held = m_mem_held;
     atomic_max(m_mem_held_peak, held);
     int maxbits = ImageCachePerThreadInfo::victim_bits(m_microcache_victims);
     int allowed = std::min(int(m_victim_bits_allowed), maxbits);
-    if (held > (long long)m_max_memory_bytes / 16) {
+    if (allowed > 0 && (stuck || held > (long long)m_max_memory_bytes / 16)) {
         m_victim_bits_allowed = std::max(allowed - 1, 0);
         m_microcache_epoch.fetch_add(1, std::memory_order_relaxed);
         ++m_microcache_flushes;
         m_calm_sweeps = 0;
-    } else if (allowed < maxbits && held < (long long)m_max_memory_bytes / 64
+    } else if (allowed < maxbits && !stuck
+               && held < (long long)m_max_memory_bytes / 64
                && ++m_calm_sweeps >= 64) {
         m_victim_bits_allowed = allowed + 1;
         m_microcache_epoch.fetch_add(1, std::memory_order_relaxed);
