@@ -1,6 +1,7 @@
 #!/bin/bash
-# The current "next run" (2026-10-14b): check the phase 3 memory controller
-# (fcfcb1180) on a multi-socket box. About 25 minutes. Writes results/<host>-mc2/.
+# The current "next run" (2026-10-14c): check the sweep that skips tiles in
+# use (3064a6bea) on a multi-socket box, incl. untiled single-tile images.
+# About 35 minutes. Writes results/<host>-mc3/.
 # One build (lg-spinlock = phase 1 + 2 + victim microcache + controller).
 # The victim cache size is set at run time with
 #   OPENIMAGEIO_IMAGECACHE_OPTIONS=microcache_size=N   (N=0 is phase 2 behavior)
@@ -8,6 +9,7 @@
 #   RUN [<host>-mc2]  MC_SIZES ["0 64 256"]  CONFIG_NAMES ["free allcores"]
 #   (from free, s0cores, split, allcores)  SYNTH_WL ["7 8"]  PROD_WL ["7 8"]
 #   PROD_CACHES ["8192 256"]  STATS_CACHES ["1024 256"]
+#   UNTILED_CACHES ["32 128 512"] (16 untiled 16 MB images, --runstats, NCPU threads)
 # --runstats at the STATS_CACHES sizes shows redundant reads and held memory.
 # Also ctest (texture/imagecache).
 # Then commits ALL results and pushes with `(cd oiio ; git50 push lgritz lg-spinlock)`.
@@ -31,7 +33,7 @@ if [ ! -x ./build.sh ] || [ ! -e oiio/.git ]; then
 fi
 TOP=$(pwd)
 HOST=$(hostname -s)
-RUN=${RUN:-$HOST-mc2}
+RUN=${RUN:-$HOST-mc3}
 OUT=$TOP/oiio/spinlock-work/results/$RUN
 SW=$TOP/spinwork/mc
 mkdir -p "$OUT" "$SW"
@@ -43,6 +45,7 @@ SYNTH_WL=${SYNTH_WL:-"7 8"}
 PROD_WL=${PROD_WL:-"7 8"}
 PROD_CACHES=${PROD_CACHES:-"8192 256"}
 STATS_CACHES=${STATS_CACHES:-"1024 256"}
+UNTILED_CACHES=${UNTILED_CACHES:-"32 128 512"}
 
 HAVE_TASKSET=0
 command -v taskset >/dev/null 2>&1 && HAVE_TASKSET=1
@@ -146,6 +149,26 @@ if [ ${#PRODFILES[@]} -gt 0 ]; then
     done
     log "END stats"
 fi
+
+# ---- untiled single-tile images: held tiles can exceed the cache --------
+if [ -n "$UNTILED_CACHES" ]; then
+    log "START untiled"
+    UD=$SW/untiled
+    mkdir -p "$UD"
+    for i in $(seq -w 0 15); do
+        [ -s "$UD/u$i.exr" ] || "$TOP/build/bin/oiiotool" \
+            --pattern fill:top=0.$i,0,0,1:bottom=1,1,1,1 1024x1024 4 \
+            -d float --compression none -o "$UD/u$i.exr"
+    done
+    for mc in $MC_SIZES; do
+        for c in $UNTILED_CACHES; do
+            tt "$OUT/stats-untiled-c$c-w7-free-$NCPU-mc$mc.txt" $mc - \
+                --threadtimes 7 --threads "$NCPU" --trials 1 --iters 200000 \
+                --runstats --cachesize $c "$UD"/u*.exr
+        done
+    done
+    log "END untiled"
+fi
 cd "$TOP"
 if [ ${#PRODFILES[@]} -gt 0 ] && [ "${SCRUB_NAMES:-1}" = 1 ]; then
     printf '%s\n' "${PRODFILES[@]}" > "$SW/prodfiles.lst"
@@ -172,11 +195,11 @@ fi
         done
     done
     echo
-    echo "## prod w7 --runstats at $NCPU threads"
-    for f in "$OUT"/stats-prod-*.txt; do
+    echo "## w7 --runstats at $NCPU threads"
+    for f in "$OUT"/stats-prod-*.txt "$OUT"/stats-untiled-*.txt; do
         [ -e "$f" ] || continue
         echo; echo "### $(basename "$f" .txt)"; echo '```'
-        grep -E 'micro-cache|redundant|Peak cache|held by|Tiles:|File I/O|^ *[0-9]+ +[0-9.]+ +[0-9.]+x' "$f"
+        grep -E 'micro-cache|redundant|Peak cache|held by|Sweeps|Tiles:|File I/O|^ *[0-9]+ +[0-9.]+ +[0-9.]+x' "$f"
         echo '```'
     done
 } > "$OUT/SUMMARY.md"
