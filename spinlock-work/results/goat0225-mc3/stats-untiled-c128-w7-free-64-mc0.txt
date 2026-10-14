@@ -1,0 +1,63 @@
+Created texture system
+Workload: Coherent access, many files, partially overlapping texture sets
+texture cache size = 128 MB
+hw threads = 64
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+ 64         7.92     64.0x   100.0%    range 0.00	(3125 iters/thread)
+
+Memory use: 1.5 GB
+OpenImageIO Texture statistics
+  Options:  gray_to_rgb=false flip_t=false max_tile_channels=6
+            stochastic=0 
+  Queries/batches : 
+    texture     :  200000 queries in 200000 batches
+    texture 3d  :  0 queries in 0 batches
+    shadow      :  0 queries in 0 batches
+    environment :  0 queries in 0 batches
+    gettextureinfo :  0 queries
+  Interpolations :
+    closest  : 0
+    bilinear : 0
+    bicubic  : 200000
+  Average anisotropic probes : 1
+  Max anisotropy in the wild : 1
+
+OpenImageIO ImageCache statistics (0x2768e40) ver 3.3.0.0spi
+  Options:  max_memory_MB=128.0 max_open_files=100 autotile=0
+            autoscanline=false automip=false forcefloat=false
+            accept_untiled=true accept_unmipped=true deduplicate=true
+            unassociatedalpha=false failure_retries=0 microcache_size=0
+            openexr:core=1 
+  Images : 16 unique
+    ImageInputs : 850 created, 0 current, 14 peak
+    Total pixel data size of all images referenced : 256.0 MB
+    Total actual file size of all images referenced : 256.3 MB
+    Pixel data read : 13.3 GB
+    File I/O time : 32.0s (0.5s average per thread, for 65 threads)
+    File open time only : 0.0s
+    ImageInput mutex locking time : 0.1s
+  Tiles: 6064 created, 16 current, 52 peak
+    total tile requests : 215263
+    micro-cache misses : 190628 (88.6%)
+    main cache misses : 6064 (2.8%)
+    redundant reads: 834 tiles, 13.0 GB
+    Peak cache memory : 256.0 MB
+    Evicted tiles held by microcaches : 16.0 MB peak, 0 flushes
+    Sweeps unable to free enough (tiles in use) : 310
+  Cache : 256.1 MB
+    Strings : 0 B, count : 2
+    Thread info : 33 KB, count : 65
+    Fingerprints : 0 B, count : 0
+    Tiles : 256.0 MB, count : 16
+    Files : 15 KB, count : 16
+      Format 'openexr' : 15 KB, count : 16
+        Image inputs : 256 B, count : 16
+        Image specs : 5 KB, count : 48
+        Subimages : 2 KB, count : 16
+          Levels : 768 B, count : 16
+  16 not tiled, 16 not MIP-mapped
+  Broken or invalid files: 0
+

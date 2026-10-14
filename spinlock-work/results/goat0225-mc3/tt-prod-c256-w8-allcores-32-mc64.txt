@@ -1,0 +1,10 @@
+Created texture system
+Workload: Coherent access, many files, partially overlapping texture sets, no extra busy work
+texture cache size = 256 MB
+hw threads = 64
+times are best of 3 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+ 32         1.69     32.0x   100.0%    range 0.05	(2000000 iters/thread)
+

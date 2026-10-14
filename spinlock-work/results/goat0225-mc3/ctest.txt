@@ -1,0 +1,172 @@
+Test project /net/soft_scratch/users/lg/code/openimageio-feedstock/build
+    Start 175: openvdb
+1/1 Test #175: openvdb ..........................   Passed    1.27 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   2.13 sec
+Test project /net/soft_scratch/users/lg/code/openimageio-feedstock/build
+      Start 104: texture-threadtimes.batch
+      Start  68: texture-threadtimes
+      Start  29: maketx
+      Start  30: oiiotool-maketx
+      Start  41: texture-blurtube
+      Start  64: texture-blurfix
+      Start  77: texture-blurtube.batch
+      Start 176: texture-texture3d
+ 1/80 Test #176: texture-texture3d .......................   Passed    1.82 sec
+      Start  69: texture-env
+ 2/80 Test  #77: texture-blurtube.batch ..................   Passed    2.90 sec
+      Start 125: python-texturesys
+ 3/80 Test  #64: texture-blurfix .........................   Passed    3.11 sec
+      Start 105: texture-env.batch
+ 4/80 Test  #69: texture-env .............................   Passed    1.67 sec
+      Start 100: texture-blurfix.batch
+ 5/80 Test  #41: texture-blurtube ........................   Passed    3.65 sec
+      Start 178: texture-texture3d.batch
+ 6/80 Test #105: texture-env.batch .......................   Passed    1.52 sec
+      Start  46: texture-icwrite
+ 7/80 Test #125: python-texturesys .......................   Passed    1.82 sec
+      Start  57: texture-overscan
+ 8/80 Test  #30: oiiotool-maketx .........................   Passed    4.84 sec
+      Start  93: texture-overscan.batch
+ 9/80 Test #100: texture-blurfix.batch ...................   Passed    1.33 sec
+      Start  82: texture-icwrite.batch
+10/80 Test #178: texture-texture3d.batch .................   Passed    1.22 sec
+      Start  45: texture-uint16
+11/80 Test  #93: texture-overscan.batch ..................   Passed    0.97 sec
+      Start  44: texture-half
+12/80 Test  #46: texture-icwrite .........................   Passed    1.22 sec
+      Start  63: texture-wrapfill
+13/80 Test  #82: texture-icwrite.batch ...................   Passed    1.02 sec
+      Start  43: texture-cropover
+14/80 Test  #57: texture-overscan ........................   Passed    1.15 sec
+      Start  42: texture-crop
+15/80 Test  #29: maketx ..................................   Passed    5.95 sec
+      Start  99: texture-wrapfill.batch
+16/80 Test  #45: texture-uint16 ..........................   Passed    1.08 sec
+      Start 119: python-imagecache
+17/80 Test  #44: texture-half ............................   Passed    0.83 sec
+      Start  81: texture-uint16.batch
+18/80 Test  #42: texture-crop ............................   Passed    0.92 sec
+      Start   4: texture-device
+19/80 Test  #43: texture-cropover ........................   Passed    0.96 sec
+      Start  70: texture-colorspace
+20/80 Test  #99: texture-wrapfill.batch ..................   Passed    0.98 sec
+      Start  78: texture-crop.batch
+21/80 Test  #63: texture-wrapfill ........................   Passed    1.05 sec
+      Start  79: texture-cropover.batch
+22/80 Test #119: python-imagecache .......................   Passed    0.98 sec
+      Start  80: texture-half.batch
+23/80 Test  #81: texture-uint16.batch ....................   Passed    0.66 sec
+      Start 106: texture-colorspace.batch
+24/80 Test  #70: texture-colorspace ......................   Passed    0.63 sec
+      Start  51: texture-mip-nomip
+25/80 Test  #78: texture-crop.batch ......................   Passed    0.64 sec
+      Start  71: texture-derivs.batch
+26/80 Test  #79: texture-cropover.batch ..................   Passed    0.65 sec
+      Start  61: texture-uint8
+27/80 Test   #4: texture-device ..........................   Passed    0.77 sec
+      Start  65: texture-fat
+28/80 Test  #80: texture-half.batch ......................   Passed    0.72 sec
+      Start  58: texture-pointsample
+29/80 Test #106: texture-colorspace.batch ................   Passed    0.70 sec
+      Start  35: texture-derivs
+30/80 Test  #51: texture-mip-nomip .......................   Passed    0.71 sec
+      Start  48: texture-interp-closest
+31/80 Test  #71: texture-derivs.batch ....................   Passed    0.71 sec
+      Start  49: texture-levels-stochaniso
+32/80 Test  #65: texture-fat .............................   Passed    0.70 sec
+      Start  50: texture-levels-stochmip
+33/80 Test  #61: texture-uint8 ...........................   Passed    0.76 sec
+      Start  53: texture-mip-trilinear
+34/80 Test  #58: texture-pointsample .....................   Passed    0.72 sec
+      Start  85: texture-levels-stochaniso.batch
+35/80 Test  #35: texture-derivs ..........................   Passed    0.74 sec
+      Start  83: texture-interp-bilinear.batch
+36/80 Test  #48: texture-interp-closest ..................   Passed    0.72 sec
+      Start  54: texture-mip-stochastictrilinear
+37/80 Test  #50: texture-levels-stochmip .................   Passed    0.62 sec
+      Start  66: texture-skinny
+38/80 Test  #53: texture-mip-trilinear ...................   Passed    0.60 sec
+      Start  55: texture-mip-stochasticaniso
+39/80 Test  #49: texture-levels-stochaniso ...............   Passed    0.68 sec
+      Start  52: texture-mip-onelevel
+40/80 Test  #85: texture-levels-stochaniso.batch .........   Passed    0.62 sec
+      Start  47: texture-interp-bilinear
+41/80 Test  #83: texture-interp-bilinear.batch ...........   Passed    0.61 sec
+      Start  94: texture-pointsample.batch
+42/80 Test  #55: texture-mip-stochasticaniso .............   Passed    0.65 sec
+      Start  40: texture-interp-bicubic
+43/80 Test  #54: texture-mip-stochastictrilinear .........   Passed    0.71 sec
+44/80 Test  #52: texture-mip-onelevel ....................   Passed    0.66 sec
+      Start  76: texture-interp-bicubic.batch
+      Start  37: texture-flipt
+45/80 Test  #47: texture-interp-bilinear .................   Passed    0.63 sec
+      Start  91: texture-mip-stochasticaniso.batch
+46/80 Test  #66: texture-skinny ..........................   Passed    0.74 sec
+      Start  97: texture-uint8.batch
+47/80 Test  #94: texture-pointsample.batch ...............   Passed    0.69 sec
+      Start  86: texture-levels-stochmip.batch
+48/80 Test  #37: texture-flipt ...........................   Passed    0.50 sec
+      Start  73: texture-flipt.batch
+49/80 Test  #91: texture-mip-stochasticaniso.batch .......   Passed    0.52 sec
+      Start  84: texture-interp-closest.batch
+50/80 Test  #97: texture-uint8.batch .....................   Passed    0.54 sec
+      Start  89: texture-mip-trilinear.batch
+51/80 Test  #40: texture-interp-bicubic ..................   Passed    0.63 sec
+52/80 Test  #76: texture-interp-bicubic.batch ............   Passed    0.61 sec
+      Start  90: texture-mip-stochastictrilinear.batch
+      Start  87: texture-mip-nomip.batch
+53/80 Test  #86: texture-levels-stochmip.batch ...........   Passed    0.61 sec
+      Start  36: texture-fill
+54/80 Test  #73: texture-flipt.batch .....................   Passed    0.56 sec
+      Start 113: texture-maxres
+55/80 Test  #89: texture-mip-trilinear.batch .............   Passed    0.52 sec
+      Start  38: texture-gettexels
+56/80 Test  #84: texture-interp-closest.batch ............   Passed    0.58 sec
+57/80 Test  #90: texture-mip-stochastictrilinear.batch ...   Passed    0.52 sec
+58/80 Test  #87: texture-mip-nomip.batch .................   Passed    0.51 sec
+      Start 102: texture-skinny.batch
+      Start 101: texture-fat.batch
+      Start 110: texture-filtersize
+59/80 Test  #36: texture-fill ............................   Passed    0.38 sec
+      Start  62: texture-width0blur
+60/80 Test  #38: texture-gettexels .......................   Passed    0.38 sec
+      Start  39: texture-gray
+61/80 Test #113: texture-maxres ..........................   Passed    0.44 sec
+      Start  88: texture-mip-onelevel.batch
+62/80 Test #102: texture-skinny.batch ....................   Passed    0.46 sec
+      Start 111: texture-filtersize-stochastic
+63/80 Test #110: texture-filtersize ......................   Passed    0.46 sec
+      Start 112: texture-res
+64/80 Test #101: texture-fat.batch .......................   Passed    0.50 sec
+      Start  67: texture-stats
+65/80 Test #112: texture-res .............................   Passed    0.49 sec
+      Start  98: texture-width0blur.batch
+66/80 Test  #39: texture-gray ............................   Passed    0.64 sec
+      Start  74: texture-gettexels.batch
+67/80 Test  #62: texture-width0blur ......................   Passed    0.72 sec
+      Start  56: texture-missing
+68/80 Test  #67: texture-stats ...........................   Passed    0.55 sec
+      Start  72: texture-fill.batch
+69/80 Test  #88: texture-mip-onelevel.batch ..............   Passed    0.72 sec
+      Start  92: texture-missing.batch
+70/80 Test #111: texture-filtersize-stochastic ...........   Passed    0.67 sec
+      Start  75: texture-gray.batch
+71/80 Test  #56: texture-missing .........................   Passed    0.42 sec
+      Start 103: texture-stats.batch
+72/80 Test  #98: texture-width0blur.batch ................   Passed    0.49 sec
+73/80 Test  #74: texture-gettexels.batch .................   Passed    0.46 sec
+      Start 224: unit_imagecache
+74/80 Test  #72: texture-fill.batch ......................   Passed    0.46 sec
+75/80 Test  #92: texture-missing.batch ...................   Passed    0.42 sec
+76/80 Test  #75: texture-gray.batch ......................   Passed    0.44 sec
+77/80 Test #103: texture-stats.batch .....................   Passed    0.49 sec
+78/80 Test #224: unit_imagecache .........................   Passed    0.49 sec
+79/80 Test #104: texture-threadtimes.batch ...............   Passed   20.31 sec
+80/80 Test  #68: texture-threadtimes .....................   Passed   20.51 sec
+
+100% tests passed, 0 tests failed out of 80
+
+Total Test time (real) =  20.54 sec
