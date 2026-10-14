@@ -135,3 +135,7 @@ allocations.
   3-6x at 64T on the hot-file workloads and never hurts. Above 16T, even w1
   (0% microcache misses) degrades 2x, so most of that is the machine, not IC. Phase 3
   ceiling is about 15-30% on w7/w8. Next: ceiling run (scalectl control + taskset).
+- 2026-10-13 goat0225 ceiling (results/goat0225-ceiling/ANALYSIS.md): w1 at machine
+  limit when pinned; the free-run jump at 24-32T is the scheduler stacking SMT. All remaining IC
+  cost is cross-socket: w7 1.6x synth / 1.3x prod over the limit, ~1.0 on one socket.
+  Phase 3 (bigger microcache) justified for multi-socket; measure pinned.
