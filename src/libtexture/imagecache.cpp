@@ -1859,7 +1859,7 @@ ImageCacheTile::ImageCacheTile(const TileID& id, const void* pels,
 
 ImageCacheTile::~ImageCacheTile()
 {
-    m_id.file().imagecache().decr_tiles(memsize());
+    m_id.file().imagecache().decr_tiles(memsize(), m_evicted);
     if (m_nofree)
         m_pixels.release();  // release without freeing
 }
@@ -2303,6 +2303,12 @@ ImageCacheImpl::getstats(int level) const
         }
         OIIO::print(out, "    Peak cache memory : {}\n",
                     Strutil::memformat(m_mem_used));
+        if (m_mem_held_peak || level > 2)
+            OIIO::print(out,
+                        "    Evicted tiles held by microcaches : {} peak, "
+                        "{} flushes\n",
+                        Strutil::memformat(m_mem_held_peak),
+                        int(m_microcache_flushes));
         if (stats.tile_locking_time > 0.001 || level > 2)
             OIIO::print(out, "    Tile mutex locking time : {}\n",
                         Strutil::timeintervalformat(stats.tile_locking_time));
@@ -2624,7 +2630,8 @@ ImageCacheImpl::attribute(string_view name, TypeDesc type, const void* val)
     } else if (name == "microcache_size" && type == TypeInt) {
         int v = clamp(*(const int*)val, 0, 65536);
         if (v != m_microcache_victims) {
-            m_microcache_victims = v;
+            m_microcache_victims  = v;
+            m_victim_bits_allowed = 16;
             purge_perthread_microcaches();
         }
     } else {
@@ -2984,6 +2991,10 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
             TileID todelete = sweep->first;
             size_t size     = sweep->second->memsize();
             OIIO_DASSERT(m_mem_used >= (long long)size);
+            // Count it as held until it is destroyed: right away during
+            // the erase, unless some thread's microcache still holds it.
+            sweep->second->mark_evicted();
+            m_mem_held += size;
             // 2. Find the TileID of the NEXT item. We do this by
             // incrementing the sweep iterator and grabbing its id.
             ++sweep;
@@ -3003,6 +3014,26 @@ ImageCacheImpl::check_max_mem(ImageCachePerThreadInfo* /*thread_info*/)
     // OK, by this point we have either freed enough tiles to be below
     // the limit again, or the cache is empty, or we've looped over the
     // cache too many times and are giving up.
+
+    // Evicted tiles still held by per-thread microcaches count against
+    // the memory limit but can't be freed here. If they add up to much,
+    // tell the threads to drop their victim tiles and use half as many
+    // victim slots. Grow back slowly once little is held.
+    long long held = m_mem_held;
+    atomic_max(m_mem_held_peak, held);
+    int maxbits = ImageCachePerThreadInfo::victim_bits(m_microcache_victims);
+    int allowed = std::min(int(m_victim_bits_allowed), maxbits);
+    if (held > (long long)m_max_memory_bytes / 16) {
+        m_victim_bits_allowed = std::max(allowed - 1, 0);
+        m_microcache_epoch.fetch_add(1, std::memory_order_relaxed);
+        ++m_microcache_flushes;
+        m_calm_sweeps = 0;
+    } else if (allowed < maxbits && held < (long long)m_max_memory_bytes / 64
+               && ++m_calm_sweeps >= 64) {
+        m_victim_bits_allowed = allowed + 1;
+        m_microcache_epoch.fetch_add(1, std::memory_order_relaxed);
+        m_calm_sweeps = 0;
+    }
 
     // Now we must save the tileid for next time.  Just set it to an
     // empty ID if we don't have a valid iterator at this point.

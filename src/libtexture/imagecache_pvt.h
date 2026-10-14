@@ -825,6 +825,11 @@ public:
     ///
     int used(void) const { return m_used; }
 
+    /// Mark the tile as removed from the main cache (by the sweep, just
+    /// before erasing it). Some thread's microcache may still hold it.
+    void mark_evicted() { m_evicted = true; }
+    bool evicted() const { return m_evicted; }
+
     bool valid(void) const { return m_valid; }
 
     /// Are the pixels ready for use?  If false, they're still being
@@ -860,6 +865,7 @@ private:
     int m_tile_width { 0 };            ///< Tile width
     bool m_valid { false };            ///< Valid pixels
     bool m_nofree { false };  ///< We do NOT own the pixels, do not free!
+    bool m_evicted { false };  ///< Erased from the main cache
     volatile bool m_pixels_ready { false };  // Pixels have been read from disk
     atomic_int m_used { 1 };                 ///< Used recently
 };
@@ -901,8 +907,10 @@ public:
     // out of tile/lasttile. A hit there only moves refs around (no atomic RMW on
     // the shared tile or cache bin), which matters most across sockets.
     std::unique_ptr<ImageCacheTileRef[]> m_victims;
-    int m_victim_bits = 0;  // log2 of the number of victim slots, 0 = none
-    atomic_int purge;       // If set, tile ptrs need purging!
+    int m_victim_cap_bits = 0;  // log2 of allocated victim slots, 0 = none
+    int m_victim_bits     = 0;  // log2 of slots in use (<= cap), 0 = none
+    int m_victim_epoch    = 0;  // IC microcache epoch the victims belong to
+    atomic_int purge;           // If set, tile ptrs need purging!
     ImageCacheStatistics m_stats;
 
     ImageCachePerThreadInfo(int victim_slots = 0)
@@ -912,28 +920,44 @@ public:
         set_victim_slots(victim_slots);
     }
 
-    // Resize (and empty) the victim cache. Rounds down to a power of 2.
-    void set_victim_slots(int n)
+    // log2 of the victim slots to use for a requested count: rounded down
+    // to a power of 2, at least 2 slots (one 2-way set), 0 for none.
+    static int victim_bits(int n)
     {
-        int bits = 0;
+        if (n <= 0)
+            return 0;
+        int bits = 1;
         while (bits < 16 && (2 << bits) <= n)
             ++bits;
-        if (n > 0 && bits == 0)
-            bits = 1;  // round 1 up to 2 slots
-        m_victim_bits = n > 0 ? bits : 0;
-        m_victims.reset(m_victim_bits
-                            ? new ImageCacheTileRef[size_t(1) << m_victim_bits]
-                            : nullptr);
+        return bits;
     }
-    int victim_slots() const { return m_victim_bits ? 1 << m_victim_bits : 0; }
+
+    // Resize (and empty) the victim cache.
+    void set_victim_slots(int n)
+    {
+        m_victim_cap_bits = m_victim_bits = victim_bits(n);
+        m_victim_epoch = -1;  // adopt the IC's current limit on first use
+        m_victims.reset(m_victim_cap_bits ? new ImageCacheTileRef[size_t(1)
+                                                                  << m_victim_cap_bits]
+                                          : nullptr);
+    }
+    int victim_slots() const
+    {
+        return m_victim_cap_bits ? 1 << m_victim_cap_bits : 0;
+    }
+
+    void clear_victims()
+    {
+        for (int i = 0, n = victim_slots(); i < n; ++i)
+            m_victims[i] = nullptr;
+    }
 
     // Drop all tile refs held by the microcache.
     void clear_tiles()
     {
         tile     = nullptr;
         lasttile = nullptr;
-        for (int i = 0, n = victim_slots(); i < n; ++i)
-            m_victims[i] = nullptr;
+        clear_victims();
     }
 
     // Victim slot for a tile. x and y are pixel coordinates (multiples of
@@ -953,8 +977,20 @@ public:
     // Look for id among the victims. On return, the tile in `tile` (the
     // older of the two front tiles) has been parked in its own victim
     // slot, and `tile` holds the found tile, or is empty if not found.
-    bool find_victim(const TileID& id)
+    bool find_victim(const TileID& id, int epoch,
+                     const std::atomic<int>& allowed_bits)
     {
+        if (epoch != m_victim_epoch) {
+            // The IC changed how many victim slots threads may use
+            // (usually because it is short of memory, and some evicted
+            // tiles can't be freed while we hold them). Drop our victims
+            // and adopt the new size.
+            m_victim_epoch = epoch;
+            clear_victims();
+            m_victim_bits = std::min(m_victim_cap_bits,
+                                     allowed_bits.load(
+                                         std::memory_order_relaxed));
+        }
         if (!m_victim_bits)
             return false;
         // 2-way sets: slots s and s^1, the newer one in the even slot.
@@ -1252,7 +1288,8 @@ public:
                 return true;
             }
         }
-        if (thread_info->find_victim(id)) {
+        if (thread_info->find_victim(id, microcache_epoch(),
+                                     m_victim_bits_allowed)) {
             tile->use();
             return true;
         }
@@ -1326,11 +1363,20 @@ public:
 
     /// Called when a tile is destroyed, to update all the stats.
     ///
-    void decr_tiles(size_t size)
+    void decr_tiles(size_t size, bool evicted)
     {
         --m_stat_tiles_current;
         m_mem_used -= size;
         OIIO_DASSERT(m_mem_used >= 0);
+        if (evicted)
+            m_mem_held -= size;
+    }
+
+    /// Current microcache epoch; a thread whose victim tiles are from an
+    /// older epoch drops them.
+    int microcache_epoch() const
+    {
+        return m_microcache_epoch.load(std::memory_order_relaxed);
     }
 
     /// Internal error reporting routine, with std::format-like arguments.
@@ -1439,6 +1485,13 @@ private:
     spin_mutex m_tile_sweep_mutex;  ///< Ensure only one in check_max_mem
 
     atomic_ll m_mem_used;       ///< Memory being used for tiles
+    atomic_ll m_mem_held { 0 };  ///< ... of which evicted, held by threads
+    atomic_ll m_mem_held_peak { 0 };
+    atomic_int m_microcache_flushes { 0 };
+    // Read on microcache victim lookups, rarely written: own cache line.
+    OIIO_CACHE_ALIGN std::atomic<int> m_microcache_epoch { 0 };
+    std::atomic<int> m_victim_bits_allowed { 16 };  ///< Limit under pressure
+    int m_calm_sweeps = 0;  ///< Sweeps in a row with little held memory
     int m_statslevel;           ///< Statistics level
     int m_max_errors_per_file;  ///< Max errors to print for each file.
 
