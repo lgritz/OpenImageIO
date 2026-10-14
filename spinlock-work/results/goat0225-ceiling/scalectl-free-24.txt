@@ -1,0 +1,2 @@
+threads  best(s)  ratio-vs-first  (best of 3, 2000000 iters/thread)
+   24     0.619     1.00
