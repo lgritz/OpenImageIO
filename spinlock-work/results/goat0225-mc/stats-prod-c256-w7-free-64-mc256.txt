@@ -1,0 +1,77 @@
+Created texture system
+Workload: Coherent access, many files, partially overlapping texture sets
+texture cache size = 256 MB
+hw threads = 64
+times are best of 1 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+ 64         5.66     64.0x   100.0%    range 0.00	(2000000 iters/thread)
+
+Memory use: 479.8 MB
+OpenImageIO Texture statistics
+  Options:  gray_to_rgb=false flip_t=false max_tile_channels=6
+            stochastic=0 
+  Queries/batches : 
+    texture     :  128000000 queries in 128000000 batches
+    texture 3d  :  0 queries in 0 batches
+    shadow      :  0 queries in 0 batches
+    environment :  0 queries in 0 batches
+    gettextureinfo :  0 queries
+  Interpolations :
+    closest  : 0
+    bilinear : 256000000
+    bicubic  : 0
+  Average anisotropic probes : 1
+  Max anisotropy in the wild : 1
+
+OpenImageIO ImageCache statistics (0x303bf80) ver 3.3.0.0spi
+  Options:  max_memory_MB=256.0 max_open_files=1000 autotile=0
+            autoscanline=false automip=false forcefloat=false
+            accept_untiled=true accept_unmipped=true deduplicate=true
+            unassociatedalpha=false failure_retries=0 microcache_size=256
+            openexr:core=1 
+  Images : 392 unique
+    ImageInputs : 392 created, 392 current, 392 peak
+    Total pixel data size of all images referenced : 49.0 GB
+    Total actual file size of all images referenced : 19.6 GB
+    Pixel data read : 10.9 GB
+    File I/O time : 1m 39.5s (1.5s average per thread, for 65 threads)
+    File open time only : 1.4s
+    ImageInput mutex locking time : 0.5s
+  Tiles: 474343 created, 16384 current, 16479 peak
+    total tile requests : 272438208
+    micro-cache misses : 1310981 (0.5%)
+    main cache misses : 474343 (0.2%)
+    redundant reads: 270775 tiles, 6.2 GB
+    Peak cache memory : 384.5 MB
+  Cache : 1.7 MB
+    Strings : 0 B, count : 2
+    Thread info : 420 KB, count : 65
+    Fingerprints : 6 KB, count : 392
+    Tiles : 0 B, count : 0
+    Files : 1.3 MB, count : 392
+      Format 'openexr' : 1.3 MB, count : 392
+        Image inputs : 113 KB, count : 392
+        Image specs : 434 KB, count : 5488
+        Subimages : 607 KB, count : 392
+          Levels : 486 KB, count : 5096
+  Top files by bytes read:
+    1    682.1 MB ( 6.1%)  4096x4096x3.f16  prodtex0  MIP-COUNT[0,14791,14313,0,0,0,0,0,0,0,0,0,0]
+    2    644.9 MB ( 5.8%)  4096x4096x3.f16  prodtex1  MIP-COUNT[0,15194,12329,0,0,0,0,0,0,0,0,0,0]
+    3     82.0 MB ( 0.7%)  4096x4096x3.f16  prodtex218  MIP-COUNT[0,573,2927,0,0,0,0,0,0,0,0,0,0]
+  Top files by I/O time:
+    1   5.7s      ( 5.8%)   4096x4096x3.f16  prodtex0  MIP-COUNT[0,14791,14313,0,0,0,0,0,0,0,0,0,0]
+    2   5.4s      ( 5.4%)   4096x4096x3.f16  prodtex1  MIP-COUNT[0,15194,12329,0,0,0,0,0,0,0,0,0,0]
+    3   0.7s      ( 0.7%)   4096x4096x3.f16  prodtex341  MIP-COUNT[0,3035,430,0,0,0,0,0,0,0,0,0,0]
+  Files with slowest I/O rates:
+    1    92.79 MB/s (23.20MB/0.25s)   4096x4096x3.f16  prodtex175  MIP-COUNT[0,472,518,0,0,0,0,0,0,0,0,0,0]
+    2    96.61 MB/s (26.86MB/0.28s)   4096x4096x3.f16  prodtex274  MIP-COUNT[0,638,508,0,0,0,0,0,0,0,0,0,0]
+    3    96.91 MB/s (26.23MB/0.27s)   4096x4096x3.f16  prodtex304  MIP-COUNT[0,736,383,0,0,0,0,0,0,0,0,0,0]
+    (fastest was 154.8 MB/s)
+  Top files by redundant I/O:
+    1    655.0 MB (10.3%)  4096x4096x3.f16  prodtex0  MIP-COUNT[0,14791,14313,0,0,0,0,0,0,0,0,0,0]
+    2    617.8 MB ( 9.7%)  4096x4096x3.f16  prodtex1  MIP-COUNT[0,15194,12329,0,0,0,0,0,0,0,0,0,0]
+    3     69.9 MB ( 1.1%)  4096x4096x3.f16  prodtex218  MIP-COUNT[0,573,2927,0,0,0,0,0,0,0,0,0,0]
+  Broken or invalid files: 0
+

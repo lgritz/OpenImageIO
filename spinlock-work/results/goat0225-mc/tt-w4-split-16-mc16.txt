@@ -1,0 +1,20 @@
+Created texture system
+Temp file 0: test0000.exr
+Temp file 1: test0001.exr
+Temp file 2: test0002.exr
+Temp file 3: test0003.exr
+Temp file 4: test0004.exr
+Temp file 5: test0005.exr
+Temp file 6: test0006.exr
+Temp file 7: test0007.exr
+Temp file 8: test0008.exr
+Temp file 9: test0009.exr
+Workload: Coherent access, one file, each thread in different spots
+texture cache size = 1024 MB
+hw threads = 64
+times are best of 3 trials
+
+threads  time (s)   speedup efficiency
+-------- -------- --------- ----------
+ 16         1.06     16.0x   100.0%    range 0.03	(2000000 iters/thread)
+
