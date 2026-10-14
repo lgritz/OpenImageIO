@@ -2224,6 +2224,8 @@ ImageCacheImpl::getstats(int level) const
         INTOPT(deduplicate);
         INTOPT(unassociatedalpha);
         INTOPT(failure_retries);
+        opt += Strutil::fmt::format("microcache_size={} ",
+                                    m_microcache_victims);
         opt += Strutil::fmt::format("openexr:core={} ",
                                     OIIO::get_int_attribute("openexr:core"));
 #undef BOOLOPT
@@ -2619,6 +2621,12 @@ ImageCacheImpl::attribute(string_view name, TypeDesc type, const void* val)
     } else if (name == "max_mip_res" && type == TypeInt) {
         m_max_mip_res = *(const int*)val;
         do_invalidate = true;
+    } else if (name == "microcache_size" && type == TypeInt) {
+        int v = clamp(*(const int*)val, 0, 65536);
+        if (v != m_microcache_victims) {
+            m_microcache_victims = v;
+            purge_perthread_microcaches();
+        }
     } else {
         // Otherwise, unknown name
         return false;
@@ -2651,6 +2659,7 @@ ImageCacheImpl::getattributetype(string_view name) const
         { "failure_retries", TypeInt },
         { "total_files", TypeInt },
         { "max_mip_res", TypeInt },
+        { "microcache_size", TypeInt },
         { "searchpath", TypeString },
         { "plugin_searchpath", TypeString },
         { "worldtocommon", TypeMatrix },
@@ -2730,6 +2739,7 @@ ImageCacheImpl::getattribute(string_view name, TypeDesc type, void* val) const
     ATTR_DECODE("failure_retries", int, m_failure_retries);
     ATTR_DECODE("total_files", int, m_files.size());
     ATTR_DECODE("max_mip_res", int, m_max_mip_res);
+    ATTR_DECODE("microcache_size", int, m_microcache_victims);
 
     // The cases that don't fit in the simple ATTR_DECODE scheme
     if (name == "searchpath" && type == TypeDesc::STRING) {
@@ -4299,7 +4309,8 @@ ImageCacheImpl::inventory_udim(ImageCacheFile* udimfile, Perthread* thread_info,
 ImageCachePerThreadInfo*
 ImageCacheImpl::create_thread_info()
 {
-    ImageCachePerThreadInfo* p = new ImageCachePerThreadInfo;
+    ImageCachePerThreadInfo* p = new ImageCachePerThreadInfo(
+        m_microcache_victims);
     // printf ("New perthread %p\n", (void *)p);
     spin_lock lock(m_perthread_info_mutex);
     m_all_perthread_info.emplace_back(p);
@@ -4337,7 +4348,7 @@ ImageCacheImpl::get_perthread_info(ImageCachePerThreadInfo* p)
         p = ptr;
         if (!p) {
             // this thread doesn't have a ImageCachePerThreadInfo for this ImageCacheImpl yet
-            ptr = p = new ImageCachePerThreadInfo;
+            ptr = p = new ImageCachePerThreadInfo(m_microcache_victims);
             // printf ("New perthread %p\n", (void *)p);
             spin_lock lock(m_perthread_info_mutex);
             m_all_perthread_info.emplace_back(p);
@@ -4346,9 +4357,10 @@ ImageCacheImpl::get_perthread_info(ImageCachePerThreadInfo* p)
     if (p->purge) {  // has somebody requested a tile purge?
         // This is safe, because it's our thread.
         spin_lock lock(m_perthread_info_mutex);
-        p->tile     = NULL;
-        p->lasttile = NULL;
-        p->purge    = 0;
+        p->clear_tiles();
+        if (p->victim_slots() != m_microcache_victims)
+            p->set_victim_slots(m_microcache_victims);
+        p->purge = 0;
         p->m_thread_files.clear();
     }
     return p;

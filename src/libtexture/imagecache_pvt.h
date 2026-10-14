@@ -897,13 +897,84 @@ public:
 
     // We have a two-tile "microcache", storing the last two tiles needed.
     ImageCacheTileRef tile, lasttile;
-    atomic_int purge;  // If set, tile ptrs need purging!
+    // Behind those, a small 2-way set-associative cache of tiles that fell
+    // out of tile/lasttile. A hit there only moves refs around (no atomic RMW on
+    // the shared tile or cache bin), which matters most across sockets.
+    std::unique_ptr<ImageCacheTileRef[]> m_victims;
+    int m_victim_bits = 0;  // log2 of the number of victim slots, 0 = none
+    atomic_int purge;       // If set, tile ptrs need purging!
     ImageCacheStatistics m_stats;
 
-    ImageCachePerThreadInfo()
+    ImageCachePerThreadInfo(int victim_slots = 0)
     {
         // std::cout << "Creating PerThreadInfo " << (void*)this << "\n";
         purge = 0;
+        set_victim_slots(victim_slots);
+    }
+
+    // Resize (and empty) the victim cache. Rounds down to a power of 2.
+    void set_victim_slots(int n)
+    {
+        int bits = 0;
+        while (bits < 16 && (2 << bits) <= n)
+            ++bits;
+        if (n > 0 && bits == 0)
+            bits = 1;  // round 1 up to 2 slots
+        m_victim_bits = n > 0 ? bits : 0;
+        m_victims.reset(m_victim_bits
+                            ? new ImageCacheTileRef[size_t(1) << m_victim_bits]
+                            : nullptr);
+    }
+    int victim_slots() const { return m_victim_bits ? 1 << m_victim_bits : 0; }
+
+    // Drop all tile refs held by the microcache.
+    void clear_tiles()
+    {
+        tile     = nullptr;
+        lasttile = nullptr;
+        for (int i = 0, n = victim_slots(); i < n; ++i)
+            m_victims[i] = nullptr;
+    }
+
+    // Victim slot for a tile. x and y are pixel coordinates (multiples of
+    // the tile size), so take the high bits of a multiplicative hash.
+    size_t victim_slot(const TileID& id) const
+    {
+        uint64_t k = (uint64_t(uint32_t(id.x()))
+                      | (uint64_t(uint32_t(id.y())) << 32))
+                     ^ uint64_t(uintptr_t(id.file_ptr()));
+        k ^= uint64_t(uint32_t(id.miplevel() | (id.subimage() << 8)
+                               | (id.z() << 16)))
+             * 0xff51afd7ed558ccdULL;
+        k *= 0x9e3779b97f4a7c15ULL;
+        return size_t(k >> (64 - m_victim_bits));
+    }
+
+    // Look for id among the victims. On return, the tile in `tile` (the
+    // older of the two front tiles) has been parked in its own victim
+    // slot, and `tile` holds the found tile, or is empty if not found.
+    bool find_victim(const TileID& id)
+    {
+        if (!m_victim_bits)
+            return false;
+        // 2-way sets: slots s and s^1, the newer one in the even slot.
+        ImageCacheTileRef found;
+        size_t s = victim_slot(id) & ~size_t(1);
+        if (m_victims[s] && m_victims[s]->id() == id)
+            found.swap(m_victims[s]);
+        else if (m_victims[s + 1] && m_victims[s + 1]->id() == id)
+            found.swap(m_victims[s + 1]);
+        if (tile) {
+            size_t p = victim_slot(tile->id()) & ~size_t(1);
+            if (m_victims[p]) {
+                // Demote the even slot's tile, dropping the odd slot's
+                // (unless the odd slot was just emptied by the find).
+                m_victims[p + 1].swap(m_victims[p]);
+            }
+            m_victims[p].swap(tile);  // tile now holds the dropped one
+        }
+        tile.swap(found);  // drops whatever fell out of the set
+        return bool(tile);
     }
 
     ~ImageCachePerThreadInfo()
@@ -1181,6 +1252,10 @@ public:
                 return true;
             }
         }
+        if (thread_info->find_victim(id)) {
+            tile->use();
+            return true;
+        }
         return find_tile_main_cache(id, tile, thread_info);
         // N.B. find_tile_main_cache marks the tile as used
     }
@@ -1343,6 +1418,7 @@ private:
     bool m_max_open_files_strict = false;  ///< Be strict about open files limit?
     int m_failure_retries;                 ///< Times to re-try disk failures
     int m_max_mip_res = 1 << 30;  ///< Don't use MIP levels higher than this
+    int m_microcache_victims = 64;       ///< Victim slots per thread microcache
     Imath::M44f m_Mw2c;           ///< world-to-"common" matrix
     Imath::M44f m_Mc2w;           ///< common-to-world matrix
     ustring m_substitute_image;   ///< Substitute this image for all others

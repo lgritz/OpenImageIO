@@ -220,6 +220,14 @@ public:
     ///           enabled, this reduces the number of file opens, at the
     ///           expense of not being able to open files if their format do
     ///           not actually match their filename extension). Default: 0
+    /// - `int microcache_size` :
+    ///           Number of recently used tiles each thread keeps (beyond the
+    ///           last two) to avoid looking them up in the shared cache.
+    ///           Rounded down to a power of 2; 0 disables it. Larger values
+    ///           help shaders that read many textures at once, especially
+    ///           on multi-socket machines, but tiles held this way stay in
+    ///           memory (and count against `max_memory_MB`) until the
+    ///           thread replaces them. Default: 64
     /// - `string colorspace` :
     ///           The working colorspace of the texture system. Default: none.
     /// - `string colorconfig` :
