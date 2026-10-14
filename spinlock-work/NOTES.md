@@ -145,3 +145,8 @@ allocations.
   texture/imagecache passes at sizes 0, 2, 64. Held tiles still count in m_mem_used
   (limit honored); open question is extra redundant reads under eviction, measured
   by the goat0225 -mc run.
+- 2026-10-14 goat0225-mc (results/goat0225-mc/ANALYSIS.md): mc64 is 1.3-1.9x on one
+  socket and up to 3x across sockets for w7/w8, 1.5-2x for prod at 64T; w1 is the same.
+  w7 is now at the machine limit. mc256 at a 256 MB cache with 64T held more than the cache ->
+  added a controller (fcfcb1180) that halves victim slots when evicted-held bytes are
+  > max/16. Default 64.

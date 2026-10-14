@@ -14,14 +14,13 @@ Working area for branch `lg-spinlock`, not for merging. Contents:
   - `timed.py`, `scrub.py`, `summarize.py`: helpers.
 - `results/<run>/`: outputs. Commit these and push them back.
 
-## CURRENT NEXT RUN (updated 2026-10-14): phase 3 victim microcache, about 1 hour
+## CURRENT NEXT RUN (updated 2026-10-14b): phase 3 memory controller, about 25 min
 
-On goat0225 (multi-socket). One build of lg-spinlock (phase 1 + 2 + the victim
-microcache, commit 099b1ada5). The victim cache size is varied at run time
-(`microcache_size` 0/16/64/256 via `OPENIMAGEIO_IMAGECACHE_OPTIONS`; 0 = phase 2
-behavior), on pinned CPU sets. Synthetic w1/w4/w7/w8, prod w7/w8 at 8 GB and
-1 GB, `--runstats` at 1 GB / 256 MB (redundant reads), and ctest. Writes
-`results/<host>-mc/`. From TOP:
+On goat0225. One build of lg-spinlock (phase 1 + 2 + victim microcache + the
+memory controller for held tiles, fcfcb1180). microcache_size 0/64/256 at run time;
+configs free-1, allcores-32, free-64; synthetic w7/w8, prod w7/w8 at 8 GB and
+256 MB, `--runstats` at 1 GB / 256 MB, and ctest. Writes `results/<host>-mc2/`.
+From TOP:
 
 ```bash
 cd ~/code/openimageio-feedstock
@@ -31,9 +30,11 @@ oiio/spinlock-work/remote/next_run.sh /path/to/prodtextures.txt
 
 - At the end it commits **all** of `spinlock-work/results` and pushes with
   `(cd oiio ; git50 push lgritz lg-spinlock)`.
-- Safe to rerun; finished result files are skipped.
+- Safe to rerun; finished result files are skipped. Env knobs are listed at the
+  top of the script.
 - TOP/build is shared: don't run on two machines at once.
-- Earlier run scripts are in git history (94fe319a6 full+prod, 61fa1c335 ceiling).
+- Earlier run scripts are in git history (94fe319a6 full+prod, 61fa1c335 ceiling,
+  16c091bc3 mc).
 
 ## Machine layout this assumes (the "feedstock" machine)
 

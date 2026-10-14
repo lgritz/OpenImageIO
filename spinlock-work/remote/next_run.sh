@@ -1,15 +1,15 @@
 #!/bin/bash
-# The current "next run" (2026-10-14): phase 3 victim microcache on a
-# multi-socket box. About 45-60 minutes. Writes results/<host>-mc/.
-# One build (lg-spinlock = phase 1 + 2 + victim microcache). The victim
-# cache size is set at run time with
+# The current "next run" (2026-10-14b): check the phase 3 memory controller
+# (fcfcb1180) on a multi-socket box. About 25 minutes. Writes results/<host>-mc2/.
+# One build (lg-spinlock = phase 1 + 2 + victim microcache + controller).
+# The victim cache size is set at run time with
 #   OPENIMAGEIO_IMAGECACHE_OPTIONS=microcache_size=N   (N=0 is phase 2 behavior)
-# for N in MC_SIZES (default "0 16 64 256"), on pinned CPU sets:
-#   free-1, s0cores (socket 0, 1 thread/core), split (half the cores of
-#   each socket), allcores (1 thread/core everywhere), free-<ncpu>.
-# Workloads: synthetic testtex w1 w4 w7 w8; prod w7 w8 at 8 GB and 1 GB
-# cache (if a list is given), plus --runstats at 1 GB and 256 MB to see
-# whether held tiles raise redundant reads. Also ctest (texture/imagecache).
+# Knobs (env), defaults in brackets:
+#   RUN [<host>-mc2]  MC_SIZES ["0 64 256"]  CONFIG_NAMES ["free allcores"]
+#   (from free, s0cores, split, allcores)  SYNTH_WL ["7 8"]  PROD_WL ["7 8"]
+#   PROD_CACHES ["8192 256"]  STATS_CACHES ["1024 256"]
+# --runstats at the STATS_CACHES sizes shows redundant reads and held memory.
+# Also ctest (texture/imagecache).
 # Then commits ALL results and pushes with `(cd oiio ; git50 push lgritz lg-spinlock)`.
 #
 # Usage, from TOP (~/code/openimageio-feedstock), after
@@ -31,13 +31,18 @@ if [ ! -x ./build.sh ] || [ ! -e oiio/.git ]; then
 fi
 TOP=$(pwd)
 HOST=$(hostname -s)
-RUN=$HOST-mc
+RUN=${RUN:-$HOST-mc2}
 OUT=$TOP/oiio/spinlock-work/results/$RUN
 SW=$TOP/spinwork/mc
 mkdir -p "$OUT" "$SW"
 LOG=$OUT/progress.log
 log() { echo "$(date '+%F %T') $*" | tee -a "$LOG"; sync; }
-MC_SIZES=${MC_SIZES:-"0 16 64 256"}
+MC_SIZES=${MC_SIZES:-"0 64 256"}
+CONFIG_NAMES=${CONFIG_NAMES:-"free allcores"}
+SYNTH_WL=${SYNTH_WL:-"7 8"}
+PROD_WL=${PROD_WL:-"7 8"}
+PROD_CACHES=${PROD_CACHES:-"8192 256"}
+STATS_CACHES=${STATS_CACHES:-"1024 256"}
 
 HAVE_TASKSET=0
 command -v taskset >/dev/null 2>&1 && HAVE_TASKSET=1
@@ -67,6 +72,9 @@ if [ $HAVE_TASKSET = 1 ]; then
     CONFIGS+=( "allcores $(count "$ALLCORES") $ALLCORES" )
 fi
 CONFIGS+=( "free $NCPU -" )
+want_cfg() { case " $CONFIG_NAMES " in *" $1 "*) return 0;; esac; return 1; }
+ALL=( "${CONFIGS[@]}" ); CONFIGS=()
+for cfg in "${ALL[@]}"; do want_cfg "${cfg%% *}" && CONFIGS+=("$cfg"); done
 printf '%s\n' "${CONFIGS[@]}" | tee "$OUT/configs.txt"
 pin() {   # cpulist, then command
     local cpus=$1; shift
@@ -109,13 +117,13 @@ for cfg in "${CONFIGS[@]}"; do
     tag=$name-$nt
     log "START $tag"
     for mc in $MC_SIZES; do
-        for m in 1 4 7 8; do
+        for m in $SYNTH_WL; do
             tt "$OUT/tt-w$m-$tag-mc$mc.txt" $mc "$cpus" $GEN \
                 --threadtimes $m --threads "$nt" --trials 3
         done
         if [ ${#PRODFILES[@]} -gt 0 ]; then
-            for c in 8192 1024; do
-                for m in 7 8; do
+            for c in $PROD_CACHES; do
+                for m in $PROD_WL; do
                     tt "$OUT/tt-prod-c$c-w$m-$tag-mc$mc.txt" $mc "$cpus" \
                         --threadtimes $m --threads "$nt" --trials 3 \
                         --cachesize $c --maxfiles 1000 "${PRODFILES[@]}"
@@ -130,7 +138,7 @@ done
 if [ ${#PRODFILES[@]} -gt 0 ]; then
     log "START stats"
     for mc in $MC_SIZES; do
-        for c in 1024 256; do
+        for c in $STATS_CACHES; do
             tt "$OUT/stats-prod-c$c-w7-free-$NCPU-mc$mc.txt" $mc - \
                 --threadtimes 7 --threads "$NCPU" --runstats \
                 --cachesize $c --maxfiles 1000 "${PRODFILES[@]}"
@@ -151,7 +159,10 @@ fi
     hdr="| workload | config |"; sep="|---|---|"
     for mc in $MC_SIZES; do hdr="$hdr mc$mc |"; sep="$sep---|"; done
     echo "## testtex seconds (best of 3)"; echo; echo "$hdr"; echo "$sep"
-    for w in w1 w4 w7 w8 prod-c8192-w7 prod-c8192-w8 prod-c1024-w7 prod-c1024-w8; do
+    wls=""
+    for m in $SYNTH_WL; do wls="$wls w$m"; done
+    for c in $PROD_CACHES; do for m in $PROD_WL; do wls="$wls prod-c$c-w$m"; done; done
+    for w in $wls; do
         for cfg in "${CONFIGS[@]}"; do
             read -r name nt cpus <<< "$cfg"
             [ -e "$OUT/tt-$w-$name-$nt-mc${MC_SIZES%% *}.txt" ] || continue
@@ -165,7 +176,7 @@ fi
     for f in "$OUT"/stats-prod-*.txt; do
         [ -e "$f" ] || continue
         echo; echo "### $(basename "$f" .txt)"; echo '```'
-        grep -E 'micro-cache|redundant|Peak cache|Tiles:|File I/O|^ *[0-9]+ +[0-9.]+ ' "$f"
+        grep -E 'micro-cache|redundant|Peak cache|held by|Tiles:|File I/O|^ *[0-9]+ +[0-9.]+ +[0-9.]+x' "$f"
         echo '```'
     done
 } > "$OUT/SUMMARY.md"
