@@ -696,8 +696,6 @@ OIIO_PLUGIN_EXPORTS_END
 // the global TIFF error handler. To avoid thread oddities, we have the
 // storage area buffering error messages be thread-specific.
 static thread_local std::string thread_error_msg;
-static atomic_int handler_set;
-static spin_mutex handler_mutex;
 
 
 
@@ -723,14 +721,11 @@ my_error_handler(const char* /*str*/, const char* format, va_list ap)
 void
 oiio_tiff_set_error_handler()
 {
-    if (!handler_set) {
-        spin_lock lock(handler_mutex);
-        if (!handler_set) {
-            TIFFSetErrorHandler(my_error_handler);
-            TIFFSetWarningHandler(my_error_handler);
-            handler_set = 1;
-        }
-    }
+    static std::once_flag once;
+    std::call_once(once, []() {
+        TIFFSetErrorHandler(my_error_handler);
+        TIFFSetWarningHandler(my_error_handler);
+    });
 }
 #endif
 

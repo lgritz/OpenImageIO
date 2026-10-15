@@ -352,7 +352,6 @@ public:
         bool full_pixel_range    = false;  ///< data window matches image window
         bool is_constant_image   = false;  ///< Is the image a constant color?
         bool has_average_color   = false;  ///< We have an average color
-        spin_mutex average_color_mutex;    ///< protect average_color
         std::vector<float> average_color;  ///< Average color
         std::unique_ptr<Imath::M44f> Mlocal;  ///< shadows/volumes: world-to-local
         // The scale/offset accounts for crops or overscans, converting
@@ -525,6 +524,7 @@ private:
     ImageCacheImpl& m_imagecache;        ///< Back pointer for ImageCache
     mutable std::recursive_timed_mutex
         m_input_mutex;              ///< Mutex protecting the ImageInput
+    std::mutex m_average_color_mutex;  ///< Held while computing average color
     std::time_t m_mod_time;         ///< Time file was last updated
     ustring m_fingerprint;          ///< Optional cryptographic fingerprint
     ImageCacheFile* m_duplicate;    ///< Is this a duplicate?

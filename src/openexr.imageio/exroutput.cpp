@@ -308,8 +308,8 @@ namespace pvt {
 void
 set_exr_threads()
 {
-    static int exr_threads = 0;  // lives in exrinput.cpp
-    static spin_mutex exr_threads_mutex;
+    static std::atomic<int> exr_threads { 0 };
+    static std::mutex exr_threads_mutex;
 
     int oiio_threads = 1;
     OIIO::getattribute("exr_threads", oiio_threads);
@@ -321,10 +321,14 @@ set_exr_threads()
     } else if (oiio_threads == -1) {
         oiio_threads = 0;
     }
-    spin_lock lock(exr_threads_mutex);
-    if (exr_threads != oiio_threads) {
-        exr_threads = oiio_threads;
-        Imf::setGlobalThreadCount(exr_threads);
+    // Called on every file open; lock only to change the count, since
+    // setGlobalThreadCount may start or stop threads.
+    if (exr_threads.load(std::memory_order_acquire) != oiio_threads) {
+        std::lock_guard<std::mutex> lock(exr_threads_mutex);
+        if (exr_threads.load(std::memory_order_relaxed) != oiio_threads) {
+            Imf::setGlobalThreadCount(oiio_threads);
+            exr_threads.store(oiio_threads, std::memory_order_release);
+        }
     }
 
 #if OPENEXR_CODED_VERSION < 30108 && defined(_WIN32)

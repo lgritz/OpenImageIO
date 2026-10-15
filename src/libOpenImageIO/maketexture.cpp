@@ -31,7 +31,6 @@
 
 OIIO_NAMESPACE_BEGIN
 
-static spin_mutex maketx_mutex;  // for anything that needs locking
 
 
 
@@ -337,7 +336,7 @@ resize_block(ImageBuf& dst, const ImageBuf& src, ROI roi, bool envlatlmode,
 
 // Copy src into dst, but only for the range [x0,x1) x [y0,y1).
 static void
-check_nan_block(const ImageBuf& src, ROI roi, int& found_nonfinite)
+check_nan_block(const ImageBuf& src, ROI roi, std::atomic<int>& found_nonfinite)
 {
     int x0 = roi.xbegin, x1 = roi.xend, y0 = roi.ybegin, y1 = roi.yend;
     const ImageSpec& spec(src.spec());
@@ -347,7 +346,6 @@ check_nan_block(const ImageBuf& src, ROI roi, int& found_nonfinite)
             src.getpixel(x, y, pel);
             for (int c = 0; c < spec.nchannels; ++c) {
                 if (!std::isfinite(pel[c])) {
-                    spin_lock lock(maketx_mutex);
                     // if (found_nonfinite < 3)
                     //     std::cerr << "maketx ERROR: Found " << pel[c]
                     //               << " at (x=" << x << ", y=" << y << ")\n";
@@ -1694,12 +1692,13 @@ make_texture_impl(ImageBufAlgo::MakeTextureMode mode, const ImageBuf* input,
         && (srcspec.format.basetype == TypeDesc::FLOAT
             || srcspec.format.basetype == TypeDesc::HALF
             || srcspec.format.basetype == TypeDesc::DOUBLE)) {
-        int found_nonfinite = 0;
+        std::atomic<int> found_nonfinite { 0 };
         ImageBufAlgo::parallel_image(get_roi(srcspec), nthreads,
                                      std::bind(check_nan_block, std::ref(*src),
                                                _1, std::ref(found_nonfinite)));
         if (found_nonfinite) {
-            errorfmt("maketx ERROR: Nan/Inf at {} pixels", found_nonfinite);
+            errorfmt("maketx ERROR: Nan/Inf at {} pixels",
+                     found_nonfinite.load());
             return false;
         }
     }
