@@ -1469,7 +1469,7 @@ ImageCacheFile::get_average_color(float* avg, int subimage, int chbegin,
         const ImageDims& dims(si.leveldims(nlevels - 1));
         if (dims.width != 1 || dims.height != 1 || dims.depth != 1)
             return false;  // no hope, there's no 1x1 MIP level to sample
-        spin_lock lock(si.average_color_mutex);
+        std::lock_guard<std::mutex> lock(m_average_color_mutex);
         if (!si.has_average_color) {
             si.average_color.resize(dims.nchannels);
             bool ok = m_imagecache.get_pixels(this, NULL, subimage, nlevels - 1,

@@ -58,7 +58,13 @@ public:
     int m_AG_channel;
     int m_AB_channel;
     bool m_allocated;
-    spin_mutex m_mutex;
+    // Held across big allocations and inserts, so not a spin lock. Impl is
+    // copied, and a copy gets its own unlocked mutex.
+    struct Mutex : std::mutex {
+        Mutex() = default;
+        Mutex(const Mutex&) {}
+        Mutex& operator=(const Mutex&) { return *this; }
+    } m_mutex;
 
     Impl() : m_allocated(false) { clear(); }
 
@@ -87,7 +93,7 @@ public:
     void alloc(size_t npixels)
     {
         if (!m_allocated) {
-            spin_lock lock(m_mutex);
+            std::lock_guard<std::mutex> lock(m_mutex);
             if (!m_allocated) {
                 // m_cumcapacity.resize (npixels);
                 size_t totalcapacity = 0;
@@ -503,7 +509,7 @@ DeepData::set_capacity(int64_t pixel, int samps)
     if (pixel < 0 || pixel >= m_npixels)
         return;
     OIIO_DASSERT(m_impl);
-    spin_lock lock(m_impl->m_mutex);
+    std::lock_guard<std::mutex> lock(m_impl->m_mutex);
     if (m_impl->m_allocated) {
         // Data already allocated. Expand capacity if necessary, don't
         // contract. (FIXME?)
