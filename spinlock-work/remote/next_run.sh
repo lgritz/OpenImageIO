@@ -161,7 +161,7 @@ for cfg in "${CONFIGS[@]}"; do
         f=$OUT/spinlock-$v-$name.txt
         [ -s "$f" ] && continue
         log "START spinlock $v $name"
-        timeout 600 pin "$cpus" "$SW/spin_$v" --threads "$nt" --trials 3 \
+        pin "$cpus" timeout 600 "$SW/spin_$v" --threads "$nt" --trials 3 \
             --iters "$ITERS" > "$f" 2>&1 || echo "*** exit $?" >> "$f"
     done
 done
@@ -178,7 +178,7 @@ for wl in hammer light; do
             bin=$SW/bench_after var=$v
             case $v in before:oiio) bin=$SW/bench_before; var=oiio;; after:oiio) var=oiio;; esac
             log "START bench $wl $v $name"
-            timeout 300 pin "$cpus" "$bin" "$var" "$nt" "$wl" "$ops" 3 > "$f" 2>&1 \
+            pin "$cpus" timeout 300 "$bin" "$var" "$nt" "$wl" "$ops" 3 > "$f" 2>&1 \
                 || echo "*** exit $?" >> "$f"
         done
     done
