@@ -88,7 +88,9 @@ log "START build lg-spinlock $(git -C oiio rev-parse --short HEAD)"
     > "$SW/build.log" 2>&1 || { log "build FAILED; see $SW/build.log"; tail -30 "$SW/build.log"; exit 1; }
 tail -5 "$SW/build.log" > "$OUT/build.tail"
 git -C oiio log -1 --format='%H %s' > "$OUT/git.txt"
-LIBDIR=$(dirname "$(find "$TOP/build" \( -name 'libOpenImageIO_Util.so*' -o -name 'libOpenImageIO_Util*.dylib' \) | head -1)")
+UTILLIB=$(find "$TOP/build/" \( -name 'libOpenImageIO_Util.so*' -o -name 'libOpenImageIO_Util*.dylib' \) | head -1)
+[ -n "$UTILLIB" ] || { log "libOpenImageIO_Util not found under $TOP/build"; exit 1; }
+LIBDIR=$(dirname "$UTILLIB")
 # Use the include flags the build itself used for spinlock_test (deps like
 # Imath live in different places on different machines).
 INCS=$(python3 -I - "$TOP/build" <<'EOF'
