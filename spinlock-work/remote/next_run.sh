@@ -188,7 +188,7 @@ log "END bench"
 # ---- summary ------------------------------------------------------------
 {
     echo "## pause cost"; echo '```'; cat "$OUT/pausecost.txt"; echo '```'; echo
-    echo "## spinlock_test seconds (best of 3, $ITERS ops; range in parens)"; echo
+    echo "## spinlock_test ns/op (best of 3, $ITERS ops; trial range in s)"; echo
     hdr="| config |"; sep="|---|"
     for v in before $VARIANTS; do hdr="$hdr $v |"; sep="$sep---|"; done
     echo "$hdr"; echo "$sep"
@@ -196,7 +196,8 @@ log "END bench"
         read -r name nt cpus <<< "$cfg"
         row="| $name |"
         for v in before $VARIANTS; do
-            r=$(awk -v n="$nt" '$1==n && $2 ~ /^[0-9.]+$/ {print $2" ("$6")"; exit}' \
+            r=$(awk '$1=="BEST" {b=$5} $1 ~ /^[0-9]+$/ && $2 ~ /^[0-9.]+$/ {rg=$6}
+                     END {if (b != "") print b" ("rg" s)"}' \
                 "$OUT/spinlock-$v-$name.txt" 2>/dev/null)
             row="$row $r |"
         done

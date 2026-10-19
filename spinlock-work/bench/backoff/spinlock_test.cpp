@@ -129,9 +129,16 @@ main(int argc, char* argv[])
     std::cout << "\nTiming thread contention for spin_mutex...\n";
     if (wedge)
         timed_thread_wedge(do_accum, numthreads, iterations, ntrials);
-    else
-        timed_thread_wedge(do_accum, numthreads, iterations, ntrials,
-                           numthreads);
+    else {
+        // spinlock-work copy: print the best time with more digits.
+        int tc[] = { numthreads };
+        auto t   = timed_thread_wedge(
+            do_accum, [] {}, [] {}, &std::cout, numthreads, iterations,
+            ntrials, tc);
+        std::cout << Strutil::fmt::format("BEST {} {:.4f} s {:.2f} ns/op\n",
+                                          numthreads, t[0],
+                                          t[0] * 1e9 / iterations);
+    }
     OIIO_CHECK_EQUAL(accum, expected_accum.load());
 
     return unit_test_failures;
