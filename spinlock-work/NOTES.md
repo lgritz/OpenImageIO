@@ -154,3 +154,4 @@ allocations.
 - 2026-10-14 untiled single-tile images (user concern): held tiles > limit made every insert empty the cache. 3064a6bea: sweep skips refcount>1 tiles, stops after a fruitless pass, waits for max/64 change. M4 untiled 32 MB: 178 -> 91 s, peak 496 -> 256 MB.
 - 2026-10-14 goat0225-mc3: untiled bounded; but prod 256 MB mc256 ended 363.7 MB (victim tiles pinned). Fix: per-thread victim bytes, halve above max/2.
 - 2026-10-14 goat0225-mc4: limit holds (prod 256 MB mc256 at 256 MB); mc3 had 139 s trials hidden by best-of-3; phase 3 squashed to lg-ic-microcache.
+- 2026-10-19 backoff: M4 grid (scratch bench) shows cap 4096 (atomic_backoff(4096,2)) beats 128,64 at all counts, fixes 16T (spinlock_test 1.2 -> 0.3 s / 200M); jinhgkim's PR #5564 data: cliff where threads spill past top core type. next_run.sh checks x86.

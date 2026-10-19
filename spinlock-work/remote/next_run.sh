@@ -1,7 +1,7 @@
 #!/bin/bash
 # The current "next run" (2026-10-19): spin_mutex backoff cap. On the M4,
 # atomic_backoff(4096, 2) instead of (128, 64) fixes the 16T regression and
-# helps 8-12T. Check x86 / 2 sockets. About 25 minutes. Writes
+# helps 8-12T. Check x86 / 2 sockets. About 30-40 minutes. Writes
 # results/<host>-backoff/.
 # Needs TOP/build (from ./build.sh) only for libOpenImageIO_Util and the
 # generated headers; the benchmarks compile against thread.h copies in
@@ -40,8 +40,9 @@ THREADS=${THREADS:-"1 2 4 8 16 32 64"}
 PINNED=${PINNED:-"s0cores split"}
 ITERS=${ITERS:-50000000}
 LIGHT_OPS=8000000
+HAMMER_OPS=20000000
 if [ "$QUICK" = 1 ]; then
-    ITERS=200000; LIGHT_OPS=20000; THREADS="1 4"; VARIANTS="128_64 4096_2"
+    ITERS=200000; LIGHT_OPS=20000; HAMMER_OPS=200000; THREADS="1 4"; VARIANTS="128_64 4096_2"
     BENCH_VARIANTS="after:oiio 4096:2"
 fi
 
@@ -169,7 +170,7 @@ log "END spinlock"
 
 # ---- backoff bench: hammer and light workloads ---------------------------
 for wl in hammer light; do
-    ops=$ITERS; [ $wl = light ] && ops=$LIGHT_OPS
+    ops=$HAMMER_OPS; [ $wl = light ] && ops=$LIGHT_OPS
     for cfg in "${CONFIGS[@]}"; do
         read -r name nt cpus <<< "$cfg"
         for v in $BENCH_VARIANTS; do

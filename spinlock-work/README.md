@@ -14,13 +14,14 @@ Working area for branch `lg-spinlock`, not for merging. Contents:
   - `timed.py`, `scrub.py`, `summarize.py`: helpers.
 - `results/<run>/`: outputs. Commit these and push them back.
 
-## CURRENT NEXT RUN (updated 2026-10-14d): victim-slot memory limit, about 35 min
+## CURRENT NEXT RUN (updated 2026-10-19): spin_mutex backoff cap, about 30-40 min
 
-On goat0225. One build of lg-spinlock (phase 1 + 2 + victim microcache +
-controller + sweep that skips held tiles + victim-slot memory limit). microcache_size 0/64/256
-at run time; configs free-1, allcores-32, free-64; synthetic w7/w8, prod w7/w8
-at 8 GB and 256 MB, `--runstats` at 1 GB / 256 MB, untiled 16 MB single-tile
-images at 32/128/512 MB caches, and ctest. Writes `results/<host>-mc4/`.
+On goat0225. Builds lg-spinlock with ./build.sh (only for the util lib and
+generated headers), then compiles spinlock_test and a backoff bench against
+copies of thread.h in `bench/backoff/`: pre-PR, merged PR (backoff 128,64), and
+caps 4096/2048 (spin_mutex's `atomic_backoff(P, S)`). Threads 1-64 plus pinned
+one-socket and split-socket 16T; hammer and light workloads; pause cost.
+Writes `results/<host>-backoff/`.
 From TOP:
 
 ```bash
@@ -35,7 +36,7 @@ oiio/spinlock-work/remote/next_run.sh /path/to/prodtextures.txt
   top of the script.
 - TOP/build is shared: don't run on two machines at once.
 - Earlier run scripts are in git history (94fe319a6 full+prod, 61fa1c335 ceiling,
-  16c091bc3 mc, 3d7a9324d mc2, bf7f4335e mc3).
+  16c091bc3 mc, 3d7a9324d mc2, bf7f4335e mc3, 8d815c21f mc4).
 
 ## Machine layout this assumes (the "feedstock" machine)
 
