@@ -1,0 +1,1 @@
+1024:8 8 hammer 12.7 ns/op range 0.08 | contended 0%, mean wait 23.14 us, avg per-thread max 165 us

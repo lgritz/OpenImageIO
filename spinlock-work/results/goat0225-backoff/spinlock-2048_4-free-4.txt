@@ -1,0 +1,11 @@
+hw threads = 64
+Cost of lock/unlock cycle under no contention:
+spin_mutex      :    6.9 ns (+/- 0.2ns),  144.6 M/s
+std::mutex      :    6.1 ns (+/- 0.0ns),  164.8 M/s
+std::recursive_mutex:    9.7 ns (+/- 2.1ns),  103.4 M/s
+
+Timing thread contention for spin_mutex...
+threads    time   speedup  efficient  its/thread   range (best of 3)
+   4        0.5     4.00x    100.00%   12500000     0.00
+BEST 4 0.4648 s 9.30 ns/op
+OK

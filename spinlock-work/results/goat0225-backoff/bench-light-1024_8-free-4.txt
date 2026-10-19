@@ -1,0 +1,1 @@
+1024:8 4 light 273.5 ns/op range 44.72 | contended 41%, mean wait 2.01 us, avg per-thread max 191 us

@@ -1,0 +1,1 @@
+oiio 8 light 623.6 ns/op range 11.17 | contended 30%, mean wait 13.93 us, avg per-thread max 218 us

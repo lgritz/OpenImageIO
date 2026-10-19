@@ -1,0 +1,1 @@
+oiio 2 light 166.6 ns/op range 6.69 | contended 42%, mean wait 0.33 us, avg per-thread max 563 us

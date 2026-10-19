@@ -1,0 +1,1 @@
+16384:2 16 light 325.9 ns/op range 1.73 | contended 42%, mean wait 10.72 us, avg per-thread max 9071 us

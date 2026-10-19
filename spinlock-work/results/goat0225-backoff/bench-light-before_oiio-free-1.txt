@@ -1,0 +1,1 @@
+oiio 1 light 130.4 ns/op range 0.65 | contended 0%, mean wait 0.00 us, avg per-thread max 0 us
