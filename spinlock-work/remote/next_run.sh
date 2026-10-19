@@ -89,10 +89,44 @@ log "START build lg-spinlock $(git -C oiio rev-parse --short HEAD)"
 tail -5 "$SW/build.log" > "$OUT/build.tail"
 git -C oiio log -1 --format='%H %s' > "$OUT/git.txt"
 LIBDIR=$(dirname "$(find "$TOP/build" \( -name 'libOpenImageIO_Util.so*' -o -name 'libOpenImageIO_Util*.dylib' \) | head -1)")
-INCS="-I$TOP/build/include/OpenImageIO -I$TOP/build/include -I$TOP/build/src/include -I$TOP/oiio/src/include"
-for d in "$TOP/build/deps/dist/include" "$TOP/build/deps/include" "$TOP/dist/include"; do
-    [ -d "$d" ] && INCS="$INCS -I$d"
-done
+# Use the include flags the build itself used for spinlock_test (deps like
+# Imath live in different places on different machines).
+INCS=$(python3 -I - "$TOP/build" <<'EOF'
+import json, os, re, shlex, sys
+b = sys.argv[1]
+def flags(words):
+    out, it = [], iter(words)
+    for w in it:
+        if w in ('-I', '-isystem'):
+            out += [w, next(it, '')]
+        elif w.startswith(('-I', '-isystem')):
+            out.append(w)
+    return out
+cc = os.path.join(b, 'compile_commands.json')
+if os.path.exists(cc):
+    for e in json.load(open(cc)):
+        if e['file'].endswith('spinlock_test.cpp'):
+            print(' '.join(flags(e.get('arguments') or shlex.split(e['command']))))
+            sys.exit(0)
+fm = os.path.join(b, 'src/libutil/CMakeFiles/spinlock_test.dir/flags.make')
+if os.path.exists(fm):
+    for l in open(fm):
+        if l.startswith('CXX_INCLUDES'):
+            print(' '.join(flags(shlex.split(l.split('=', 1)[1]))))
+            sys.exit(0)
+nj = os.path.join(b, 'build.ninja')
+if os.path.exists(nj):
+    txt = open(nj).read()
+    m = re.search(r'spinlock_test\.cpp\.o:.*?\n((?:  .*\n)+)', txt)
+    if m:
+        for l in m.group(1).splitlines():
+            if l.strip().startswith('INCLUDES'):
+                print(' '.join(flags(shlex.split(l.split('=', 1)[1]))))
+                sys.exit(0)
+sys.exit(1)
+EOF
+) || { log "could not find include flags in $TOP/build"; exit 1; }
+echo "$INCS" > "$SW/includes.txt"
 CXX=${CXX:-c++}
 cc1() {   # out, thread.h, source
     local out=$1 hdr=$2 src=$3 d=$SW/inc-$(basename "$1")
