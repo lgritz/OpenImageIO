@@ -1,218 +1,199 @@
 #!/bin/bash
-# The current "next run" (2026-10-14d): victim-slot memory limit (after mc3)
-# and the sweep that skips tiles in use, incl. untiled single-tile images.
-# About 35 minutes. Writes results/<host>-mc4/.
-# One build (lg-spinlock = phase 1 + 2 + victim microcache + controller).
-# The victim cache size is set at run time with
-#   OPENIMAGEIO_IMAGECACHE_OPTIONS=microcache_size=N   (N=0 is phase 2 behavior)
+# The current "next run" (2026-10-19): spin_mutex backoff cap. On the M4,
+# atomic_backoff(4096, 2) instead of (128, 64) fixes the 16T regression and
+# helps 8-12T. Check x86 / 2 sockets. About 25 minutes. Writes
+# results/<host>-backoff/.
+# Needs TOP/build (from ./build.sh) only for libOpenImageIO_Util and the
+# generated headers; the benchmarks compile against thread.h copies in
+# spinlock-work/bench/backoff/ (before = pre-PR, main = merged PR).
 # Knobs (env), defaults in brackets:
-#   RUN [<host>-mc2]  MC_SIZES ["0 64 256"]  CONFIG_NAMES ["free allcores"]
-#   (from free, s0cores, split, allcores)  SYNTH_WL ["7 8"]  PROD_WL ["7 8"]
-#   PROD_CACHES ["8192 256"]  STATS_CACHES ["1024 256"]
-#   UNTILED_CACHES ["32 128 512"] (16 untiled 16 MB images, --runstats, NCPU threads)
-# --runstats at the STATS_CACHES sizes shows redundant reads and held memory.
-# Also ctest (texture/imagecache).
-# Then commits ALL results and pushes with `(cd oiio ; git50 push lgritz lg-spinlock)`.
+#   RUN [<host>-backoff]  VARIANTS ["128_64 4096_2 2048_4 4096_8"] (P_S for
+#   spin_mutex's atomic_backoff)  BENCH_VARIANTS [see below]
+#   THREADS ["1 2 4 8 16 32 64"]  PINNED ["s0cores split"]  ITERS [50000000]
+#   QUICK [0]  NOPUSH [0]
 #
 # Usage, from TOP (~/code/openimageio-feedstock), after
 # `git -C oiio checkout lg-spinlock && git -C oiio pull`:
-#     oiio/spinlock-work/remote/next_run.sh [/path/to/prodtextures.txt]
+#     oiio/spinlock-work/remote/next_run.sh
 # Safe to rerun: finished pieces (non-empty result files) are skipped.
-#
 # TOP/build is shared with other machines: do not run on two at once.
 
 set -u
-TEXLIST=${1:-${TEXLIST:-}}
-if [ -n "$TEXLIST" ]; then
-    [ -f "$TEXLIST" ] || { echo "No such list: $TEXLIST"; exit 1; }
-    TEXLIST=$(cd "$(dirname "$TEXLIST")" && pwd)/$(basename "$TEXLIST")
-fi
 if [ ! -x ./build.sh ] || [ ! -e oiio/.git ]; then
     echo "Run this from TOP (the dir containing build.sh and oiio/)."
     exit 1
 fi
 TOP=$(pwd)
 HOST=$(hostname -s)
-RUN=${RUN:-$HOST-mc4}
+RUN=${RUN:-$HOST-backoff}
 OUT=$TOP/oiio/spinlock-work/results/$RUN
-SW=$TOP/spinwork/mc
+SW=$TOP/spinwork/backoff
+BSRC=$TOP/oiio/spinlock-work/bench/backoff
 mkdir -p "$OUT" "$SW"
 LOG=$OUT/progress.log
 log() { echo "$(date '+%F %T') $*" | tee -a "$LOG"; sync; }
-MC_SIZES=${MC_SIZES:-"0 64 256"}
-CONFIG_NAMES=${CONFIG_NAMES:-"free allcores"}
-SYNTH_WL=${SYNTH_WL:-"7 8"}
-PROD_WL=${PROD_WL:-"7 8"}
-PROD_CACHES=${PROD_CACHES:-"8192 256"}
-STATS_CACHES=${STATS_CACHES:-"1024 256"}
-UNTILED_CACHES=${UNTILED_CACHES:-"32 128 512"}
+QUICK=${QUICK:-0}
+NOPUSH=${NOPUSH:-0}
+VARIANTS=${VARIANTS:-"128_64 4096_2 2048_4 4096_8"}
+BENCH_VARIANTS=${BENCH_VARIANTS:-"before:oiio after:oiio 128:64 128:0 1024:8 2048:4 4096:2 4096:8 16384:2"}
+THREADS=${THREADS:-"1 2 4 8 16 32 64"}
+PINNED=${PINNED:-"s0cores split"}
+ITERS=${ITERS:-50000000}
+LIGHT_OPS=8000000
+if [ "$QUICK" = 1 ]; then
+    ITERS=200000; LIGHT_OPS=20000; THREADS="1 4"; VARIANTS="128_64 4096_2"
+    BENCH_VARIANTS="after:oiio 4096:2"
+fi
 
 HAVE_TASKSET=0
 command -v taskset >/dev/null 2>&1 && HAVE_TASKSET=1
-[ $HAVE_TASKSET = 1 ] || log "taskset not found; pinned configs skipped"
 
-# ---- topology -> CPU sets ---------------------------------------------
-topo=$SW/topo.txt
-for c in /sys/devices/system/cpu/cpu[0-9]*; do
-    n=${c##*cpu}
-    pkg=$(cat "$c/topology/physical_package_id")
-    first=$(sed 's/[,-].*//' "$c/topology/thread_siblings_list")
-    echo "$n $pkg $first"
-done | sort -n > "$topo"
-cp "$topo" "$OUT/topology.txt"
-NCPU=$(wc -l < "$topo")
-NCORES=$(awk '$1==$3' "$topo" | wc -l)
-NPKG=$(awk '{print $2}' "$topo" | sort -u | wc -l)
-S0CORES=$(awk '$2==0 && $1==$3 {print $1}' "$topo" | paste -sd, -)
-ALLCORES=$(awk '$1==$3 {print $1}' "$topo" | paste -sd, -)
-SPLIT=$(awk '$1==$3 {c[$2]++; if (c[$2] <= h) print $1}' \
-        h=$(( NCORES / 2 / NPKG )) "$topo" | paste -sd, -)
-count() { echo "$1" | tr , '\n' | wc -l; }
-CONFIGS=( "free 1 -" )
-if [ $HAVE_TASKSET = 1 ]; then
-    CONFIGS+=( "s0cores $(count "$S0CORES") $S0CORES" )
-    [ "$NPKG" -gt 1 ] && CONFIGS+=( "split $(count "$SPLIT") $SPLIT" )
-    CONFIGS+=( "allcores $(count "$ALLCORES") $ALLCORES" )
+# ---- topology -> CPU sets ----------------------------------------------
+NCPU=$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+S0CORES=- SPLIT=- NPKG=1
+if [ -e /sys/devices/system/cpu/cpu0/topology/physical_package_id ]; then
+    topo=$SW/topo.txt
+    for c in /sys/devices/system/cpu/cpu[0-9]*; do
+        n=${c##*cpu}
+        pkg=$(cat "$c/topology/physical_package_id")
+        first=$(sed 's/[,-].*//' "$c/topology/thread_siblings_list")
+        echo "$n $pkg $first"
+    done | sort -n > "$topo"
+    cp "$topo" "$OUT/topology.txt"
+    NCORES=$(awk '$1==$3' "$topo" | wc -l)
+    NPKG=$(awk '{print $2}' "$topo" | sort -u | wc -l)
+    S0CORES=$(awk '$2==0 && $1==$3 {print $1}' "$topo" | paste -sd, -)
+    SPLIT=$(awk '$1==$3 {c[$2]++; if (c[$2] <= h) print $1}' \
+            h=$(( NCORES / 2 / NPKG )) "$topo" | paste -sd, -)
 fi
-CONFIGS+=( "free $NCPU -" )
-want_cfg() { case " $CONFIG_NAMES " in *" $1 "*) return 0;; esac; return 1; }
-ALL=( "${CONFIGS[@]}" ); CONFIGS=()
-for cfg in "${ALL[@]}"; do want_cfg "${cfg%% *}" && CONFIGS+=("$cfg"); done
+{ uname -a; lscpu 2>/dev/null; } > "$OUT/machine.txt"
+count() { echo "$1" | tr , '\n' | wc -l; }
+CONFIGS=()
+for t in $THREADS; do [ "$t" -le "$NCPU" ] && CONFIGS+=("free-$t $t -"); done
+if [ $HAVE_TASKSET = 1 ] && [ "$S0CORES" != - ]; then
+    case " $PINNED " in *" s0cores "*)
+        CONFIGS+=("s0cores-$(count "$S0CORES") $(count "$S0CORES") $S0CORES");; esac
+    if [ "$NPKG" -gt 1 ]; then
+        case " $PINNED " in *" split "*)
+            CONFIGS+=("split-$(count "$SPLIT") $(count "$SPLIT") $SPLIT");; esac
+    fi
+fi
 printf '%s\n' "${CONFIGS[@]}" | tee "$OUT/configs.txt"
-pin() {   # cpulist, then command
-    local cpus=$1; shift
-    if [ "$cpus" = - ]; then "$@"; else taskset -c "$cpus" "$@"; fi
-}
+pin() { local cpus=$1; shift
+        if [ "$cpus" = - ]; then "$@"; else taskset -c "$cpus" "$@"; fi; }
 
-# ---- build + ctest ----------------------------------------------------
+# ---- build ----------------------------------------------------------------
 log "START build lg-spinlock $(git -C oiio rev-parse --short HEAD)"
 ( EXTRA_CMAKE_ARGS="${EXTRA_CMAKE_ARGS:-} -DOIIO_BUILD_TESTS=ON" ./build.sh ) \
     > "$SW/build.log" 2>&1 || { log "build FAILED; see $SW/build.log"; tail -30 "$SW/build.log"; exit 1; }
 tail -5 "$SW/build.log" > "$OUT/build.tail"
 git -C oiio log -1 --format='%H %s' > "$OUT/git.txt"
-log "END build"
-TESTTEX=$TOP/build/bin/testtex
-if [ ! -s "$OUT/ctest.txt" ]; then
-    log "START ctest"
-    ( cd "$TOP/build" &&
-      ctest -R '^openvdb$' --timeout 900
-      ctest -R 'texture|imagecache|maketx' -E 'texture-udim' -j 8 --timeout 1800
-    ) > "$OUT/ctest.txt" 2>&1
-    log "END ctest: $(grep -E 'tests passed|tests failed' "$OUT/ctest.txt" | tail -1)"
-fi
-
-PRODFILES=()
-if [ -n "$TEXLIST" ]; then
-    while read -r f; do [ -n "$f" ] && PRODFILES+=("$f"); done < "$TEXLIST"
-fi
-GEN='--maketests 10 test{:04}.exr --maketest-res 1024'
-
-tt() {   # outfile, mc, cpus, testtex args...
-    local f=$1 mc=$2 cpus=$3; shift 3
-    [ -s "$f" ] && return
-    OPENIMAGEIO_IMAGECACHE_OPTIONS="microcache_size=$mc" pin "$cpus" "$TESTTEX" "$@" > "$f" 2>&1
+LIBDIR=$(dirname "$(find "$TOP/build" \( -name 'libOpenImageIO_Util.so*' -o -name 'libOpenImageIO_Util*.dylib' \) | head -1)")
+INCS="-I$TOP/build/include/OpenImageIO -I$TOP/build/include -I$TOP/build/src/include -I$TOP/oiio/src/include"
+for d in "$TOP/build/deps/dist/include" "$TOP/build/deps/include" "$TOP/dist/include"; do
+    [ -d "$d" ] && INCS="$INCS -I$d"
+done
+CXX=${CXX:-c++}
+cc1() {   # out, thread.h, source
+    local out=$1 hdr=$2 src=$3 d=$SW/inc-$(basename "$1")
+    mkdir -p "$d/OpenImageIO"; cp "$hdr" "$d/OpenImageIO/thread.h"
+    # shellcheck disable=SC2086
+    $CXX -O3 -DNDEBUG -DOIIO_INTERNAL=1 -std=c++17 -pthread -I"$d" $INCS "$src" \
+        -L"$LIBDIR" -lOpenImageIO_Util -Wl,-rpath,"$LIBDIR" -o "$out" \
+        >> "$SW/compile.log" 2>&1 || { log "compile FAILED $out; see $SW/compile.log"; tail -20 "$SW/compile.log"; exit 1; }
 }
+log "START compile"
+: > "$SW/compile.log"
+cc1 "$SW/spin_before" "$BSRC/thread_before.h" "$BSRC/spinlock_test.cpp"
+for v in $VARIANTS; do
+    p=${v%_*}; s=${v#*_}
+    sed "s/atomic_backoff backoff(128, 64);/atomic_backoff backoff($p, $s);/" \
+        "$BSRC/thread_main.h" > "$SW/thread_$v.h"
+    grep -q "backoff($p, $s);" "$SW/thread_$v.h" || { log "sed FAILED for $v"; exit 1; }
+    cc1 "$SW/spin_$v" "$SW/thread_$v.h" "$BSRC/spinlock_test.cpp"
+done
+cc1 "$SW/bench_before" "$BSRC/thread_before.h" "$BSRC/backoff_bench.cpp"
+cc1 "$SW/bench_after" "$BSRC/thread_main.h" "$BSRC/backoff_bench.cpp"
+cc1 "$SW/pausecost" "$BSRC/thread_main.h" "$BSRC/pausecost.cpp"
+log "END compile"
+[ -s "$OUT/pausecost.txt" ] || "$SW/pausecost" > "$OUT/pausecost.txt" 2>&1
 
-# ---- timing runs ------------------------------------------------------
-cd "$SW"
+# ---- spinlock_test with each spin_mutex backoff --------------------------
 for cfg in "${CONFIGS[@]}"; do
     read -r name nt cpus <<< "$cfg"
-    tag=$name-$nt
-    log "START $tag"
-    for mc in $MC_SIZES; do
-        for m in $SYNTH_WL; do
-            tt "$OUT/tt-w$m-$tag-mc$mc.txt" $mc "$cpus" $GEN \
-                --threadtimes $m --threads "$nt" --trials 3
-        done
-        if [ ${#PRODFILES[@]} -gt 0 ]; then
-            for c in $PROD_CACHES; do
-                for m in $PROD_WL; do
-                    tt "$OUT/tt-prod-c$c-w$m-$tag-mc$mc.txt" $mc "$cpus" \
-                        --threadtimes $m --threads "$nt" --trials 3 \
-                        --cachesize $c --maxfiles 1000 "${PRODFILES[@]}"
-                done
-            done
-        fi
+    for v in before $VARIANTS; do
+        f=$OUT/spinlock-$v-$name.txt
+        [ -s "$f" ] && continue
+        log "START spinlock $v $name"
+        timeout 600 pin "$cpus" "$SW/spin_$v" --threads "$nt" --trials 3 \
+            --iters "$ITERS" > "$f" 2>&1 || echo "*** exit $?" >> "$f"
     done
-    log "END $tag"
 done
+log "END spinlock"
 
-# ---- stats runs: does holding tiles raise redundant reads? -------------
-if [ ${#PRODFILES[@]} -gt 0 ]; then
-    log "START stats"
-    for mc in $MC_SIZES; do
-        for c in $STATS_CACHES; do
-            tt "$OUT/stats-prod-c$c-w7-free-$NCPU-mc$mc.txt" $mc - \
-                --threadtimes 7 --threads "$NCPU" --runstats \
-                --cachesize $c --maxfiles 1000 "${PRODFILES[@]}"
+# ---- backoff bench: hammer and light workloads ---------------------------
+for wl in hammer light; do
+    ops=$ITERS; [ $wl = light ] && ops=$LIGHT_OPS
+    for cfg in "${CONFIGS[@]}"; do
+        read -r name nt cpus <<< "$cfg"
+        for v in $BENCH_VARIANTS; do
+            f=$OUT/bench-$wl-${v//:/_}-$name.txt
+            [ -s "$f" ] && continue
+            bin=$SW/bench_after var=$v
+            case $v in before:oiio) bin=$SW/bench_before; var=oiio;; after:oiio) var=oiio;; esac
+            log "START bench $wl $v $name"
+            timeout 300 pin "$cpus" "$bin" "$var" "$nt" "$wl" "$ops" 3 > "$f" 2>&1 \
+                || echo "*** exit $?" >> "$f"
         done
     done
-    log "END stats"
-fi
-
-# ---- untiled single-tile images: held tiles can exceed the cache --------
-if [ -n "$UNTILED_CACHES" ]; then
-    log "START untiled"
-    UD=$SW/untiled
-    mkdir -p "$UD"
-    for i in $(seq -w 0 15); do
-        [ -s "$UD/u$i.exr" ] || "$TOP/build/bin/oiiotool" \
-            --pattern fill:top=0.$i,0,0,1:bottom=1,1,1,1 1024x1024 4 \
-            -d float --compression none -o "$UD/u$i.exr"
-    done
-    for mc in $MC_SIZES; do
-        for c in $UNTILED_CACHES; do
-            tt "$OUT/stats-untiled-c$c-w7-free-$NCPU-mc$mc.txt" $mc - \
-                --threadtimes 7 --threads "$NCPU" --trials 1 --iters 200000 \
-                --runstats --cachesize $c "$UD"/u*.exr
-        done
-    done
-    log "END untiled"
-fi
-cd "$TOP"
-if [ ${#PRODFILES[@]} -gt 0 ] && [ "${SCRUB_NAMES:-1}" = 1 ]; then
-    printf '%s\n' "${PRODFILES[@]}" > "$SW/prodfiles.lst"
-    python3 -I oiio/spinlock-work/remote/scrub.py "$SW/prodfiles.lst" \
-        "$OUT"/tt-prod-*.txt "$OUT"/stats-prod-*.txt
-fi
+done
+log "END bench"
 
 # ---- summary ------------------------------------------------------------
 {
-    t() { awk -v n="$2" '$1==n && $2 ~ /^[0-9.]+$/ {print $2; exit}' "$1" 2>/dev/null; }
-    hdr="| workload | config |"; sep="|---|---|"
-    for mc in $MC_SIZES; do hdr="$hdr mc$mc |"; sep="$sep---|"; done
-    echo "## testtex seconds (best of 3)"; echo; echo "$hdr"; echo "$sep"
-    wls=""
-    for m in $SYNTH_WL; do wls="$wls w$m"; done
-    for c in $PROD_CACHES; do for m in $PROD_WL; do wls="$wls prod-c$c-w$m"; done; done
-    for w in $wls; do
+    echo "## pause cost"; echo '```'; cat "$OUT/pausecost.txt"; echo '```'; echo
+    echo "## spinlock_test seconds (best of 3, $ITERS ops; range in parens)"; echo
+    hdr="| config |"; sep="|---|"
+    for v in before $VARIANTS; do hdr="$hdr $v |"; sep="$sep---|"; done
+    echo "$hdr"; echo "$sep"
+    for cfg in "${CONFIGS[@]}"; do
+        read -r name nt cpus <<< "$cfg"
+        row="| $name |"
+        for v in before $VARIANTS; do
+            r=$(awk -v n="$nt" '$1==n && $2 ~ /^[0-9.]+$/ {print $2" ("$6")"; exit}' \
+                "$OUT/spinlock-$v-$name.txt" 2>/dev/null)
+            row="$row $r |"
+        done
+        echo "$row"
+    done
+    for wl in hammer light; do
+        echo; echo "## bench $wl: ns/op (best of 3) / mean contended wait us"; echo
+        hdr="| config |"; sep="|---|"
+        for v in $BENCH_VARIANTS; do hdr="$hdr $v |"; sep="$sep---|"; done
+        echo "$hdr"; echo "$sep"
         for cfg in "${CONFIGS[@]}"; do
             read -r name nt cpus <<< "$cfg"
-            [ -e "$OUT/tt-$w-$name-$nt-mc${MC_SIZES%% *}.txt" ] || continue
-            row="| $w | $name-$nt |"
-            for mc in $MC_SIZES; do row="$row $(t "$OUT/tt-$w-$name-$nt-mc$mc.txt" "$nt") |"; done
+            row="| $name |"
+            for v in $BENCH_VARIANTS; do
+                r=$(awk '{for (i=1;i<=NF;i++) { if ($i=="ns/op") ns=$(i-1); if ($i=="wait") w=$(i+1) }}
+                         END {print ns" / "w}' "$OUT/bench-$wl-${v//:/_}-$name.txt" 2>/dev/null)
+                row="$row $r |"
+            done
             echo "$row"
         done
-    done
-    echo
-    echo "## w7 --runstats at $NCPU threads"
-    for f in "$OUT"/stats-prod-*.txt "$OUT"/stats-untiled-*.txt; do
-        [ -e "$f" ] || continue
-        echo; echo "### $(basename "$f" .txt)"; echo '```'
-        grep -E 'micro-cache|redundant|Peak cache|victim slots|Sweeps|Tiles:|File I/O|^ *[0-9]+ +[0-9.]+ +[0-9.]+x' "$f"
-        echo '```'
     done
 } > "$OUT/SUMMARY.md"
 cat "$OUT/SUMMARY.md"
 
 # ---- commit + push ----------------------------------------------------
-git -C oiio add spinlock-work/results
+git -C oiio add spinlock-work/results/"$RUN"
 if git -C oiio diff --cached --quiet; then
     echo "Nothing new to commit."
 else
     git -C oiio commit -q -m "spinlock-work: results from $RUN"
     git -C oiio log --oneline -1
 fi
+[ "$NOPUSH" = 1 ] && { echo "NOPUSH=1: not pushing."; exit 0; }
 echo
 # git50 may be an alias or shell function, which a non-interactive script
 # can't see, so fall back to an interactive shell.
