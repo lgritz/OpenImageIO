@@ -91,6 +91,50 @@ oiiotool ERROR: read : "src/crash-bfd2220.jxl": jpegxl image dimension 328438676
 If you're sure this is a valid file, raise the OIIO global attribute "limits:resolution".
 Full command line was:
 > oiiotool -info -oiioattrib limits:imagesize_MB 16384 src/crash-bfd2220.jxl
-oiiotool ERROR: read : "src/truncated.jxl": JPEG XL decoder error
+Reading src/truncated.jxl
+oiiotool ERROR: -info : SHA-1: JPEG XL decoder error
 Full command line was:
 > oiiotool --info -v -a --no-metamatch DateTime|Software|OriginatingProgram|ImageHistory --hash src/truncated.jxl
+src/truncated.jxl    :  128 x   96, 3 channel, uint8 jpegxl
+    channel list: R, G, B
+    CICP: 1, 13, 0, 1
+    ICCProfile: 0, 0, 1, 248, 106, 120, 108, 32, 4, 64, 0, 0, 109, 110, 116, 114, ... [504 x uint8]
+    ICCProfile:attributes: "Reflective, Glossy, Positive, Color"
+    ICCProfile:cmm_type: 1786276896
+    ICCProfile:color_space: "RGB"
+    ICCProfile:copyright: "CC0"
+    ICCProfile:creation_date: "2019:12:01 00:00:00"
+    ICCProfile:creator_signature: "6a786c20"
+    ICCProfile:device_class: "Display device profile"
+    ICCProfile:flags: "Not Embedded, Independent"
+    ICCProfile:manufacturer: "0"
+    ICCProfile:model: "0"
+    ICCProfile:platform_signature: "Apple Computer, Inc."
+    ICCProfile:profile_connection_space: "XYZ"
+    ICCProfile:profile_description: "sRGB"
+    ICCProfile:profile_size: 504
+    ICCProfile:profile_version: "4.4.0"
+    ICCProfile:rendering_intent: "Media-relative colorimetric"
+    oiio:ColorSpace: "srgb_rec709_scene"
+Reading src/truncated.jxl
+src/truncated.jxl    :  128 x   96, 3 channel, uint8 jpegxl
+    channel list: R, G, B
+    CICP: 1, 13, 0, 1
+    ICCProfile: 0, 0, 1, 248, 106, 120, 108, 32, 4, 64, 0, 0, 109, 110, 116, 114, ... [504 x uint8]
+    ICCProfile:attributes: "Reflective, Glossy, Positive, Color"
+    ICCProfile:cmm_type: 1786276896
+    ICCProfile:color_space: "RGB"
+    ICCProfile:copyright: "CC0"
+    ICCProfile:creation_date: "2019:12:01 00:00:00"
+    ICCProfile:creator_signature: "6a786c20"
+    ICCProfile:device_class: "Display device profile"
+    ICCProfile:flags: "Not Embedded, Independent"
+    ICCProfile:manufacturer: "0"
+    ICCProfile:model: "0"
+    ICCProfile:platform_signature: "Apple Computer, Inc."
+    ICCProfile:profile_connection_space: "XYZ"
+    ICCProfile:profile_description: "sRGB"
+    ICCProfile:profile_size: 504
+    ICCProfile:profile_version: "4.4.0"
+    ICCProfile:rendering_intent: "Media-relative colorimetric"
+    oiio:ColorSpace: "srgb_rec709_scene"
