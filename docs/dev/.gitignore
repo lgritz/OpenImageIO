@@ -12,3 +12,6 @@ specs/*
 # developers, they must be individually added here.
 
 # !specs/example
+!specs/001-image-fuzzing
+!specs/002-format-security-audit
+!specs/003-iv-imgui-port
