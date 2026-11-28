@@ -37,3 +37,6 @@ gastest.o
 .github/copilot-instructions.md
 
 
+
+# Third-party code bundled with iv
+!src/iv/ext/

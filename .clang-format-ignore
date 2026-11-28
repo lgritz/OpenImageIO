@@ -7,5 +7,6 @@ src/cineon.imageio/libcineon/*
 src/dds.imageio/bcdec.h
 src/gif.imageio/gif.h
 src/libutil/stb_sprintf.h
+src/iv/ext/*
 # machine generated code, don't format
 src/libOpenImageIO/bluenoise.h

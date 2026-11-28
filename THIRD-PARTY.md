@@ -155,6 +155,14 @@ SPDX-License-Identifier: MIT
 * fasthash
   Copyright (C) 2012 Zilong Tan (eric.zltan@gmail.com)
 
+* Dear ImGui (used only by iv) https://github.com/ocornut/imgui
+  Copyright (c) 2014-2026 Omar Cornut
+
+* glad OpenGL loader generator (used only by iv)
+  https://github.com/Dav1dde/glad
+  Copyright (c) 2013-2022 David Herberth. The generated loader also
+  contains Khronos specification material under the Apache-2.0 license.
+
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -249,6 +257,10 @@ SPDX-License-Identifier: Zlib
 
 * Base-64 encoder from http://www.adp-gmbh.ch/cpp/common/base64.html
   Copyright (C) 2004-2008 René Nyffenegger
+
+* tinyfiledialogs (used only by iv)
+  https://sourceforge.net/projects/tinyfiledialogs/
+  Copyright (c) 2014 - 2025 Guillaume Vareille
 
 
 This source code is provided 'as-is', without any express or implied
