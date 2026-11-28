@@ -248,20 +248,37 @@ if ((FFmpeg_FOUND OR FREETYPE_FOUND OR TARGET Freetype::Freetype)
 endif()
 
 
-# Qt -- used for iv
+# GUI toolkit for iv. Qt is the historical one; ImGui (Dear ImGui + GLFW) is
+# the lightweight replacement.
+set_cache (OIIO_IV_BACKEND "Qt" "GUI toolkit used by iv: Qt or ImGui")
+set_property (CACHE OIIO_IV_BACKEND PROPERTY STRINGS Qt ImGui)
+option (OIIO_IV_EXTERNAL_IMGUI
+        "For the ImGui iv backend, use an external Dear ImGui instead of the bundled copy" OFF)
 option (USE_QT "Use Qt if found" ON)
-if (USE_QT)
+if (OIIO_IV_BACKEND STREQUAL "Qt")
+    if (USE_QT)
+        checked_find_package (OpenGL)   # used for iv
+    endif ()
+    if (USE_QT AND OPENGL_FOUND)
+        checked_find_package (Qt6 COMPONENTS Core Gui Widgets OpenGLWidgets)
+        if (NOT Qt6_FOUND)
+            checked_find_package (Qt5 COMPONENTS Core Gui Widgets OpenGL)
+        endif ()
+        if (NOT Qt5_FOUND AND NOT Qt6_FOUND AND APPLE)
+            message (STATUS "  If you think you installed qt with Homebrew and it still doesn't work,")
+            message (STATUS "  try:   export PATH=/usr/local/opt/qt/bin:$PATH")
+        endif ()
+    endif ()
+elseif (OIIO_IV_BACKEND STREQUAL "ImGui")
     checked_find_package (OpenGL)   # used for iv
-endif ()
-if (USE_QT AND OPENGL_FOUND)
-    checked_find_package (Qt6 COMPONENTS Core Gui Widgets OpenGLWidgets)
-    if (NOT Qt6_FOUND)
-        checked_find_package (Qt5 COMPONENTS Core Gui Widgets OpenGL)
+    if (OPENGL_FOUND)
+        checked_find_package (glfw3 CONFIG VERSION_MIN 3.3)
+        if (OIIO_IV_EXTERNAL_IMGUI)
+            checked_find_package (imgui CONFIG)
+        endif ()
     endif ()
-    if (NOT Qt5_FOUND AND NOT Qt6_FOUND AND APPLE)
-        message (STATUS "  If you think you installed qt with Homebrew and it still doesn't work,")
-        message (STATUS "  try:   export PATH=/usr/local/opt/qt/bin:$PATH")
-    endif ()
+else ()
+    message (FATAL_ERROR "OIIO_IV_BACKEND must be \"Qt\" or \"ImGui\", not \"${OIIO_IV_BACKEND}\"")
 endif ()
 
 

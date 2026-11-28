@@ -21,12 +21,11 @@
 #include <array>
 #include <vector>
 
-#include <QOpenGLExtraFunctions>
-#include <QOpenGLWidget>
 
 #include <OpenImageIO/imagebuf.h>
 #include <OpenImageIO/imageio.h>
 
+#include "ivui.h"
 #include "ivutils.h"
 
 using namespace OIIO;
@@ -34,15 +33,18 @@ using namespace OIIO;
 class IvImage;
 class ImageViewer;
 
-class IvGL : public QOpenGLWidget, protected QOpenGLExtraFunctions {
+class IvGL : public IvGLWidget {
     Q_OBJECT
 public:
-    IvGL(QWidget* parent, ImageViewer& viewer);
+    IvGL(IvWidget* parent, ImageViewer& viewer);
     virtual ~IvGL();
 
     /// Update the image texture.
     ///
     virtual void update();
+
+    // Schedule a repaint without updating the image texture.
+    void request_redraw() { parent_t::update(); }
     void reset_wipe()
     {
         m_wipe = Wipe();
@@ -87,7 +89,7 @@ public:
 
     /// Let the widget know which pixel the mouse is over
     ///
-    void remember_mouse(const QPoint& pos);
+    void remember_mouse(const IvPoint& pos);
 
     /// Which image pixel is the mouse over?
     ///
@@ -133,7 +135,7 @@ protected:
         bool horizontal = false;
         float fraction  = 0.5f;
         bool anchored   = false;
-        QPoint anchor;
+        IvPoint anchor;
     };
     ImageViewer& m_viewer;          ///< Backpointer to viewer
     bool m_shaders_created;         ///< Have the shaders been created?
@@ -144,9 +146,9 @@ protected:
     float m_centerx, m_centery;     ///< Center of view, in pixel coords
     bool m_dragging;                ///< Are we dragging?
     int m_mousex, m_mousey;         ///< Last mouse position
-    Qt::MouseButton m_drag_button;  ///< Button on when dragging
-    QPoint m_select_start;          ///< Mouse start position for the area probe
-    QPoint m_select_end;            ///< Mouse end position for the area probe
+    Iv::MouseButton m_drag_button;  // Button on when dragging
+    IvPoint m_select_start;         // Mouse start position for the area probe
+    IvPoint m_select_end;           // Mouse end position for the area probe
     bool m_selecting;               ///< Are we selecting?
     bool m_use_shaders;             ///< Are shaders supported?
     bool m_use_halffloat;           ///< Are half-float textures supported?
@@ -197,12 +199,12 @@ protected:
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
-    void mousePressEvent(QMouseEvent* event) override;
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void wheelEvent(QWheelEvent* event) override;
-    void focusOutEvent(QFocusEvent* event) override;
-    void leaveEvent(QEvent* event) override;
+    void mousePressEvent(IvMouseEvent* event) override;
+    void mouseReleaseEvent(IvMouseEvent* event) override;
+    void mouseMoveEvent(IvMouseEvent* event) override;
+    void wheelEvent(IvWheelEvent* event) override;
+    void focusOutEvent(IvFocusEvent* event) override;
+    void leaveEvent(IvEvent* event) override;
 
     void paint_pixelview();
     void paint_probeview();
@@ -214,8 +216,15 @@ protected:
     virtual void useshader(int tex_width, int tex_height,
                            bool pixelview = false);
 
+    // A line segment to draw over the image, in widget coordinates.
+    struct OverlayLine {
+        float x1, y1, x2, y2;
+        IvColor color;
+    };
+    void draw_lines(cspan<OverlayLine> lines);
+
     void shadowed_text(float x, float y, float z, const std::string& s,
-                       const QColor& color = Qt::white);
+                       const IvColor& color = IvColor(255, 255, 255));
 
     virtual void update_state(void);
 
@@ -228,7 +237,7 @@ protected:
     virtual const char* color_func_shader_text();
 
 private:
-    typedef QOpenGLWidget parent_t;
+    typedef IvGLWidget parent_t;
 
     /// closeup_window_size is the size, in pixels, of the closeup window itself --
     /// just the number of pixels times the width of each closeup pixel.

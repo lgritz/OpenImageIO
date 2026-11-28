@@ -10,35 +10,13 @@
 #endif
 #include <vector>
 
-#ifndef OIIO_QT_MAJOR
-#    error "Build problem? OIIO_QT_MAJOR not defined."
-#endif
-
 #include "imageviewer.h"
 #include "ivgl.h"
 #include "ivgl_ocio.h"
 
-#include <QApplication>
-#include <QComboBox>
-#include <QDialogButtonBox>
-#include <QFileDialog>
-#include <QKeyEvent>
-#include <QLabel>
-#include <QMenu>
-#include <QMenuBar>
-#include <QMessageBox>
-#include <QProgressBar>
-#include <QResizeEvent>
-#include <QSettings>
-#include <QSignalBlocker>
-#include <QSpinBox>
-#include <QStatusBar>
-#include <QTextEdit>
-#include <QTimer>
-#include <QVBoxLayout>
-
-#if OIIO_QT_MAJOR < 6
-#    include <QDesktopWidget>
+#ifdef IV_USE_QT
+#    include <QMessageBox>
+#    include <QMimeData>
 #endif
 
 #include <OpenImageIO/color.h>
@@ -120,20 +98,26 @@ ImageViewer::ImageViewer(bool use_ocio, const std::string& image_color_space,
     // Also, some time in the future we may want a real 3D LUT for
     // "film look", etc.
 
+#ifdef IV_USE_QT
     if (darkPalette())
         m_palette = QPalette(Qt::darkGray);  // darkGray?
     else
         m_palette = QPalette();
     QApplication::setPalette(m_palette);  // FIXME -- why not work?
     this->setPalette(m_palette);
+#else
+    iv_set_dark_style(darkPalette());
+#endif
 
-    slideTimer       = new QTimer();
+    slideTimer       = new IvTimer();
     slideDuration_ms = 5000;
     slide_loop       = true;
 
     glwin = new IvGL_OCIO(this, *this);
 
+#ifdef IV_USE_QT
     glwin->setPalette(m_palette);
+#endif
     glwin->resize(m_default_width, m_default_height);
     setCentralWidget(glwin);
 
@@ -147,15 +131,14 @@ ImageViewer::ImageViewer(bool use_ocio, const std::string& image_color_space,
     setWindowTitle(tr("Image Viewer"));
     resize(m_default_width, m_default_height);
 
+#ifdef IV_USE_QT
     setAcceptDrops(true);
     // Disable drag and drop on child widgets
     for (QWidget* child : findChildren<QWidget*>()) {
         child->setAcceptDrops(false);
     }
-
-    //    setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Ignored);
-
     setAttribute(Qt::WA_DeleteOnClose);
+#endif
 }
 
 
@@ -172,11 +155,25 @@ ImageViewer::~ImageViewer()
 
 
 void
-ImageViewer::closeEvent(QCloseEvent*)
+ImageViewer::closeEvent(IvCloseEvent*)
 {
     writeSettings();
 }
 
+void
+ImageViewer::add_dropped_files(const std::vector<std::string>& filenames)
+{
+    size_t old_size = m_images.size();
+    for (auto& f : filenames)
+        add_image(f);
+    // Switch to the first newly added image
+    if (m_images.size() > old_size)
+        current_image(old_size);
+}
+
+
+
+#ifdef IV_USE_QT
 void
 ImageViewer::dragEnterEvent(QDragEnterEvent* event)
 {
@@ -187,332 +184,335 @@ ImageViewer::dragEnterEvent(QDragEnterEvent* event)
 void
 ImageViewer::dropEvent(QDropEvent* event)
 {
-    const QMimeData* mimeData = event->mimeData();
-    if (mimeData->hasUrls()) {
-        size_t old_size = m_images.size();
-        for (const QUrl& url : mimeData->urls()) {
-            QString filePath = url.toLocalFile();
-            add_image(filePath.toStdString());
-        }
-        // Switch to the first newly added image
-        if (m_images.size() > old_size) {
-            current_image(old_size);
-        }
-    }
+    std::vector<std::string> filenames;
+    for (const QUrl& url : event->mimeData()->urls())
+        filenames.emplace_back(url.toLocalFile().toStdString());
+    add_dropped_files(filenames);
 }
+#endif
 
 
 
 void
 ImageViewer::createActions()
 {
-    openAct = new QAction(tr("&Open..."), this);
+    openAct = new IvAction(tr("&Open..."), this);
     openAct->setShortcut(tr("Ctrl+O"));
-    connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
+    connect(openAct, &IvAction::triggered, this, &ImageViewer::open);
 
-    for (auto& i : openRecentAct) {
-        i = new QAction(this);
-        i->setVisible(false);
-        connect(i, SIGNAL(triggered()), this, SLOT(openRecentFile()));
+    for (size_t i = 0; i < MaxRecentFiles; ++i) {
+        openRecentAct[i] = new IvAction(this);
+        openRecentAct[i]->setVisible(false);
+        connect(openRecentAct[i], &IvAction::triggered, this,
+                [this, i] { openRecentFile(i); });
     }
 
-    reloadAct = new QAction(tr("&Reload image"), this);
+    reloadAct = new IvAction(tr("&Reload image"), this);
     reloadAct->setShortcut(tr("Ctrl+R"));
-    connect(reloadAct, SIGNAL(triggered()), this, SLOT(reload()));
+    connect(reloadAct, &IvAction::triggered, this, &ImageViewer::reload);
 
-    closeImgAct = new QAction(tr("&Close Image"), this);
+    closeImgAct = new IvAction(tr("&Close Image"), this);
     closeImgAct->setShortcut(tr("Ctrl+W"));
-    connect(closeImgAct, SIGNAL(triggered()), this, SLOT(closeImg()));
+    connect(closeImgAct, &IvAction::triggered, this, &ImageViewer::closeImg);
 
-    saveAsAct = new QAction(tr("&Save As..."), this);
+    saveAsAct = new IvAction(tr("&Save As..."), this);
     saveAsAct->setShortcut(tr("Ctrl+S"));
-    connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
+    connect(saveAsAct, &IvAction::triggered, this, &ImageViewer::saveAs);
 
-    saveWindowAsAct = new QAction(tr("Save Window As..."), this);
-    connect(saveWindowAsAct, SIGNAL(triggered()), this, SLOT(saveWindowAs()));
+    saveWindowAsAct = new IvAction(tr("Save Window As..."), this);
+    connect(saveWindowAsAct, &IvAction::triggered, this,
+            &ImageViewer::saveWindowAs);
 
-    saveSelectionAsAct = new QAction(tr("Save Selection As..."), this);
-    connect(saveSelectionAsAct, SIGNAL(triggered()), this,
-            SLOT(saveSelectionAs()));
+    saveSelectionAsAct = new IvAction(tr("Save Selection As..."), this);
+    connect(saveSelectionAsAct, &IvAction::triggered, this,
+            &ImageViewer::saveSelectionAs);
 
-    moveToNewWindowAct = new QAction(tr("Move to new window"), this);
-    connect(moveToNewWindowAct, SIGNAL(triggered()), this,
-            SLOT(moveToNewWindow()));
+    moveToNewWindowAct = new IvAction(tr("Move to new window"), this);
+    connect(moveToNewWindowAct, &IvAction::triggered, this,
+            &ImageViewer::moveToNewWindow);
 
-    printAct = new QAction(tr("&Print..."), this);
-    printAct->setShortcut(tr("Ctrl+P"));
-    printAct->setEnabled(false);
-    connect(printAct, SIGNAL(triggered()), this, SLOT(print()));
-
-    deleteCurrentImageAct = new QAction(tr("&Delete from disk"), this);
+    deleteCurrentImageAct = new IvAction(tr("&Delete from disk"), this);
     deleteCurrentImageAct->setShortcut(tr("Delete"));
-    connect(deleteCurrentImageAct, SIGNAL(triggered()), this,
-            SLOT(deleteCurrentImage()));
+    connect(deleteCurrentImageAct, &IvAction::triggered, this,
+            &ImageViewer::deleteCurrentImage);
 
-    editPreferencesAct = new QAction(tr("&Preferences..."), this);
+    editPreferencesAct = new IvAction(tr("&Preferences..."), this);
     editPreferencesAct->setShortcut(tr("Ctrl+,"));
     editPreferencesAct->setEnabled(true);
-    connect(editPreferencesAct, SIGNAL(triggered()), this,
-            SLOT(editPreferences()));
+    connect(editPreferencesAct, &IvAction::triggered, this,
+            &ImageViewer::editPreferences);
 
-    exitAct = new QAction(tr("E&xit"), this);
+    exitAct = new IvAction(tr("E&xit"), this);
     exitAct->setShortcut(tr("Ctrl+Q"));
-    connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
+    connect(exitAct, &IvAction::triggered, this, &ImageViewer::close);
 
-    exposurePlusOneTenthStopAct = new QAction(tr("Exposure +1/10 stop"), this);
+    exposurePlusOneTenthStopAct = new IvAction(tr("Exposure +1/10 stop"), this);
     exposurePlusOneTenthStopAct->setShortcut(tr("]"));
-    connect(exposurePlusOneTenthStopAct, SIGNAL(triggered()), this,
-            SLOT(exposurePlusOneTenthStop()));
+    connect(exposurePlusOneTenthStopAct, &IvAction::triggered, this,
+            &ImageViewer::exposurePlusOneTenthStop);
 
-    exposurePlusOneHalfStopAct = new QAction(tr("Exposure +1/2 stop"), this);
+    exposurePlusOneHalfStopAct = new IvAction(tr("Exposure +1/2 stop"), this);
     exposurePlusOneHalfStopAct->setShortcut(tr("}"));
-    connect(exposurePlusOneHalfStopAct, SIGNAL(triggered()), this,
-            SLOT(exposurePlusOneHalfStop()));
+    connect(exposurePlusOneHalfStopAct, &IvAction::triggered, this,
+            &ImageViewer::exposurePlusOneHalfStop);
 
-    exposureMinusOneTenthStopAct = new QAction(tr("Exposure -1/10 stop"), this);
+    exposureMinusOneTenthStopAct = new IvAction(tr("Exposure -1/10 stop"),
+                                                this);
     exposureMinusOneTenthStopAct->setShortcut(tr("["));
-    connect(exposureMinusOneTenthStopAct, SIGNAL(triggered()), this,
-            SLOT(exposureMinusOneTenthStop()));
+    connect(exposureMinusOneTenthStopAct, &IvAction::triggered, this,
+            &ImageViewer::exposureMinusOneTenthStop);
 
-    exposureMinusOneHalfStopAct = new QAction(tr("Exposure -1/2 stop"), this);
+    exposureMinusOneHalfStopAct = new IvAction(tr("Exposure -1/2 stop"), this);
     exposureMinusOneHalfStopAct->setShortcut(tr("{"));
-    connect(exposureMinusOneHalfStopAct, SIGNAL(triggered()), this,
-            SLOT(exposureMinusOneHalfStop()));
+    connect(exposureMinusOneHalfStopAct, &IvAction::triggered, this,
+            &ImageViewer::exposureMinusOneHalfStop);
 
-    gammaPlusAct = new QAction(tr("Gamma +0.1"), this);
+    gammaPlusAct = new IvAction(tr("Gamma +0.1"), this);
     gammaPlusAct->setShortcut(tr(")"));
-    connect(gammaPlusAct, SIGNAL(triggered()), this, SLOT(gammaPlus()));
+    connect(gammaPlusAct, &IvAction::triggered, this, &ImageViewer::gammaPlus);
 
-    gammaMinusAct = new QAction(tr("Gamma -0.1"), this);
+    gammaMinusAct = new IvAction(tr("Gamma -0.1"), this);
     gammaMinusAct->setShortcut(tr("("));
-    connect(gammaMinusAct, SIGNAL(triggered()), this, SLOT(gammaMinus()));
+    connect(gammaMinusAct, &IvAction::triggered, this,
+            &ImageViewer::gammaMinus);
 
-    viewChannelFullAct = new QAction(tr("Full Color"), this);
+    viewChannelFullAct = new IvAction(tr("Full Color"), this);
     viewChannelFullAct->setShortcut(tr("c"));
     viewChannelFullAct->setCheckable(true);
     viewChannelFullAct->setChecked(true);
-    connect(viewChannelFullAct, SIGNAL(triggered()), this,
-            SLOT(viewChannelFull()));
+    connect(viewChannelFullAct, &IvAction::triggered, this,
+            &ImageViewer::viewChannelFull);
 
-    viewChannelRedAct = new QAction(tr("Red"), this);
+    viewChannelRedAct = new IvAction(tr("Red"), this);
     viewChannelRedAct->setShortcut(tr("r"));
     viewChannelRedAct->setCheckable(true);
-    connect(viewChannelRedAct, SIGNAL(triggered()), this,
-            SLOT(viewChannelRed()));
+    connect(viewChannelRedAct, &IvAction::triggered, this,
+            &ImageViewer::viewChannelRed);
 
-    viewChannelGreenAct = new QAction(tr("Green"), this);
+    viewChannelGreenAct = new IvAction(tr("Green"), this);
     viewChannelGreenAct->setShortcut(tr("g"));
     viewChannelGreenAct->setCheckable(true);
-    connect(viewChannelGreenAct, SIGNAL(triggered()), this,
-            SLOT(viewChannelGreen()));
+    connect(viewChannelGreenAct, &IvAction::triggered, this,
+            &ImageViewer::viewChannelGreen);
 
-    viewChannelBlueAct = new QAction(tr("Blue"), this);
+    viewChannelBlueAct = new IvAction(tr("Blue"), this);
     viewChannelBlueAct->setShortcut(tr("b"));
     viewChannelBlueAct->setCheckable(true);
-    connect(viewChannelBlueAct, SIGNAL(triggered()), this,
-            SLOT(viewChannelBlue()));
+    connect(viewChannelBlueAct, &IvAction::triggered, this,
+            &ImageViewer::viewChannelBlue);
 
-    viewChannelAlphaAct = new QAction(tr("Alpha"), this);
+    viewChannelAlphaAct = new IvAction(tr("Alpha"), this);
     viewChannelAlphaAct->setShortcut(tr("a"));
     viewChannelAlphaAct->setCheckable(true);
-    connect(viewChannelAlphaAct, SIGNAL(triggered()), this,
-            SLOT(viewChannelAlpha()));
+    connect(viewChannelAlphaAct, &IvAction::triggered, this,
+            &ImageViewer::viewChannelAlpha);
 
-    viewColorLumAct = new QAction(tr("Luminance"), this);
+    viewColorLumAct = new IvAction(tr("Luminance"), this);
     viewColorLumAct->setShortcut(tr("l"));
     viewColorLumAct->setCheckable(true);
-    connect(viewColorLumAct, SIGNAL(triggered()), this,
-            SLOT(viewChannelLuminance()));
+    connect(viewColorLumAct, &IvAction::triggered, this,
+            &ImageViewer::viewChannelLuminance);
 
-    viewColorRGBAAct = new QAction(tr("RGBA"), this);
+    viewColorRGBAAct = new IvAction(tr("RGBA"), this);
     //viewColorRGBAAct->setShortcut (tr("Ctrl+c"));
     viewColorRGBAAct->setCheckable(true);
     viewColorRGBAAct->setChecked(true);
-    connect(viewColorRGBAAct, SIGNAL(triggered()), this, SLOT(viewColorRGBA()));
+    connect(viewColorRGBAAct, &IvAction::triggered, this,
+            &ImageViewer::viewColorRGBA);
 
-    viewColorRGBAct = new QAction(tr("RGB"), this);
+    viewColorRGBAct = new IvAction(tr("RGB"), this);
     //viewColorRGBAct->setShortcut (tr("Ctrl+a"));
     viewColorRGBAct->setCheckable(true);
-    connect(viewColorRGBAct, SIGNAL(triggered()), this, SLOT(viewColorRGB()));
+    connect(viewColorRGBAct, &IvAction::triggered, this,
+            &ImageViewer::viewColorRGB);
 
-    viewColor1ChAct = new QAction(tr("Single channel"), this);
+    viewColor1ChAct = new IvAction(tr("Single channel"), this);
     viewColor1ChAct->setShortcut(tr("1"));
     viewColor1ChAct->setCheckable(true);
-    connect(viewColor1ChAct, SIGNAL(triggered()), this, SLOT(viewColor1Ch()));
+    connect(viewColor1ChAct, &IvAction::triggered, this,
+            &ImageViewer::viewColor1Ch);
 
-    viewColorHeatmapAct = new QAction(tr("Single channel (Heatmap)"), this);
+    viewColorHeatmapAct = new IvAction(tr("Single channel (Heatmap)"), this);
     viewColorHeatmapAct->setShortcut(tr("h"));
     viewColorHeatmapAct->setCheckable(true);
-    connect(viewColorHeatmapAct, SIGNAL(triggered()), this,
-            SLOT(viewColorHeatmap()));
+    connect(viewColorHeatmapAct, &IvAction::triggered, this,
+            &ImageViewer::viewColorHeatmap);
 
-    viewChannelPrevAct = new QAction(tr("Prev Channel"), this);
+    viewChannelPrevAct = new IvAction(tr("Prev Channel"), this);
     viewChannelPrevAct->setShortcut(tr(","));
-    connect(viewChannelPrevAct, SIGNAL(triggered()), this,
-            SLOT(viewChannelPrev()));
+    connect(viewChannelPrevAct, &IvAction::triggered, this,
+            &ImageViewer::viewChannelPrev);
 
-    viewChannelNextAct = new QAction(tr("Next Channel"), this);
+    viewChannelNextAct = new IvAction(tr("Next Channel"), this);
     viewChannelNextAct->setShortcut(tr("."));
-    connect(viewChannelNextAct, SIGNAL(triggered()), this,
-            SLOT(viewChannelNext()));
+    connect(viewChannelNextAct, &IvAction::triggered, this,
+            &ImageViewer::viewChannelNext);
 
-    viewSubimagePrevAct = new QAction(tr("Prev Subimage"), this);
+    viewSubimagePrevAct = new IvAction(tr("Prev Subimage"), this);
     viewSubimagePrevAct->setShortcut(tr("<"));
-    connect(viewSubimagePrevAct, SIGNAL(triggered()), this,
-            SLOT(viewSubimagePrev()));
+    connect(viewSubimagePrevAct, &IvAction::triggered, this,
+            &ImageViewer::viewSubimagePrev);
 
-    viewSubimageNextAct = new QAction(tr("Next Subimage"), this);
+    viewSubimageNextAct = new IvAction(tr("Next Subimage"), this);
     viewSubimageNextAct->setShortcut(tr(">"));
-    connect(viewSubimageNextAct, SIGNAL(triggered()), this,
-            SLOT(viewSubimageNext()));
+    connect(viewSubimageNextAct, &IvAction::triggered, this,
+            &ImageViewer::viewSubimageNext);
 
-    zoomInAct = new QAction(tr("Zoom &In"), this);
+    zoomInAct = new IvAction(tr("Zoom &In"), this);
     zoomInAct->setShortcut(tr("Ctrl++"));
-    connect(zoomInAct, SIGNAL(triggered()), this, SLOT(zoomIn()));
+    connect(zoomInAct, &IvAction::triggered, this, [this] { zoomIn(); });
 
-    zoomOutAct = new QAction(tr("Zoom &Out"), this);
+    zoomOutAct = new IvAction(tr("Zoom &Out"), this);
     zoomOutAct->setShortcut(tr("Ctrl+-"));
-    connect(zoomOutAct, SIGNAL(triggered()), this, SLOT(zoomOut()));
+    connect(zoomOutAct, &IvAction::triggered, this, [this] { zoomOut(); });
 
-    normalSizeAct = new QAction(tr("&Normal Size (1:1)"), this);
+    normalSizeAct = new IvAction(tr("&Normal Size (1:1)"), this);
     normalSizeAct->setShortcut(tr("Ctrl+0"));
-    connect(normalSizeAct, SIGNAL(triggered()), this, SLOT(normalSize()));
+    connect(normalSizeAct, &IvAction::triggered, this,
+            &ImageViewer::normalSize);
 
-    fitWindowToImageAct = new QAction(tr("&Fit Window to Image"), this);
+    fitWindowToImageAct = new IvAction(tr("&Fit Window to Image"), this);
     fitWindowToImageAct->setShortcut(tr("f"));
-    connect(fitWindowToImageAct, SIGNAL(triggered()), this,
-            SLOT(fitWindowToImage()));
+    connect(fitWindowToImageAct, &IvAction::triggered, this,
+            [this] { fitWindowToImage(); });
 
-    fitImageToWindowAct = new QAction(tr("Fit Image to Window"), this);
+    fitImageToWindowAct = new IvAction(tr("Fit Image to Window"), this);
     //    fitImageToWindowAct->setEnabled(false);
     fitImageToWindowAct->setCheckable(true);
     fitImageToWindowAct->setShortcut(tr("Alt+f"));
-    connect(fitImageToWindowAct, SIGNAL(triggered()), this,
-            SLOT(fitImageToWindow()));
+    connect(fitImageToWindowAct, &IvAction::triggered, this,
+            &ImageViewer::fitImageToWindow);
 
-    fullScreenAct = new QAction(tr("Full screen"), this);
+    fullScreenAct = new IvAction(tr("Full screen"), this);
     //    fullScreenAct->setEnabled(false);
     //    fullScreenAct->setCheckable(true);
     fullScreenAct->setShortcut(tr("Ctrl+f"));
-    connect(fullScreenAct, SIGNAL(triggered()), this, SLOT(fullScreenToggle()));
+    connect(fullScreenAct, &IvAction::triggered, this,
+            &ImageViewer::fullScreenToggle);
 
-    aboutAct = new QAction(tr("&About"), this);
-    connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
+    aboutAct = new IvAction(tr("&About"), this);
+    connect(aboutAct, &IvAction::triggered, this, &ImageViewer::about);
 
-    formatsAct = new QAction(tr("Image &Formats..."), this);
-    connect(formatsAct, SIGNAL(triggered()), this, SLOT(showImageFormats()));
+    formatsAct = new IvAction(tr("Image &Formats..."), this);
+    connect(formatsAct, &IvAction::triggered, this,
+            &ImageViewer::showImageFormats);
 
-    prevImageAct = new QAction(tr("Previous Image"), this);
+    prevImageAct = new IvAction(tr("Previous Image"), this);
     prevImageAct->setShortcut(tr("PgUp"));
     //    prevImageAct->setEnabled(true);
-    connect(prevImageAct, SIGNAL(triggered()), this, SLOT(prevImage()));
+    connect(prevImageAct, &IvAction::triggered, this, &ImageViewer::prevImage);
 
-    nextImageAct = new QAction(tr("Next Image"), this);
+    nextImageAct = new IvAction(tr("Next Image"), this);
     nextImageAct->setShortcut(tr("PgDown"));
     //    nextImageAct->setEnabled(true);
-    connect(nextImageAct, SIGNAL(triggered()), this, SLOT(nextImage()));
+    connect(nextImageAct, &IvAction::triggered, this, &ImageViewer::nextImage);
 
-    toggleImageAct = new QAction(tr("Toggle image"), this);
+    toggleImageAct = new IvAction(tr("Toggle image"), this);
     toggleImageAct->setShortcut(tr("T"));
     //    toggleImageAct->setEnabled(true);
-    connect(toggleImageAct, SIGNAL(triggered()), this, SLOT(toggleImage()));
+    connect(toggleImageAct, &IvAction::triggered, this,
+            &ImageViewer::toggleImage);
 
-    comparisonAct = new QAction(tr("Wipe comparison"), this);
+    comparisonAct = new IvAction(tr("Wipe comparison"), this);
     comparisonAct->setCheckable(true);
     comparisonAct->setShortcut(tr("W"));
-    connect(comparisonAct, &QAction::toggled, this,
+    connect(comparisonAct, &IvAction::toggled, this,
             &ImageViewer::toggleComparison);
 
     // Difference view submenu (issue #4711): a plain difference view of the
     // two images, kept separate from the wipe comparison (#5480).
-    differenceMenu   = new QMenu(tr("&Difference"), this);
-    auto* diffGroup  = new QActionGroup(this);
-    differenceOffAct = new QAction(tr("&Off"), this);
+    differenceMenu   = new IvMenu(tr("&Difference"), this);
+    auto* diffGroup  = new IvActionGroup(this);
+    differenceOffAct = new IvAction(tr("&Off"), this);
     differenceOffAct->setCheckable(true);
     differenceOffAct->setChecked(true);
-    differenceAbsDiffAct = new QAction(tr("&Absolute difference"), this);
+    differenceAbsDiffAct = new IvAction(tr("&Absolute difference"), this);
     differenceAbsDiffAct->setCheckable(true);
-    differenceFlipDiffAct = new QAction(tr("&FLIP perceptual difference"),
-                                        this);
+    differenceFlipDiffAct = new IvAction(tr("&FLIP perceptual difference"),
+                                         this);
     differenceFlipDiffAct->setCheckable(true);
     diffGroup->addAction(differenceOffAct);
     diffGroup->addAction(differenceAbsDiffAct);
     diffGroup->addAction(differenceFlipDiffAct);
-    connect(differenceOffAct, &QAction::toggled, this,
+    connect(differenceOffAct, &IvAction::toggled, this,
             &ImageViewer::differenceModeChanged);
-    connect(differenceAbsDiffAct, &QAction::toggled, this,
+    connect(differenceAbsDiffAct, &IvAction::toggled, this,
             &ImageViewer::differenceModeChanged);
-    connect(differenceFlipDiffAct, &QAction::toggled, this,
+    connect(differenceFlipDiffAct, &IvAction::toggled, this,
             &ImageViewer::differenceModeChanged);
-    differenceCycleAct = new QAction(tr("Cycle difference view"), this);
+    differenceCycleAct = new IvAction(tr("Cycle difference view"), this);
     differenceCycleAct->setShortcut(tr("D"));
-    connect(differenceCycleAct, &QAction::triggered, this,
+    connect(differenceCycleAct, &IvAction::triggered, this,
             &ImageViewer::cycleDifference);
-    flipColormapAct = new QAction(tr("Color&map FLIP error map"), this);
+    flipColormapAct = new IvAction(tr("Color&map FLIP error map"), this);
     flipColormapAct->setCheckable(true);
     flipColormapAct->setChecked(true);
-    connect(flipColormapAct, &QAction::toggled, this,
+    connect(flipColormapAct, &IvAction::toggled, this,
             &ImageViewer::flipColormapToggled);
 
     toggleWindowGuidesAct
-        = new QAction(tr("Show display and data window borders"), this);
+        = new IvAction(tr("Show display and data window borders"), this);
     toggleWindowGuidesAct->setCheckable(true);
-    connect(toggleWindowGuidesAct, SIGNAL(triggered()), this,
-            SLOT(toggleWindowGuides()));
+    connect(toggleWindowGuidesAct, &IvAction::triggered, this,
+            &ImageViewer::toggleWindowGuides);
 
-    slideShowAct = new QAction(tr("Start Slide Show"), this);
-    connect(slideShowAct, SIGNAL(triggered()), this, SLOT(slideShow()));
+    slideShowAct = new IvAction(tr("Start Slide Show"), this);
+    connect(slideShowAct, &IvAction::triggered, this, &ImageViewer::slideShow);
 
-    slideLoopAct = new QAction(tr("Loop slide show"), this);
+    slideLoopAct = new IvAction(tr("Loop slide show"), this);
     slideLoopAct->setCheckable(true);
     slideLoopAct->setChecked(true);
-    connect(slideLoopAct, SIGNAL(triggered()), this, SLOT(slideLoop()));
+    connect(slideLoopAct, &IvAction::triggered, this, &ImageViewer::slideLoop);
 
-    slideNoLoopAct = new QAction(tr("Stop at end"), this);
+    slideNoLoopAct = new IvAction(tr("Stop at end"), this);
     slideNoLoopAct->setCheckable(true);
-    connect(slideNoLoopAct, SIGNAL(triggered()), this, SLOT(slideNoLoop()));
+    connect(slideNoLoopAct, &IvAction::triggered, this,
+            &ImageViewer::slideNoLoop);
 
-    sortByNameAct = new QAction(tr("By Name"), this);
-    connect(sortByNameAct, SIGNAL(triggered()), this, SLOT(sortByName()));
+    sortByNameAct = new IvAction(tr("By Name"), this);
+    connect(sortByNameAct, &IvAction::triggered, this,
+            &ImageViewer::sortByName);
 
-    sortByPathAct = new QAction(tr("By File Path"), this);
-    connect(sortByPathAct, SIGNAL(triggered()), this, SLOT(sortByPath()));
+    sortByPathAct = new IvAction(tr("By File Path"), this);
+    connect(sortByPathAct, &IvAction::triggered, this,
+            &ImageViewer::sortByPath);
 
-    sortByImageDateAct = new QAction(tr("By Image Date"), this);
-    connect(sortByImageDateAct, SIGNAL(triggered()), this,
-            SLOT(sortByImageDate()));
+    sortByImageDateAct = new IvAction(tr("By Image Date"), this);
+    connect(sortByImageDateAct, &IvAction::triggered, this,
+            &ImageViewer::sortByImageDate);
 
-    sortByFileDateAct = new QAction(tr("By File Date"), this);
-    connect(sortByFileDateAct, SIGNAL(triggered()), this,
-            SLOT(sortByFileDate()));
+    sortByFileDateAct = new IvAction(tr("By File Date"), this);
+    connect(sortByFileDateAct, &IvAction::triggered, this,
+            &ImageViewer::sortByFileDate);
 
-    sortReverseAct = new QAction(tr("Reverse current order"), this);
-    connect(sortReverseAct, SIGNAL(triggered()), this, SLOT(sortReverse()));
+    sortReverseAct = new IvAction(tr("Reverse current order"), this);
+    connect(sortReverseAct, &IvAction::triggered, this,
+            &ImageViewer::sortReverse);
 
-    showInfoWindowAct = new QAction(tr("&Image info..."), this);
+    showInfoWindowAct = new IvAction(tr("&Image info..."), this);
     showInfoWindowAct->setShortcut(tr("Ctrl+I"));
     //    showInfoWindowAct->setEnabled(true);
-    connect(showInfoWindowAct, SIGNAL(triggered()), this,
-            SLOT(showInfoWindow()));
+    connect(showInfoWindowAct, &IvAction::triggered, this,
+            &ImageViewer::showInfoWindow);
 
-    showPixelviewWindowAct = new QAction(tr("&Pixel closeup view..."), this);
+    showPixelviewWindowAct = new IvAction(tr("&Pixel closeup view..."), this);
     showPixelviewWindowAct->setCheckable(true);
     showPixelviewWindowAct->setShortcut(tr("P"));
-    connect(showPixelviewWindowAct, SIGNAL(triggered()), this,
-            SLOT(showPixelviewWindow()));
+    connect(showPixelviewWindowAct, &IvAction::triggered, this,
+            &ImageViewer::showPixelviewWindow);
 
-    pixelviewFollowsMouseBox = new QCheckBox(tr("Pixel view follows mouse"));
+    pixelviewFollowsMouseBox = new IvCheckBox(tr("Pixel view follows mouse"));
     pixelviewFollowsMouseBox->setChecked(false);
-    linearInterpolationBox = new QCheckBox(tr("Linear interpolation"));
+    linearInterpolationBox = new IvCheckBox(tr("Linear interpolation"));
     linearInterpolationBox->setChecked(true);
-    darkPaletteBox = new QCheckBox(tr("Dark palette"));
+    darkPaletteBox = new IvCheckBox(tr("Dark palette"));
     darkPaletteBox->setChecked(true);
-    autoMipmap = new QCheckBox(tr("Generate mipmaps (requires restart)"));
+    autoMipmap = new IvCheckBox(tr("Generate mipmaps (requires restart)"));
     autoMipmap->setChecked(false);
 
-    maxMemoryICLabel = new QLabel(
+    maxMemoryICLabel = new IvLabel(
         tr("Image Cache max memory (requires restart)"));
-    maxMemoryIC = new QSpinBox();
+    maxMemoryIC = new IvSpinBox();
     if (sizeof(void*) == 4)
         maxMemoryIC->setRange(128, 2048);  //2GB is enough for 32 bit machines
     else
@@ -520,86 +520,87 @@ ImageViewer::createActions()
     maxMemoryIC->setSingleStep(64);
     maxMemoryIC->setSuffix(" MB");
 
-    slideShowDurationLabel = new QLabel(tr("Slide Show delay"));
-    slideShowDuration      = new QSpinBox();
+    slideShowDurationLabel = new IvLabel(tr("Slide Show delay"));
+    slideShowDuration      = new IvSpinBox();
     slideShowDuration->setRange(1, 3600);
     slideShowDuration->setSingleStep(1);
     slideShowDuration->setSuffix(" s");
     slideShowDuration->setAccelerated(true);
-    connect(slideShowDuration, SIGNAL(valueChanged(int)), this,
-            SLOT(setSlideShowDuration(int)));
+    connect(slideShowDuration, IV_SPIN_VALUE_CHANGED, this,
+            &ImageViewer::setSlideShowDuration);
 
-    toggleAreaSampleAct = new QAction(tr("&Toggle Area Sample"), this);
+    toggleAreaSampleAct = new IvAction(tr("&Toggle Area Sample"), this);
     toggleAreaSampleAct->setCheckable(true);
     toggleAreaSampleAct->setShortcut(tr("Ctrl+A"));
-    connect(toggleAreaSampleAct, SIGNAL(triggered()), this,
-            SLOT(toggleAreaSample()));
+    connect(toggleAreaSampleAct, &IvAction::triggered, this,
+            &ImageViewer::toggleAreaSample);
 
-    closeupPixelsLabel = new QLabel(tr("# closeup pixels:"));
-    closeupPixelsBox   = new QSpinBox();
+    closeupPixelsLabel = new IvLabel(tr("# closeup pixels:"));
+    closeupPixelsBox   = new IvSpinBox();
     closeupPixelsBox->setRange(9, 25);
     closeupPixelsBox->setValue(13);
     closeupPixelsBox->setSingleStep(2);
 
-    QString closeupPixelsTooltip = tr(
+    auto closeupPixelsTooltip = tr(
         "Number of pixels to show in the closeup view.");
     closeupPixelsBox->setToolTip(closeupPixelsTooltip);
     closeupPixelsLabel->setToolTip(closeupPixelsTooltip);
 
-    closeupAvgPixelsLabel = new QLabel(tr("# closeup avg pixels:"));
-    closeupAvgPixelsBox   = new QSpinBox();
+    closeupAvgPixelsLabel = new IvLabel(tr("# closeup avg pixels:"));
+    closeupAvgPixelsBox   = new IvSpinBox();
     closeupAvgPixelsBox->setRange(3, 25);
     closeupAvgPixelsBox->setValue(11);
     closeupAvgPixelsBox->setSingleStep(2);
 
-    QString closeupAvgPixelsTooltip = tr(
+    auto closeupAvgPixelsTooltip = tr(
         "Number of pixels to use for averaging in the closeup view.");
     closeupAvgPixelsBox->setToolTip(closeupAvgPixelsTooltip);
     closeupAvgPixelsLabel->setToolTip(closeupAvgPixelsTooltip);
 
 
-    rotateLeftAct = new QAction(tr("&Rotate Left"), this);
+    rotateLeftAct = new IvAction(tr("&Rotate Left"), this);
     rotateLeftAct->setShortcut(tr("Ctrl+Shift+L"));
-    connect(rotateLeftAct, SIGNAL(triggered()), this, SLOT(rotateLeft()));
+    connect(rotateLeftAct, &IvAction::triggered, this,
+            &ImageViewer::rotateLeft);
 
-    rotateRightAct = new QAction(tr("&Rotate Right"), this);
+    rotateRightAct = new IvAction(tr("&Rotate Right"), this);
     rotateRightAct->setShortcut(tr("Ctrl+Shift+R"));
-    connect(rotateRightAct, SIGNAL(triggered()), this, SLOT(rotateRight()));
+    connect(rotateRightAct, &IvAction::triggered, this,
+            &ImageViewer::rotateRight);
 
-    flipHorizontalAct = new QAction(tr("&Flip Horizontal"), this);
-    connect(flipHorizontalAct, SIGNAL(triggered()), this,
-            SLOT(flipHorizontal()));
+    flipHorizontalAct = new IvAction(tr("&Flip Horizontal"), this);
+    connect(flipHorizontalAct, &IvAction::triggered, this,
+            &ImageViewer::flipHorizontal);
 
-    flipVerticalAct = new QAction(tr("&Flip Vertical"), this);
-    connect(flipVerticalAct, SIGNAL(triggered()), this, SLOT(flipVertical()));
+    flipVerticalAct = new IvAction(tr("&Flip Vertical"), this);
+    connect(flipVerticalAct, &IvAction::triggered, this,
+            &ImageViewer::flipVertical);
 
     // Connect signals to ensure closeupAvgPixelsBox value is always <= closeupPixelsBox value
-    connect(closeupPixelsBox, QOverload<int>::of(&QSpinBox::valueChanged),
-            [this](int value) {
-                if (closeupAvgPixelsBox->value() > value)
-                    closeupAvgPixelsBox->setValue(value);
-            });
-    connect(closeupAvgPixelsBox, QOverload<int>::of(&QSpinBox::valueChanged),
-            [this](int value) {
-                if (value > closeupPixelsBox->value())
-                    closeupAvgPixelsBox->setValue(closeupPixelsBox->value());
-            });
+    connect(closeupPixelsBox, IV_SPIN_VALUE_CHANGED, [this](int value) {
+        if (closeupAvgPixelsBox->value() > value)
+            closeupAvgPixelsBox->setValue(value);
+    });
+    connect(closeupAvgPixelsBox, IV_SPIN_VALUE_CHANGED, [this](int value) {
+        if (value > closeupPixelsBox->value())
+            closeupAvgPixelsBox->setValue(closeupPixelsBox->value());
+    });
 }
 
 
 
 void
-ImageViewer::createOCIOMenus(QMenu* parent)
+ImageViewer::createOCIOMenus(IvMenu* parent)
 {
-    ocioColorSpacesMenu = new QMenu(tr("Image color space"));
-    ocioDisplaysMenu    = new QMenu(tr("Display/View"));
+    ocioColorSpacesMenu = new IvMenu(tr("Image color space"));
+    ocioDisplaysMenu    = new IvMenu(tr("Display/View"));
 
     try {
         ColorConfig config;
 
-        std::map<std::string, QMenu*> colourSpaceFamilies;
+        std::map<std::string, IvMenu*> colourSpaceFamilies;
 
-        ocioColorSpacesGroup = new QActionGroup(ocioColorSpacesMenu);
+        ocioColorSpacesGroup = new IvActionGroup(ocioColorSpacesMenu);
         ocioColorSpacesGroup->setExclusive(true);
 
         for (int i = 0; i < config.getNumColorSpaces(); i++) {
@@ -616,11 +617,11 @@ ImageViewer::createOCIOMenus(QMenu* parent)
                 const char* family = config.getColorSpaceFamilyByName(
                     colorSpaceName);
 
-                QMenu* targetMenu;
+                IvMenu* targetMenu;
                 if (family && *family) {
                     auto iter = colourSpaceFamilies.find(family);
                     if (iter == colourSpaceFamilies.end()) {
-                        targetMenu = new QMenu(family);
+                        targetMenu = new IvMenu(family);
                         ocioColorSpacesMenu->addMenu(targetMenu);
                         colourSpaceFamilies[family] = targetMenu;
                     } else {
@@ -630,19 +631,21 @@ ImageViewer::createOCIOMenus(QMenu* parent)
                     targetMenu = ocioColorSpacesMenu;
                 }
 
-                QAction* action = new QAction(colorSpaceName, this);
+                IvAction* action = new IvAction(colorSpaceName, this);
                 action->setCheckable(true);
                 action->setChecked(m_ocioColourSpace == colorSpaceName);
 
-                connect(action, SIGNAL(triggered()), this,
-                        SLOT(ocioColorSpaceAction()));
+                connect(action, &IvAction::triggered, this,
+                        [this, name = std::string(colorSpaceName)] {
+                            ocioColorSpaceAction(name);
+                        });
 
                 ocioColorSpacesGroup->addAction(action);
                 targetMenu->addAction(action);
             }
         }
 
-        ocioDisplayViewsGroup = new QActionGroup(ocioDisplaysMenu);
+        ocioDisplayViewsGroup = new IvActionGroup(ocioDisplaysMenu);
         ocioDisplayViewsGroup->setExclusive(true);
 
         if (m_ocioDisplay == "" || m_ocioDisplay == "default") {
@@ -657,19 +660,22 @@ ImageViewer::createOCIOMenus(QMenu* parent)
             const char* display = config.getDisplayNameByIndex(i);
 
             if (display && *display) {
-                QMenu* menu = new QMenu(display);
+                IvMenu* menu = new IvMenu(display);
 
                 for (int j = 0; j < config.getNumViews(display); j++) {
                     const char* view = config.getViewNameByIndex(display, j);
 
                     if (view && *view) {
-                        QAction* action = new QAction(view, menu);
+                        IvAction* action = new IvAction(view, menu);
                         action->setCheckable(true);
                         action->setChecked(m_ocioDisplay == display
                                            && m_ocioView == view);
 
-                        connect(action, SIGNAL(triggered()), this,
-                                SLOT(ocioDisplayViewAction()));
+                        connect(action, &IvAction::triggered, this,
+                                [this, d = std::string(display),
+                                 v = std::string(view)] {
+                                    ocioDisplayViewAction(d, v);
+                                });
 
                         menu->addAction(action);
                         ocioDisplayViewsGroup->addAction(action);
@@ -685,12 +691,12 @@ ImageViewer::createOCIOMenus(QMenu* parent)
         return;
     }
 
-    QMenu* ocioMenu = new QMenu(tr("OCIO"));
+    IvMenu* ocioMenu = new IvMenu(tr("OCIO"));
 
-    QAction* action = new QAction(tr("Use OCIO"));
+    IvAction* action = new IvAction(tr("Use OCIO"));
     action->setCheckable(true);
     action->setChecked(m_useOCIO);
-    connect(action, SIGNAL(toggled(bool)), this, SLOT(useOCIOAction(bool)));
+    connect(action, &IvAction::toggled, this, &ImageViewer::useOCIOAction);
 
     ocioMenu->addAction(action);
     ocioMenu->addMenu(ocioColorSpacesMenu);
@@ -711,36 +717,30 @@ ImageViewer::useOCIOAction(bool checked)
 }
 
 void
-ImageViewer::ocioColorSpaceAction()
+ImageViewer::ocioColorSpaceAction(const std::string& name)
 {
-    QAction* action = ocioColorSpacesGroup->checkedAction();
-    if (action) {
-        m_ocioColourSpace = action->text().toStdString();
-        displayCurrentImage();
-    }
+    m_ocioColourSpace = name;
+    displayCurrentImage();
 }
 
 void
-ImageViewer::ocioDisplayViewAction()
+ImageViewer::ocioDisplayViewAction(const std::string& display,
+                                   const std::string& view)
 {
-    QAction* action = ocioDisplayViewsGroup->checkedAction();
-    if (action) {
-        QMenu* menu   = qobject_cast<QMenu*>(action->parent());
-        m_ocioDisplay = menu->title().toStdString();
-        m_ocioView    = action->text().toStdString();
-        displayCurrentImage();
-    }
+    m_ocioDisplay = display;
+    m_ocioView    = view;
+    displayCurrentImage();
 }
 
 
 void
 ImageViewer::createMenus()
 {
-    openRecentMenu = new QMenu(tr("Open recent..."), this);
+    openRecentMenu = new IvMenu(tr("Open recent..."), this);
     for (auto& i : openRecentAct)
         openRecentMenu->addAction(i);
 
-    fileMenu = new QMenu(tr("&File"), this);
+    fileMenu = new IvMenu(tr("&File"), this);
     fileMenu->addAction(openAct);
     fileMenu->addMenu(openRecentMenu);
     fileMenu->addAction(reloadAct);
@@ -751,7 +751,6 @@ ImageViewer::createMenus()
     fileMenu->addAction(saveSelectionAsAct);
     fileMenu->addSeparator();
     fileMenu->addAction(moveToNewWindowAct);
-    fileMenu->addAction(printAct);
     fileMenu->addAction(deleteCurrentImageAct);
     fileMenu->addSeparator();
     fileMenu->addAction(editPreferencesAct);
@@ -763,7 +762,7 @@ ImageViewer::createMenus()
     // Clear selection
     // radio: prioritize selection, crop selection
 
-    expgamMenu = new QMenu(tr("Exposure/gamma"));  // submenu
+    expgamMenu = new IvMenu(tr("Exposure/gamma"));  // submenu
     expgamMenu->addAction(exposureMinusOneHalfStopAct);
     expgamMenu->addAction(exposureMinusOneTenthStopAct);
     expgamMenu->addAction(exposurePlusOneHalfStopAct);
@@ -771,21 +770,21 @@ ImageViewer::createMenus()
     expgamMenu->addAction(gammaMinusAct);
     expgamMenu->addAction(gammaPlusAct);
 
-    //    imageMenu = new QMenu(tr("&Image"), this);
+    //    imageMenu = new IvMenu(tr("&Image"), this);
     //    menuBar()->addMenu (imageMenu);
-    slideMenu = new QMenu(tr("Slide Show"));
+    slideMenu = new IvMenu(tr("Slide Show"));
     slideMenu->addAction(slideShowAct);
     slideMenu->addAction(slideLoopAct);
     slideMenu->addAction(slideNoLoopAct);
 
-    sortMenu = new QMenu(tr("Sort"));
+    sortMenu = new IvMenu(tr("Sort"));
     sortMenu->addAction(sortByNameAct);
     sortMenu->addAction(sortByPathAct);
     sortMenu->addAction(sortByImageDateAct);
     sortMenu->addAction(sortByFileDateAct);
     sortMenu->addAction(sortReverseAct);
 
-    channelMenu = new QMenu(tr("Channels"));
+    channelMenu = new IvMenu(tr("Channels"));
     // Color mode: true, random, falsegrgbacCrgR
     channelMenu->addAction(viewChannelFullAct);
     channelMenu->addAction(viewChannelRedAct);
@@ -795,14 +794,14 @@ ImageViewer::createMenus()
     channelMenu->addAction(viewChannelPrevAct);
     channelMenu->addAction(viewChannelNextAct);
 
-    colormodeMenu = new QMenu(tr("Color mode"));
+    colormodeMenu = new IvMenu(tr("Color mode"));
     colormodeMenu->addAction(viewColorRGBAAct);
     colormodeMenu->addAction(viewColorRGBAct);
     colormodeMenu->addAction(viewColor1ChAct);
     colormodeMenu->addAction(viewColorLumAct);
     colormodeMenu->addAction(viewColorHeatmapAct);
 
-    viewMenu = new QMenu(tr("&View"), this);
+    viewMenu = new IvMenu(tr("&View"), this);
     viewMenu->addAction(prevImageAct);
     viewMenu->addAction(nextImageAct);
     viewMenu->addAction(toggleImageAct);
@@ -837,7 +836,7 @@ ImageViewer::createMenus()
     // prev subimage <, next subimage >
     // fg/bg image...
 
-    toolsMenu = new QMenu(tr("&Tools"), this);
+    toolsMenu = new IvMenu(tr("&Tools"), this);
     // Mode: select, zoom, pan, wipe
     toolsMenu->addAction(showInfoWindowAct);
     toolsMenu->addAction(showPixelviewWindowAct);
@@ -859,7 +858,7 @@ ImageViewer::createMenus()
     // Playback: forward, reverse, faster, slower, loop/pingpong
     menuBar()->addMenu(toolsMenu);
 
-    helpMenu = new QMenu(tr("&Help"), this);
+    helpMenu = new IvMenu(tr("&Help"), this);
     helpMenu->addAction(formatsAct);
     helpMenu->addSeparator();
     helpMenu->addAction(aboutAct);
@@ -890,18 +889,18 @@ ImageViewer::createToolBars()
 void
 ImageViewer::createStatusBar()
 {
-    statusImgInfo = new QLabel;
+    statusImgInfo = new IvLabel;
     statusBar()->addWidget(statusImgInfo);
 
-    statusViewInfo = new QLabel;
+    statusViewInfo = new IvLabel;
     statusBar()->addWidget(statusViewInfo);
 
-    statusProgress = new QProgressBar;
+    statusProgress = new IvProgressBar;
     statusProgress->setRange(0, 100);
     statusProgress->reset();
     statusBar()->addWidget(statusProgress);
 
-    mouseModeComboBox = new QComboBox;
+    mouseModeComboBox = new IvComboBox;
     mouseModeComboBox->addItem(tr("Zoom"));
     mouseModeComboBox->addItem(tr("Pan"));
     mouseModeComboBox->addItem(tr("Select"));
@@ -916,7 +915,7 @@ ImageViewer::createStatusBar()
 void
 ImageViewer::readSettings(bool ui_is_set_up)
 {
-    QSettings settings("OpenImageIO", "iv");
+    IvSettings settings("OpenImageIO", "iv");
     m_darkPalette = settings.value("darkPalette").toBool();
     if (!ui_is_set_up)
         return;
@@ -925,9 +924,9 @@ ImageViewer::readSettings(bool ui_is_set_up)
     linearInterpolationBox->setChecked(
         settings.value("linearInterpolation").toBool());
     darkPaletteBox->setChecked(settings.value("darkPalette").toBool());
-    QStringList recent = settings.value("RecentFiles").toStringList();
+    IvStringList recent = settings.value("RecentFiles").toStringList();
     for (auto&& s : recent)
-        addRecentFile(s.toStdString());
+        addRecentFile(iv_str(s));
     updateRecentFilesMenu();  // only safe because it's called after menu setup
 
     autoMipmap->setChecked(settings.value("autoMipmap", false).toBool());
@@ -951,7 +950,7 @@ ImageViewer::readSettings(bool ui_is_set_up)
 void
 ImageViewer::writeSettings()
 {
-    QSettings settings("OpenImageIO", "iv");
+    IvSettings settings("OpenImageIO", "iv");
     settings.setValue("pixelviewFollowsMouse",
                       pixelviewFollowsMouseBox->isChecked());
     settings.setValue("linearInterpolation",
@@ -961,9 +960,9 @@ ImageViewer::writeSettings()
     settings.setValue("maxMemoryIC", maxMemoryIC->value());
     settings.setValue("slideShowDuration", slideShowDuration->value());
     settings.setValue("closeupPixels", closeupPixelsBox->value());
-    QStringList recent;
+    IvStringList recent;
     for (auto&& s : m_recent_files)
-        recent.push_front(QString(s.c_str()));
+        recent.push_front(s.c_str());
     settings.setValue("RecentFiles", recent);
 }
 
@@ -974,7 +973,7 @@ image_progress_callback(void* opaque, float done)
 {
     ImageViewer* viewer = (ImageViewer*)opaque;
     viewer->statusProgress->setValue((int)(done * 100));
-    QApplication::processEvents();
+    IvApplication::processEvents();
     return false;
 }
 
@@ -983,18 +982,13 @@ image_progress_callback(void* opaque, float done)
 void
 ImageViewer::open()
 {
-    static QString openPath = QDir::currentPath();
-    QFileDialog dialog(NULL, tr("Open File(s)"), openPath, tr(s_file_filters));
-    dialog.setAcceptMode(QFileDialog::AcceptOpen);
-    dialog.setFileMode(QFileDialog::ExistingFiles);
-    if (!dialog.exec())
+    static std::string openPath;
+    auto names = iv_open_files(this, "Open File(s)", openPath, s_file_filters);
+    if (names.empty())
         return;
-    openPath          = dialog.directory().path();
-    QStringList names = dialog.selectedFiles();
 
     int old_lastimage = m_images.size() - 1;
-    for (auto& name : names) {
-        std::string filename = name.toUtf8().data();
+    for (auto& filename : names) {
         if (filename.empty())
             continue;
         add_image(filename);
@@ -1009,11 +1003,10 @@ ImageViewer::open()
 
 
 void
-ImageViewer::openRecentFile()
+ImageViewer::openRecentFile(size_t index)
 {
-    QAction* action = qobject_cast<QAction*>(sender());
-    if (action) {
-        std::string filename = action->data().toString().toStdString();
+    if (index < m_recent_files.size()) {
+        std::string filename = m_recent_files[index];
         // If it's an image we already have loaded, just switch to it
         // (and reload) rather than loading a second copy.
         for (size_t i = 0; i < m_images.size(); ++i) {
@@ -1064,8 +1057,7 @@ ImageViewer::updateRecentFilesMenu()
     for (size_t i = 0; i < MaxRecentFiles; ++i) {
         if (i < m_recent_files.size()) {
             std::string name = Filesystem::filename(m_recent_files[i]);
-            openRecentAct[i]->setText(QString::fromStdString(name));
-            openRecentAct[i]->setData(m_recent_files[i].c_str());
+            openRecentAct[i]->setText(name.c_str());
             openRecentAct[i]->setVisible(true);
         } else {
             openRecentAct[i]->setVisible(false);
@@ -1117,18 +1109,6 @@ ImageViewer::add_image(const std::string& filename)
     addRecentFile(filename);
     updateRecentFilesMenu();
 
-#if 0
-    if (getspec) {
-        if (! newimage->init_spec (filename)) {
-            QMessageBox::information (this, tr("iv Image Viewer"),
-                              tr("%1").arg(newimage->geterror().c_str()));
-        } else {
-            std::cerr << "Added image " << filename << ": " 
-<< newimage->spec().width << " x " << newimage->spec().height << "\n";
-        }
-        return;
-    }
-#endif
     if (m_images.size() == 1) {
         // If this is the first image, resize to fit it
         displayCurrentImage();
@@ -1145,14 +1125,11 @@ ImageViewer::saveAs()
     IvImage* img = cur();
     if (!img)
         return;
-    QString name;
-    name = QFileDialog::getSaveFileName(this, tr("Save Image"),
-                                        QString(img->uname().c_str()),
-                                        tr(s_file_filters));
-    if (name.isEmpty())
+    std::string name = iv_save_file(this, "Save Image", img->uname().string(),
+                                    s_file_filters);
+    if (name.empty())
         return;
-    bool ok = img->write(name.toStdString(), TypeUnknown, "",
-                         image_progress_callback, this);
+    bool ok = img->write(name, TypeUnknown, "", image_progress_callback, this);
     if (!ok) {
         std::cerr << "Save failed: " << img->geterror() << "\n";
     }
@@ -1174,10 +1151,8 @@ ImageViewer::saveWindowAs()
                     "Save failed: no pixels of the image are visible\n");
         return;
     }
-    QString name;
-    name = QFileDialog::getSaveFileName(this, tr("Save Window"),
-                                        QString(img->uname().c_str()));
-    if (name.isEmpty())
+    std::string name = iv_save_file(this, "Save Window", img->uname().string());
+    if (name.empty())
         return;
     ImageBuf cropped;
     if (!ImageBufAlgo::cut(cropped, *img, roi)) {
@@ -1185,8 +1160,8 @@ ImageViewer::saveWindowAs()
         OIIO::print(stderr, "Crop failed: {}\n", cropped.geterror());
         return;
     }
-    bool ok = cropped.write(name.toStdString(), TypeUnknown, "",
-                            image_progress_callback, this);
+    bool ok = cropped.write(name, TypeUnknown, "", image_progress_callback,
+                            this);
     if (!ok) {
         // TODO: May not be visible. This should be replaced with a GUI dialog.
         OIIO::print(stderr, "Save failed: {}\n", cropped.geterror());
@@ -1201,18 +1176,17 @@ ImageViewer::saveSelectionAs()
     IvImage* img = cur();
     if (!img)
         return;
-    QString name;
-    name = QFileDialog::getSaveFileName(this, tr("Save Selection"),
-                                        QString(img->uname().c_str()));
-    if (name.isEmpty())
+    std::string name = iv_save_file(this, "Save Selection",
+                                    img->uname().string());
+    if (name.empty())
         return;
-    img->write(name.toStdString(), TypeUnknown, "", image_progress_callback,
-               this);
+    img->write(name, TypeUnknown, "", image_progress_callback, this);
 }
 
 void
 ImageViewer::moveToNewWindow()
 {
+#ifdef IV_USE_QT
     if (m_images.size()) {
         ImageViewer* imageViewer = new ImageViewer(m_useOCIO, m_ocioColourSpace,
                                                    m_ocioDisplay, m_ocioView);
@@ -1223,6 +1197,22 @@ ImageViewer::moveToNewWindow()
         imageViewer->raise();
         imageViewer->activateWindow();
     }
+#else
+    // Hand the image to a new iv process, and stop showing it here.
+    if (IvImage* img = cur()) {
+        std::vector<std::string> args { "-F" };
+        if (rawcolor())
+            args.emplace_back("--rawcolor");
+        if (m_useOCIO)
+            for (auto a : { "--image-color-space", m_ocioColourSpace.c_str(),
+                            "--display", m_ocioDisplay.c_str(), "--view",
+                            m_ocioView.c_str() })
+                args.emplace_back(a);
+        args.emplace_back(img->name());
+        if (iv_launch(args))
+            closeImg();
+    }
+#endif
 }
 
 void
@@ -1235,7 +1225,7 @@ ImageViewer::updateTitle()
     }
     std::string message;
     message = Strutil::fmt::format("{} - iv Image Viewer", img->name());
-    setWindowTitle(QString::fromLocal8Bit(message.c_str()));
+    setWindowTitle(message.c_str());
 }
 
 
@@ -1345,7 +1335,8 @@ ImageViewer::loadImage(IvImage* img, int subimage, int miplevel)
         // opengl's capabilities.
         if (!img->init_spec(img->name(), subimage, miplevel)) {
             statusImgInfo->setText(
-                tr("Could not display image: %1.").arg(img->uname().c_str()));
+                Strutil::format("Could not display image: {}.", img->uname())
+                    .c_str());
             statusViewInfo->setText(tr(""));
             return false;
         }
@@ -1415,7 +1406,8 @@ ImageViewer::loadImage(IvImage* img, int subimage, int miplevel)
             return true;
         } else {
             statusImgInfo->setText(
-                tr("Could not display image: %1.").arg(img->uname().c_str()));
+                Strutil::format("Could not display image: {}.", img->uname())
+                    .c_str());
             statusViewInfo->setText(tr(""));
             return false;
         }
@@ -1472,7 +1464,7 @@ ImageViewer::displayCurrentImage(bool update)
                 m_comparison_image = nullptr;
                 m_diff_mode        = DiffMode::Off;
                 m_flip_key.clear();
-                QSignalBlocker blocker(comparisonAct);
+                IvSignalBlocker blocker(comparisonAct);
                 comparisonAct->setChecked(false);
                 syncDifferenceActions();
                 glwin->set_diff_mode(DiffMode::Off);
@@ -1485,7 +1477,7 @@ ImageViewer::displayCurrentImage(bool update)
         }
     } else {
         m_current_image = m_last_image = -1;
-        ((QOpenGLWidget*)(glwin))->update();
+        glwin->request_redraw();
     }
 
     if (update) {
@@ -1506,7 +1498,6 @@ ImageViewer::displayCurrentImage(bool update)
     if (m_comparison_image && m_diff_mode == DiffMode::FlipDiff)
         computeFlipDiff();
 
-    //    printAct->setEnabled(true);
     //    fitImageToWindowAct->setEnabled(true);
     //    fullScreenAct->setEnabled(true);
     updateActions();
@@ -1520,16 +1511,14 @@ ImageViewer::deleteCurrentImage()
     IvImage* img = cur();
     if (img) {
         const char* filename = img->uname().c_str();
-        QString message("Are you sure you want to remove <b>");
-        message = message + QString(filename) + QString("</b> file from disk?");
-        QMessageBox::StandardButton button;
-        button = QMessageBox::question(this, "", message,
-                                       QMessageBox::Yes | QMessageBox::No);
-        if (button == QMessageBox::Yes) {
+        if (iv_confirm(this, "",
+                       Strutil::format("Are you sure you want to remove {} "
+                                       "file from disk?",
+                                       filename))) {
             closeImg();
             int r = remove(filename);
             if (r)
-                QMessageBox::information(this, "", "Unable to delete file");
+                iv_message(this, "", "Unable to delete file");
         }
     }
 }
@@ -1610,7 +1599,7 @@ ImageViewer::toggleComparison(bool enabled)
             // FIXME: Output to stderr is not ideal. This should be a dialog box.
             std::cerr << "iv: wipe comparison needs GLSL and at least two "
                          "images\n";
-            QSignalBlocker blocker(comparisonAct);
+            IvSignalBlocker blocker(comparisonAct);
             comparisonAct->setChecked(false);
             return;
         }
@@ -1628,7 +1617,7 @@ ImageViewer::toggleComparison(bool enabled)
         m_flip_key.clear();
         glwin->clear_flipdiff_map();
         if (comparisonAct && comparisonAct->isChecked()) {
-            QSignalBlocker blocker(comparisonAct);
+            IvSignalBlocker blocker(comparisonAct);
             comparisonAct->setChecked(false);
         }
         displayCurrentImage();
@@ -1674,7 +1663,7 @@ ImageViewer::setDiffMode(DiffMode mode)
         // The wipe and the difference view are mutually exclusive; enabling
         // the difference view turns the wipe off.
         if (comparisonAct && comparisonAct->isChecked()) {
-            QSignalBlocker blocker(comparisonAct);
+            IvSignalBlocker blocker(comparisonAct);
             comparisonAct->setChecked(false);
         }
     }
@@ -1701,9 +1690,9 @@ ImageViewer::syncDifferenceActions()
 {
     if (!differenceOffAct)
         return;
-    QSignalBlocker b1(differenceOffAct);
-    QSignalBlocker b2(differenceAbsDiffAct);
-    QSignalBlocker b3(differenceFlipDiffAct);
+    IvSignalBlocker b1(differenceOffAct);
+    IvSignalBlocker b2(differenceAbsDiffAct);
+    IvSignalBlocker b3(differenceFlipDiffAct);
     differenceOffAct->setChecked(m_diff_mode == DiffMode::Off);
     differenceAbsDiffAct->setChecked(m_diff_mode == DiffMode::AbsDiff);
     differenceFlipDiffAct->setChecked(m_diff_mode == DiffMode::FlipDiff);
@@ -1760,7 +1749,7 @@ ImageViewer::flipColormapToggled(bool checked)
     m_flip_colormap = checked;
     if (m_comparison_image && m_diff_mode == DiffMode::FlipDiff) {
         glwin->clear_flipdiff_map();
-        glwin->QWidget::update();
+        glwin->request_redraw();
         computeFlipDiff();
     }
 }
@@ -1803,7 +1792,7 @@ ImageViewer::computeFlipDiff()
     // something is happening. The indicator goes through
     // updateStatusBar() rather than QStatusBar::showMessage(), whose
     // temporary label overprints the permanent status labels.
-    QApplication::setOverrideCursor(Qt::BusyCursor);
+    IvApplication::setOverrideCursor(Iv::BusyCursor);
     updateStatusBar();
     m_flip_thread = std::thread([this, a, b, colormap]() {
         ImageBuf err;
@@ -1813,8 +1802,7 @@ ImageViewer::computeFlipDiff()
         if (colormap && err.initialized())
             err = ImageBufAlgo::color_map(err, 0, "inferno");
         // Deliver on the GUI thread.
-        QMetaObject::invokeMethod(
-            this, [this, err]() { flipDiffDone(err); }, Qt::QueuedConnection);
+        iv_post(this, [this, err]() { flipDiffDone(err); });
     });
 }
 
@@ -1824,13 +1812,13 @@ void
 ImageViewer::flipDiffDone(ImageBuf errmap)
 {
     m_flip_computing.store(false);
-    if (QApplication::overrideCursor())
-        QApplication::restoreOverrideCursor();
+    if (IvApplication::overrideCursor())
+        IvApplication::restoreOverrideCursor();
     if (errmap.initialized() && m_diff_mode == DiffMode::FlipDiff
         && m_comparison_image)
         glwin->set_flipdiff_map(errmap);
     // IvGL::update only refreshes textures, not a repaint.
-    glwin->QWidget::update();
+    glwin->request_redraw();
     if (m_flip_pending.exchange(false))
         computeFlipDiff();
     else
@@ -1842,7 +1830,7 @@ ImageViewer::flipDiffDone(ImageBuf errmap)
 void
 ImageViewer::toggleWindowGuides()
 {
-    ((QOpenGLWidget*)(glwin))->update();
+    glwin->request_redraw();
 }
 
 
@@ -2049,7 +2037,7 @@ void
 ImageViewer::slideShow()
 {
     fullScreenToggle();
-    connect(slideTimer, SIGNAL(timeout()), this, SLOT(slideImages()));
+    connect(slideTimer, &IvTimer::timeout, this, &ImageViewer::slideImages);
     slideTimer->start(slideDuration_ms);
     updateActions();
 }
@@ -2408,20 +2396,20 @@ ImageViewer::viewSubimageNext()
 
 
 void
-ImageViewer::keyPressEvent(QKeyEvent* event)
+ImageViewer::keyPressEvent(IvKeyEvent* event)
 {
     switch (event->key()) {
-    case Qt::Key_Left:
-    case Qt::Key_Up:
-    case Qt::Key_PageUp: prevImage(); return;  //break;
-    case Qt::Key_Right:
+    case Iv::Key_Left:
+    case Iv::Key_Up:
+    case Iv::Key_PageUp: prevImage(); return;  //break;
+    case Iv::Key_Right:
         // print(stderr, "Modifier is {0:d} 0x(0:x}\n", event->modifiers());
-        // if (event->modifiers() & Qt::ShiftModifier)
+        // if (event->modifiers() & Iv::ShiftModifier)
         //     print(stderr, "hey, ctrl right\n");
 
-    case Qt::Key_Down:
-    case Qt::Key_PageDown: nextImage(); return;  //break;
-    case Qt::Key_Escape:
+    case Iv::Key_Down:
+    case Iv::Key_PageDown: nextImage(); return;  //break;
+    case Iv::Key_Escape:
         if (m_comparison_image) {
             toggleComparison(false);
             return;
@@ -2429,24 +2417,24 @@ ImageViewer::keyPressEvent(QKeyEvent* event)
         if (m_fullscreen)
             fullScreenToggle();
         return;
-    case Qt::Key_Minus:
-    case Qt::Key_Underscore: zoomOut(); break;
-    case Qt::Key_Plus:
-    case Qt::Key_Equal: zoomIn(); break;
+    case Iv::Key_Minus:
+    case Iv::Key_Underscore: zoomOut(); break;
+    case Iv::Key_Plus:
+    case Iv::Key_Equal: zoomIn(); break;
     default:
         // print(stderr, "ImageViewer key {:d}\n", event->key());
-        QMainWindow::keyPressEvent(event);
+        IvMainWindow::keyPressEvent(event);
     }
 }
 
 
 
 void
-ImageViewer::resizeEvent(QResizeEvent* event)
+ImageViewer::resizeEvent(IvResizeEvent* event)
 {
     if (fitImageToWindowAct->isChecked())
         fitImageToWindow();
-    QMainWindow::resizeEvent(event);
+    IvMainWindow::resizeEvent(event);
 }
 
 
@@ -2476,25 +2464,6 @@ ImageViewer::closeImg()
     displayCurrentImage();
 }
 
-
-
-void
-ImageViewer::print()
-{
-#if 0
-    Q_ASSERT(imageLabel->pixmap());
-    QPrintDialog dialog(&printer, this);
-    if (dialog.exec()) {
-        QPainter painter(&printer);
-        QRect rect = painter.viewport();
-        QSize size = imageLabel->pixmap()->size();
-        size.scale(rect.size(), Qt::KeepAspectRatio);
-        painter.setViewport(rect.x(), rect.y(), size.width(), size.height());
-        painter.setWindow(imageLabel->pixmap()->rect());
-        painter.drawPixmap(0, 0, *imageLabel->pixmap());
-    }
-#endif
-}
 
 
 void
@@ -2551,7 +2520,7 @@ ImageViewer::zoomToCursor(float newzoom, bool smooth)
         float zoomratio = z / oldzoom;
         view(xm + xoffset / zoomratio, ym + yoffset / zoomratio, z, false);
         if (i != nsteps) {
-            QApplication::processEvents();
+            IvApplication::processEvents();
             Sysutil::usleep(1000000 / 4 / nsteps);
         }
     }
@@ -2634,21 +2603,10 @@ ImageViewer::fitWindowToImage(bool zoomok, bool minsize)
     }
 
     if (!m_fullscreen) {
-#if OIIO_QT_MAJOR >= 6
-        auto desktop    = this->screen();
-        QRect availgeom = desktop->availableGeometry();
-#else
-        auto desktop    = QApplication::desktop();
-        QRect availgeom = desktop->availableGeometry(this);
-#endif
-        int availwidth  = availgeom.width() - extraw - 20;
-        int availheight = availgeom.height() - extrah - menuBar()->height()
-                          - 20;
-#if 0
-        QRect screengeom = desktop->screenGeometry (this);
-        std::cerr << "available desktop geom " << availgeom.x() << ' ' << availgeom.y() << ' ' << availgeom.width() << "x" << availgeom.height() << "\n";
-        std::cerr << "screen desktop geom " << screengeom.x() << ' ' << screengeom.y() << ' ' << screengeom.width() << "x" << screengeom.height() << "\n";
-#endif
+        int availx, availy, availw, availh;
+        iv_available_screen(this, availx, availy, availw, availh);
+        int availwidth  = availw - extraw - 20;
+        int availheight = availh - extrah - menuBar()->height() - 20;
         if (w > availwidth || h > availheight) {
             w = std::min(w, availwidth);
             h = std::min(h, availheight);
@@ -2662,11 +2620,11 @@ ImageViewer::fitWindowToImage(bool zoomok, bool minsize)
             int posx = x(), posy = y();
             if (posx + w > availwidth || posy + h > availheight) {
                 if (posx + w > availwidth)
-                    posx = std::max(0, availwidth - w) + availgeom.x();
+                    posx = std::max(0, availwidth - w) + availx;
                 if (posy + h > availheight)
-                    posy = std::max(0, availheight - h) + availgeom.y();
+                    posy = std::max(0, availheight - h) + availy;
                 // std::cerr << "New position " << posx << ' ' << posy << "\n";
-                move(QPoint(posx, posy));
+                move(posx, posy);
             }
         }
     }
@@ -2675,16 +2633,6 @@ ImageViewer::fitWindowToImage(bool zoomok, bool minsize)
     float midy = img->oriented_full_y() + 0.5 * img->oriented_full_height();
     view(midx, midy, z, false, false);
     resize(w, h);  // Resize will trigger a repaint.
-
-#if 0
-    QRect g = geometry();
-    std::cerr << "geom " << g.x() << ' ' << g.y() << ' ' << g.width() << "x" << g.height() << "\n";
-    g = frameGeometry();
-    std::cerr << "frame geom " << g.x() << ' ' << g.y() << ' ' << g.width() << "x" << g.height() << "\n";
-    g = glwin->geometry();
-    std::cerr << "ogl geom " << g.x() << ' ' << g.y() << ' ' << g.width() << "x" << g.height() << "\n";
-    std::cerr << "Status bar height = " << statusBar()->height() << "\n";
-#endif
 
 #if 0
     bool fit = fitWindowToImageAct->isChecked();
@@ -2732,30 +2680,17 @@ format_list(OIIO::string_view attr)
 void
 ImageViewer::showImageFormats()
 {
-    QString text;
-    text += tr("Input formats:\n");
-    text += QString::fromStdString(format_list("input_format_list"));
+    std::string text;
+    text += "Input formats:\n";
+    text += format_list("input_format_list");
     text += "\n\n";
-    text += tr("Output formats:\n");
-    text += QString::fromStdString(format_list("output_format_list"));
+    text += "Output formats:\n";
+    text += format_list("output_format_list");
     text += "\n\n";
-    text += tr("Extensions by format:\n");
-    text += QString::fromStdString(
-        std::string(OIIO::get_string_attribute("extension_list")));
+    text += "Extensions by format:\n";
+    text += OIIO::get_string_attribute("extension_list");
     text += "\n";
-
-    QDialog dialog(this);
-    dialog.setWindowTitle(tr("Supported Image Formats"));
-    auto* layout   = new QVBoxLayout(&dialog);
-    auto* textedit = new QTextEdit(&dialog);
-    textedit->setReadOnly(true);
-    textedit->setPlainText(text);
-    layout->addWidget(textedit);
-    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
-    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-    layout->addWidget(buttons);
-    dialog.resize(640, 480);
-    dialog.exec();
+    iv_text_dialog(this, "Supported Image Formats", text);
 }
 
 
@@ -2763,11 +2698,18 @@ ImageViewer::showImageFormats()
 void
 ImageViewer::about()
 {
+#ifdef IV_USE_QT
     QMessageBox::about(
         this, tr("About iv"),
         tr("<p><b>iv</b> is the image viewer for OpenImageIO.</p>"
            "<p>(c) Copyright Contributors to the OpenImageIO project.</p>"
            "<p>See <a href='https://openimageio.org'>https://openimageio.org</a> for details.</p>"));
+#else
+    iv_message(this, "About iv",
+               "iv is the image viewer for OpenImageIO.\n\n"
+               "(c) Copyright Contributors to the OpenImageIO project.\n\n"
+               "See https://openimageio.org for details.");
+#endif
 }
 
 
@@ -2780,7 +2722,7 @@ ImageViewer::updateActions()
     const bool can_compare = m_images.size() >= 2 && glwin->is_glsl_capable();
     if (comparisonAct) {
         comparisonAct->setEnabled(can_compare);
-        QSignalBlocker blocker(comparisonAct);
+        IvSignalBlocker blocker(comparisonAct);
         comparisonAct->setChecked(can_compare && m_comparison_image
                                   && m_diff_mode == DiffMode::Off);
     }
@@ -2841,7 +2783,7 @@ ImageViewer::view(float xcenter, float ycenter, float newzoom, bool smooth,
 
         glwin->view(xc, yc, m_zoom, redraw);  // Triggers redraw automatically
         if (i != nsteps) {
-            QApplication::processEvents();
+            IvApplication::processEvents();
             Sysutil::usleep(1000000 / 4 / nsteps);
         }
     }
@@ -2881,7 +2823,9 @@ ImageViewer::showInfoWindow()
 {
     if (!infoWindow) {
         infoWindow = new IvInfoWindow(*this, true);
+#ifdef IV_USE_QT
         infoWindow->setPalette(m_palette);
+#endif
     }
     infoWindow->update(cur());
     if (infoWindow->isHidden())
@@ -2895,7 +2839,7 @@ ImageViewer::showInfoWindow()
 void
 ImageViewer::showPixelviewWindow()
 {
-    ((QOpenGLWidget*)(glwin))->update();
+    glwin->request_redraw();
 }
 
 
@@ -2905,7 +2849,9 @@ ImageViewer::editPreferences()
 {
     if (!preferenceWindow) {
         preferenceWindow = new IvPreferenceWindow(*this);
+#ifdef IV_USE_QT
         preferenceWindow->setPalette(m_palette);
+#endif
     }
     preferenceWindow->show();
 }
@@ -2917,14 +2863,14 @@ ImageViewer::toggleAreaSample()
 {
     m_areaSampleMode = !m_areaSampleMode;
     if (m_areaSampleMode) {
-        setCursor(Qt::CrossCursor);
+        setCursor(Iv::CrossCursor);
     } else {
         unsetCursor();
     }
     // if (m_areaSampleMode == false){
     //     updateStatusBar();
     // }
-    ((QOpenGLWidget*)(glwin))->update();
+    glwin->request_redraw();
 }
 
 

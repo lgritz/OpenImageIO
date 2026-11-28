@@ -18,9 +18,6 @@
 #include <iostream>
 #include <iterator>
 
-#include <QApplication>
-#include <QTimer>
-
 #include "imageviewer.h"
 #include <OpenImageIO/argparse.h>
 #include <OpenImageIO/filesystem.h>
@@ -121,7 +118,7 @@ main(int argc, char* argv[])
 
     // LG
     //    Q_INIT_RESOURCE(iv);
-    QApplication app(argc, argv);
+    IvApplication app(argc, argv);
 
     std::string color_space = ap["image-color-space"].as_string("");
     std::string display     = ap["display"].as_string("");
@@ -162,7 +159,7 @@ main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    QApplication::processEvents();  // Process any pending events
+    IvApplication::processEvents();  // Process any pending events
 
     // Make sure we are the top window with the focus.
     mainWin->raise();
@@ -239,7 +236,7 @@ main(int argc, char* argv[])
                           "\"flipdiff\"\n");
             return EXIT_FAILURE;
         }
-        QTimer::singleShot(500, mainWin, [mainWin, mode]() {
+        IvTimer::singleShot(500, mainWin, [mainWin, mode]() {
             mainWin->startComparison(mode);
         });
     }

@@ -35,7 +35,7 @@ IvInfoWindow::IvInfoWindow(ImageViewer& viewer, bool visible)
     scrollArea->setAlignment(Qt::AlignTop);
 
     closeButton = new QPushButton(tr("Close"));
-    connect(closeButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(closeButton, &QPushButton::clicked, this, &IvInfoWindow::hide);
 
     QVBoxLayout* mainLayout = new QVBoxLayout;
     mainLayout->addWidget(scrollArea);

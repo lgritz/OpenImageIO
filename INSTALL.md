@@ -38,8 +38,18 @@ NEW or CHANGED MINIMUM dependencies since the last major release are **bold**.
 ### Optional dependencies -- features may be disabled if not found
  * If you are building the `iv` viewer (which will be disabled if any of
    these are not found):
-     * Qt5 >= 5.6 (tested through 5.15) or Qt6 (tested through 6.12)
      * OpenGL
+     * By default (`-DOIIO_IV_BACKEND=Qt`): Qt5 >= 5.6 (tested through 5.15)
+       or Qt6 (tested through 6.12)
+     * With `-DOIIO_IV_BACKEND=ImGui`: GLFW >= 3.3. If not found, it can be
+       downloaded and built automatically (on Linux this needs the X11
+       development packages, e.g. `xorg-dev`, and optionally
+       `libwayland-dev libxkbcommon-dev wayland-protocols` for native Wayland
+       support). Dear ImGui and the other pieces this backend needs are
+       bundled in `src/iv/ext`; use `-DOIIO_IV_EXTERNAL_IMGUI=ON` to use an
+       installed Dear ImGui (with its GLFW and OpenGL2 backends) instead. On
+       Linux, file dialogs need `zenity`, `kdialog` or a similar helper
+       program at runtime.
  * If you are building the Python bindings or running the testsuite:
      * Python >= 3.9 (tested through 3.14).
      * [nanobind](https://github.com/wjakob/nanobind) >= 2.8 (tested through 3.1 and master),

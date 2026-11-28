@@ -8,12 +8,7 @@
 #include <iostream>
 #include <limits>
 
-#include <QComboBox>
-#include <QFontDatabase>
-#include <QLabel>
-#include <QMouseEvent>
-#include <QProgressBar>
-#if OIIO_QT_MAJOR >= 6
+#ifdef IV_USE_QT
 #    include <QPainter>
 #    include <QPen>
 #endif
@@ -47,8 +42,8 @@ gl_err_to_string(GLenum err)
     }
 }
 
-IvGL::IvGL(QWidget* parent, ImageViewer& viewer)
-    : QOpenGLWidget(parent)
+IvGL::IvGL(IvWidget* parent, ImageViewer& viewer)
+    : IvGLWidget(parent)
     , m_viewer(viewer)
     , m_shaders_created(false)
     , m_vertex_shader(0)
@@ -60,7 +55,7 @@ IvGL::IvGL(QWidget* parent, ImageViewer& viewer)
     , m_dragging(false)
     , m_mousex(0)
     , m_mousey(0)
-    , m_drag_button(Qt::NoButton)
+    , m_drag_button(Iv::NoButton)
     , m_use_shaders(false)
     , m_use_halffloat(false)
     , m_use_float(false)
@@ -70,18 +65,11 @@ IvGL::IvGL(QWidget* parent, ImageViewer& viewer)
     , m_last_pbo_used(0)
     , m_pixelview_left_corner(true)
 {
-#if 0
-    QGLFormat format;
-    format.setRedBufferSize (32);
-    format.setGreenBufferSize (32);
-    format.setBlueBufferSize (32);
-    format.setAlphaBufferSize (32);
-    format.setDepth (true);
-    setFormat (format);
-#endif
     m_mouse_activation = false;
+#ifdef IV_USE_QT
     this->setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
+#endif
 }
 
 
@@ -798,11 +786,12 @@ IvGL::paintGL()
 
 void
 IvGL::shadowed_text(float x, float y, float /*z*/, const std::string& s,
-                    const QColor& color)
+                    const IvColor& color)
 {
     if (s.empty()) {
         return;
     }
+#ifdef IV_USE_QT
 
     /*
      * Paint on intermediate QImage, AA text on QOpenGLWidget based
@@ -826,6 +815,26 @@ IvGL::shadowed_text(float x, float y, float /*z*/, const std::string& s,
     }
     QPainter painter(this);
     painter.drawImage(rect(), t);
+#else
+    draw_overlay_text(x, y, s, color);
+#endif
+}
+
+
+
+void
+IvGL::draw_lines(cspan<OverlayLine> lines)
+{
+#ifdef IV_USE_QT
+    QPainter painter(this);
+    for (auto& l : lines) {
+        painter.setPen(QPen(l.color, 1.0));
+        painter.drawLine(l.x1, l.y1, l.x2, l.y2);
+    }
+#else
+    for (auto& l : lines)
+        draw_overlay_line(l.x1, l.y1, l.x2, l.y2, l.color);
+#endif
 }
 
 
@@ -1121,9 +1130,9 @@ IvGL::paint_pixelview()
             -0.5f * closeup_window_size - total_text_height, -0.1f);
 
     // Colors for text and corner indicator of center pixel (Val) being measured
-    QColor center_pix_value_color(0, 255, 255, 125);
+    IvColor center_pix_value_color(0, 255, 255, 125);
     // Color for text and corner indicator of all pixels used for calculating average value
-    QColor avg_value_color(255, 255, 0, 125);
+    IvColor avg_value_color(255, 255, 0, 125);
 
     int pixel_x = (int)real_xp + spec.x;
     int pixel_y = (int)real_yp + spec.y;
@@ -1295,16 +1304,16 @@ IvGL::paint_pixelview()
         y_text = closeup_window_size + text_line_height;
     }
 
-    QColor normal_text_color(200, 200, 200);
+    IvColor normal_text_color(200, 200, 200);
     // Extra spaces to be added after value in case of float values. Depends on the length of the channel name.
     std::string float_spaces_post_value_str(MAX_NAME_LENGTH - maxLengths.name,
                                             ' ');
 
     {
-        QColor center_pix_value_text_color = center_pix_value_color;
+        IvColor center_pix_value_text_color = center_pix_value_color;
         center_pix_value_text_color.setAlpha(200);
 
-        QColor avg_value_text_color = avg_value_color;
+        IvColor avg_value_text_color = avg_value_color;
         avg_value_text_color.setAlpha(200);
 
         std::string mouse_pos = format("              ({:d},{:d})",
@@ -1367,13 +1376,13 @@ IvGL::paint_pixelview()
                                   stat.min, maxLengths.min, stat.max,
                                   maxLengths.max, stat.avg, maxLengths.avg);
 
-        QColor channelColor;
+        IvColor channelColor;
         if (stat.name[0] == 'R') {
-            channelColor = QColor(250, 94, 143);
+            channelColor = IvColor(250, 94, 143);
         } else if (stat.name[0] == 'G') {
-            channelColor = QColor(135, 203, 124);
+            channelColor = IvColor(135, 203, 124);
         } else if (stat.name[0] == 'B') {
-            channelColor = QColor(107, 188, 255);
+            channelColor = IvColor(107, 188, 255);
         } else {
             channelColor = normal_text_color;
         }
@@ -1388,27 +1397,35 @@ IvGL::paint_pixelview()
     // Draw cyan corners around center pixel
     if (is_mouse_inside_image) {
         // Draw corner markers
-        auto draw_corners = [](QPainter& painter, float rect_x1, float rect_y1,
-                               float rect_x2, float rect_y2,
-                               const QColor& color) {
+        std::vector<OverlayLine> lines;
+        auto draw_corners = [&lines](float rect_x1, float rect_y1,
+                                     float rect_x2, float rect_y2,
+                                     const IvColor& color) {
             float corner_size = 4;  // Size of each corner marker
-            painter.setPen(QPen(color, 1.0));
 
             // Top-left corner
-            painter.drawLine(rect_x1, rect_y1, rect_x1 + corner_size, rect_y1);
-            painter.drawLine(rect_x1, rect_y1, rect_x1, rect_y1 + corner_size);
+            lines.push_back(
+                { rect_x1, rect_y1, rect_x1 + corner_size, rect_y1, color });
+            lines.push_back(
+                { rect_x1, rect_y1, rect_x1, rect_y1 + corner_size, color });
 
             // Top-right corner
-            painter.drawLine(rect_x2 - corner_size, rect_y1, rect_x2, rect_y1);
-            painter.drawLine(rect_x2, rect_y1, rect_x2, rect_y1 + corner_size);
+            lines.push_back(
+                { rect_x2 - corner_size, rect_y1, rect_x2, rect_y1, color });
+            lines.push_back(
+                { rect_x2, rect_y1, rect_x2, rect_y1 + corner_size, color });
 
             // Bottom-left corner
-            painter.drawLine(rect_x1, rect_y2 - corner_size, rect_x1, rect_y2);
-            painter.drawLine(rect_x1, rect_y2, rect_x1 + corner_size, rect_y2);
+            lines.push_back(
+                { rect_x1, rect_y2 - corner_size, rect_x1, rect_y2, color });
+            lines.push_back(
+                { rect_x1, rect_y2, rect_x1 + corner_size, rect_y2, color });
 
             // Bottom-right corner
-            painter.drawLine(rect_x2 - corner_size, rect_y2, rect_x2, rect_y2);
-            painter.drawLine(rect_x2, rect_y2 - corner_size, rect_x2, rect_y2);
+            lines.push_back(
+                { rect_x2 - corner_size, rect_y2, rect_x2, rect_y2, color });
+            lines.push_back(
+                { rect_x2, rect_y2 - corner_size, rect_x2, rect_y2, color });
         };
 
         // Size of each pixel in the view taking into account spacing between pixels
@@ -1441,7 +1458,6 @@ IvGL::paint_pixelview()
             rect_y1 = offset_from_closeup_window + 1;
         }
 
-        QPainter painter(this);
         if (avg_window_offset > 0) {
             // Drawing indicators of avg sub-section of the closeup window
             // before adjusting center pixel position because avg is not shifted to the edges
@@ -1457,8 +1473,7 @@ IvGL::paint_pixelview()
             float avg_y2 = rect_y1
                            + (center_to_avg_window_offset + 1)
                                  * closeup_pixel_size;
-            draw_corners(painter, avg_x1, avg_y1, avg_x2, avg_y2,
-                         avg_value_color);
+            draw_corners(avg_x1, avg_y1, avg_x2, avg_y2, avg_value_color);
         }
 
         // Adjust x and y of measured pixel position to account for the fact that the
@@ -1499,8 +1514,9 @@ IvGL::paint_pixelview()
         float rect_x2 = rect_x1 + pixel_size;  // Right edge
         float rect_y2 = rect_y1 + pixel_size;  // Bottom edge
 
-        draw_corners(painter, rect_x1, rect_y1, rect_x2, rect_y2,
+        draw_corners(rect_x1, rect_y1, rect_x2, rect_y2,
                      center_pix_value_color);
+        draw_lines(lines);
     }
 }
 
@@ -1541,8 +1557,6 @@ IvGL::paint_probeview()
             0.5f * closeup_width + 2, -0.5f * closeup_height - extraspace,
             -0.1f);
     // Draw probe text
-    QFont font;
-
     int x_text   = 9;
     int y_text   = height() - closeup_height - 30;
     int yspacing = 15;
@@ -1860,7 +1874,7 @@ IvGL::pan(float dx, float dy)
 
 
 void
-IvGL::remember_mouse(const QPoint& pos)
+IvGL::remember_mouse(const IvPoint& pos)
 {
     m_mousex = pos.x();
     m_mousey = pos.y();
@@ -1973,33 +1987,30 @@ IvGL::update_area_probe_text()
         }
     }
 
-    QString result = "Area Probe:\n";
+    std::string result = "Area Probe:\n";
     for (int c = 0; c < spec.nchannels; ++c) {
         float avg = (count > 0) ? static_cast<float>(sums[c] / count) : 0.0f;
-        result += QString("%1: [min: %2  max: %3  avg: %4]\n")
-                      .arg(QString::fromStdString(spec.channel_name(c))
-                               .leftJustified(5))
-                      .arg(min_vals[c], 6, 'f', 3)
-                      .arg(max_vals[c], 6, 'f', 3)
-                      .arg(avg, 6, 'f', 3);
+        result += Strutil::format(
+            "{:<5}: [min: {:6.3f}  max: {:6.3f}  avg: {:6.3f}]\n",
+            spec.channel_name(c), min_vals[c], max_vals[c], avg);
     }
 
-    m_area_probe_text = result.toStdString();
+    m_area_probe_text = result;
 }
 
 
 
 void
-IvGL::mousePressEvent(QMouseEvent* event)
+IvGL::mousePressEvent(IvMouseEvent* event)
 {
     remember_mouse(event->pos());
     int mousemode = m_viewer.mouseModeComboBox->currentIndex();
     bool areaMode = m_viewer.areaSampleMode();
-    bool Alt      = (event->modifiers() & Qt::AltModifier);
+    bool Alt      = (event->modifiers() & Iv::AltModifier);
     m_drag_button = event->button();
     if (!m_mouse_activation) {
         switch (event->button()) {
-        case Qt::LeftButton:
+        case Iv::LeftButton:
             if (areaMode) {
                 m_select_start = event->pos();
                 m_select_end   = m_select_start;
@@ -2018,17 +2029,13 @@ IvGL::mousePressEvent(QMouseEvent* event)
             } else
                 m_dragging = true;
             return;
-        case Qt::RightButton:
+        case Iv::RightButton:
             if (mousemode == ImageViewer::MouseModeZoom && !Alt && !areaMode)
                 m_viewer.zoomOut(true);  // Animated zoom for mouse clicks
             else
                 m_dragging = true;
             return;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-        case Qt::MiddleButton:
-#else
-        case Qt::MidButton:
-#endif
+        case Iv::MiddleButton:
             m_dragging = true;
             // FIXME: should this be return rather than break?
             break;
@@ -2042,17 +2049,17 @@ IvGL::mousePressEvent(QMouseEvent* event)
 
 
 void
-IvGL::mouseReleaseEvent(QMouseEvent* event)
+IvGL::mouseReleaseEvent(IvMouseEvent* event)
 {
     remember_mouse(event->pos());
-    m_drag_button = Qt::NoButton;
+    m_drag_button = Iv::NoButton;
     m_dragging    = false;
     if (m_selecting) {
         m_select_end = event->pos();
         m_selecting  = false;
         update_area_probe_text();
-        m_select_start = QPoint();
-        m_select_end   = QPoint();
+        m_select_start = IvPoint();
+        m_select_end   = IvPoint();
         parent_t::update();
     }
     parent_t::mouseReleaseEvent(event);
@@ -2061,9 +2068,9 @@ IvGL::mouseReleaseEvent(QMouseEvent* event)
 
 
 void
-IvGL::mouseMoveEvent(QMouseEvent* event)
+IvGL::mouseMoveEvent(IvMouseEvent* event)
 {
-    QPoint pos = event->pos();
+    IvPoint pos = event->pos();
 
     if (m_diff_mode == DiffMode::Off && m_viewer.m_comparison_image
         && !m_viewer.areaSampleMode()) {
@@ -2106,33 +2113,29 @@ IvGL::mouseMoveEvent(QMouseEvent* event)
 
     // FIXME - there's probably a better Qt way than tracking the button
     // myself.
-    bool Alt      = (event->modifiers() & Qt::AltModifier);
+    bool Alt      = (event->modifiers() & Iv::AltModifier);
     int mousemode = m_viewer.mouseModeComboBox->currentIndex();
     bool do_pan = false, do_zoom = false;
     bool do_select = false, do_annotate = false;
     switch (mousemode) {
     case ImageViewer::MouseModeZoom:
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-        if ((m_drag_button == Qt::MiddleButton)
-#else
-        if ((m_drag_button == Qt::MidButton)
-#endif
-            || (m_drag_button == Qt::LeftButton && Alt)) {
+        if ((m_drag_button == Iv::MiddleButton)
+            || (m_drag_button == Iv::LeftButton && Alt)) {
             do_pan = true;
-        } else if (m_drag_button == Qt::RightButton && Alt) {
+        } else if (m_drag_button == Iv::RightButton && Alt) {
             do_zoom = true;
         }
         break;
     case ImageViewer::MouseModePan:
-        if (m_drag_button != Qt::NoButton)
+        if (m_drag_button != Iv::NoButton)
             do_pan = true;
         break;
     case ImageViewer::MouseModeSelect:
-        if (m_drag_button != Qt::NoButton)
+        if (m_drag_button != Iv::NoButton)
             do_select = true;
         break;
     case ImageViewer::MouseModeAnnotate:
-        if (m_drag_button != Qt::NoButton)
+        if (m_drag_button != Iv::NoButton)
             do_annotate = true;
         break;
     }
@@ -2165,10 +2168,10 @@ IvGL::mouseMoveEvent(QMouseEvent* event)
 
 
 void
-IvGL::wheelEvent(QWheelEvent* event)
+IvGL::wheelEvent(IvWheelEvent* event)
 {
     m_mouse_activation = false;
-    QPoint angdelta    = event->angleDelta() / 8;  // div by 8 to get degrees
+    IvPoint angdelta   = event->angleDelta() / 8;  // div by 8 to get degrees
     if (abs(angdelta.y()) > abs(angdelta.x())      // predominantly vertical
         && abs(angdelta.y()) > 2) {                // suppress tiny motions
         if (angdelta.y() > 0) {
@@ -2184,14 +2187,14 @@ IvGL::wheelEvent(QWheelEvent* event)
 
 
 void
-IvGL::focusOutEvent(QFocusEvent*)
+IvGL::focusOutEvent(IvFocusEvent*)
 {
     m_mouse_activation = true;
     m_wipe.anchored    = false;
 }
 
 void
-IvGL::leaveEvent(QEvent* event)
+IvGL::leaveEvent(IvEvent* event)
 {
     m_wipe.anchored = false;
     parent_t::leaveEvent(event);
@@ -2327,6 +2330,7 @@ IvGL::print_shader_log(std::ostream& out, const GLuint shader_id)
 void
 IvGL::check_gl_extensions(void)
 {
+#ifdef IV_USE_QT
     m_use_shaders = hasOpenGLFeature(QOpenGLFunctions::Shaders);
 
     QOpenGLContext* context = QOpenGLContext::currentContext();
@@ -2347,6 +2351,15 @@ IvGL::check_gl_extensions(void)
                   || context->hasExtension("GL_ARB_texture_float")
                   || context->hasExtension("GL_ATI_texture_float")
                   || context->hasExtension("GL_OES_texture_float");
+#else
+    // OpenGL 2.1 is the minimum, and has shaders and sRGB textures.
+    int major       = atoi((const char*)glGetString(GL_VERSION));
+    m_use_shaders   = true;
+    m_use_srgb      = true;
+    m_use_halffloat = major >= 3 || GLAD_GL_ARB_half_float_pixel
+                      || GLAD_GL_NV_half_float;
+    m_use_float     = major >= 3 || GLAD_GL_ARB_texture_float;
+#endif
 
     m_max_texture_size = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &m_max_texture_size);
@@ -2493,7 +2506,7 @@ IvGL::load_texture(ImageSlot& slot, GLenum texture_unit, int x, int y,
         }
     }
 
-    setCursor(Qt::WaitCursor);
+    setCursor(Iv::WaitCursor);
 
     int nchannels = spec.nchannels;
     // For simplicity, we don't support more than 4 channels without shaders
@@ -2555,7 +2568,7 @@ IvGL::update_cursor()
 {
     if (m_diff_mode == DiffMode::Off && m_viewer.m_comparison_image
         && !m_viewer.areaSampleMode())
-        setCursor(m_wipe.horizontal ? Qt::SplitVCursor : Qt::SplitHCursor);
+        setCursor(m_wipe.horizontal ? Iv::SplitVCursor : Iv::SplitHCursor);
     else
         unsetCursor();
 }

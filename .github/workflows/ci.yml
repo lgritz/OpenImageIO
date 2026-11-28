@@ -441,7 +441,8 @@ jobs:
                             PUGIXML_VERSION=master
                             WEBP_VERSION=main
                             OIIO_HARDENING=2
-                            EXTRA_DEP_PACKAGES="python3.12-dev python3-numpy"
+                            EXTRA_DEP_PACKAGES="python3.12-dev python3-numpy xorg-dev libgl1-mesa-dev libwayland-dev libxkbcommon-dev wayland-protocols"
+                            OIIO_CMAKE_FLAGS=-DOIIO_IV_BACKEND=ImGui
                             FREETYPE_VERSION=master
                             OpenImageIO_DEPENDENCY_BUILD_ALLOW_UNVERIFIED_TAGS=ON
                             QT_VERSION=0 INSTALL_OPENCV=0 USE_OPENVDB=0
@@ -757,6 +758,7 @@ jobs:
             cxx_std: 20
             python_ver: "3.14"
             oiio_python_bindings_backend: nanobind
+            setenvs: export OIIO_CMAKE_FLAGS=-DOIIO_IV_BACKEND=ImGui
             benchmark: 1
 
 
@@ -822,6 +824,7 @@ jobs:
             oiio_python_bindings_backend: nanobind
             ctest_test_timeout: "240"
             setenvs: export OPENIMAGEIO_PYTHON_LOAD_DLLS_FROM_PATH=1
+                            OIIO_CMAKE_FLAGS=-DOIIO_IV_BACKEND=ImGui
             benchmark: 1
           # Static library build (MSVC static CRT, /MT).
           - desc: Windows-2022 VS2022 static CRT

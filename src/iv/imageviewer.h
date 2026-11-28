@@ -23,43 +23,15 @@
 #include <thread>
 #include <vector>
 
-#include <QAction>
-#include <QActionGroup>
-#include <QCheckBox>
-#include <QDialog>
-#include <QMainWindow>
-#include <QMimeData>
-#include <QSpinBox>
-
-#if OIIO_QT_MAJOR < 6
-#    include <QGLWidget>
-#else
-#    include <QOpenGLWidget>
-#endif
-
-#ifndef QT_NO_PRINTER
-// #include <QPrinter>
-#endif
-
 #include <OpenImageIO/imagebuf.h>
 #include <OpenImageIO/imageio.h>
 
 #include "ivgl_ocio.h"
+#include "ivui.h"
 #include "ivutils.h"
 
 using namespace OIIO;
 
-class QComboBox;
-class QLabel;
-class QMenu;
-class QMenuBar;
-class QProgressBar;
-class QPushButton;
-class QScrollArea;
-class QStatusBar;
-class QVBoxLayout;
-
-class IvMainWindow;
 class IvInfoWindow;
 class IvPreferenceWindow;
 class IvCanvas;
@@ -161,7 +133,7 @@ private:
 
 
 
-class ImageViewer final : public QMainWindow {
+class ImageViewer final : public IvMainWindow {
     Q_OBJECT
 
 public:
@@ -179,6 +151,9 @@ public:
 
     /// Tell the viewer about an image, but don't load it yet.
     void add_image(const std::string& filename);
+
+    // Add images dropped onto the window and view the first of them.
+    void add_dropped_files(const std::vector<std::string>& filenames);
 
     /// View this image.
     ///
@@ -286,7 +261,9 @@ public:
         return darkPaletteBox ? darkPaletteBox->isChecked() : m_darkPalette;
     }
 
+#ifdef IV_USE_QT
     QPalette palette(void) const { return m_palette; }
+#endif
 
     void rawcolor(bool val) { m_rawcolor = val; }
     bool rawcolor() const { return m_rawcolor; }
@@ -322,15 +299,14 @@ public:
     const std::string& ocioView() { return m_ocioView; }
 
 private slots:
-    void open();                ///< Dialog to open new image from file
-    void reload();              ///< Reread current image from disk
-    void openRecentFile();      ///< Open a recent file
-    void closeImg();            ///< Close the current image
-    void saveAs();              ///< Save As... functionality
-    void saveWindowAs();        ///< Save As... functionality
-    void saveSelectionAs();     ///< Save As... functionality
+    void open();                        // Dialog to open new image from file
+    void reload();                      // Reread current image from disk
+    void openRecentFile(size_t index);  // Open a recent file
+    void closeImg();                    // Close the current image
+    void saveAs();                      // Save As... functionality
+    void saveWindowAs();                // Save As... functionality
+    void saveSelectionAs();             // Save As... functionality
     void moveToNewWindow();     ///< Split current image off as a new window
-    void print();               ///< Print current image
     void deleteCurrentImage();  ///< Deleting displayed image
     void zoomIn(bool smooth = true);   ///< Zoom in to next power of 2
     void zoomOut(bool smooth = true);  ///< Zoom out to next power of 2
@@ -395,8 +371,9 @@ private slots:
     void flipVertical();
 
     void useOCIOAction(bool checked);
-    void ocioColorSpaceAction();
-    void ocioDisplayViewAction();
+    void ocioColorSpaceAction(const std::string& name);
+    void ocioDisplayViewAction(const std::string& display,
+                               const std::string& view);
 
 private:
     void createActions();
@@ -418,13 +395,15 @@ private:
     void flipDiffDone(ImageBuf errmap);  ///< Receive FLIP result (GUI thread)
     void updateTitle();
     void updateStatusBar();
-    void keyPressEvent(QKeyEvent* event) override;
-    void resizeEvent(QResizeEvent* event) override;
-    void closeEvent(QCloseEvent* event) override;
+    void keyPressEvent(IvKeyEvent* event) override;
+    void resizeEvent(IvResizeEvent* event) override;
+    void closeEvent(IvCloseEvent* event) override;
+#ifdef IV_USE_QT
     void dragEnterEvent(QDragEnterEvent* event) override;
     void dropEvent(QDropEvent* event) override;
+#endif
 
-    QTimer* slideTimer;     ///< Timer to use for slide show mode
+    IvTimer* slideTimer;    // Timer to use for slide show mode
     long slideDuration_ms;  ///< Slide show mode duration (in ms)
     bool slide_loop;        ///< Do we loop when in slide mode?
 
@@ -432,78 +411,73 @@ private:
     IvInfoWindow* infoWindow;
     IvPreferenceWindow* preferenceWindow;
 
-#ifndef QT_NO_PRINTER
-    // QPrinter printer;
-#endif
 
-
-    QAction *openAct, *reloadAct, *closeImgAct;
+    IvAction *openAct, *reloadAct, *closeImgAct;
     static const unsigned int MaxRecentFiles = 10;
-    QAction* openRecentAct[MaxRecentFiles];
-    QAction *saveAsAct, *saveWindowAsAct, *saveSelectionAsAct;
-    QAction* moveToNewWindowAct;
-    QAction* printAct;
-    QAction* deleteCurrentImageAct;
-    QAction* exitAct;
-    QAction *gammaPlusAct, *gammaMinusAct;
-    QAction *exposurePlusOneTenthStopAct, *exposurePlusOneHalfStopAct;
-    QAction *exposureMinusOneTenthStopAct, *exposureMinusOneHalfStopAct;
-    QAction *viewChannelFullAct, *viewChannelRedAct, *viewChannelGreenAct;
-    QAction *viewChannelBlueAct, *viewChannelAlphaAct;
-    QAction *viewChannelPrevAct, *viewChannelNextAct;
-    QAction *viewColorRGBAAct, *viewColorRGBAct, *viewColor1ChAct;
-    QAction *viewColorLumAct, *viewColorHeatmapAct;
-    QAction *viewSubimagePrevAct, *viewSubimageNextAct;
-    QAction* zoomInAct;
-    QAction* zoomOutAct;
-    QAction* normalSizeAct;
-    QAction *fitWindowToImageAct, *fitImageToWindowAct;
-    QAction* fullScreenAct;
-    QAction* formatsAct;
-    QAction* aboutAct;
-    QAction *nextImageAct, *prevImageAct, *toggleImageAct;
-    QAction* comparisonAct         = nullptr;
-    QMenu* differenceMenu          = nullptr;
-    QAction* differenceOffAct      = nullptr;
-    QAction* differenceAbsDiffAct  = nullptr;
-    QAction* differenceFlipDiffAct = nullptr;
-    QAction* differenceCycleAct    = nullptr;
-    QAction* flipColormapAct       = nullptr;
-    QAction *sortByNameAct, *sortByPathAct, *sortReverseAct;
-    QAction *sortByImageDateAct, *sortByFileDateAct;
-    QAction *slideShowAct, *slideLoopAct, *slideNoLoopAct;
-    QAction* showInfoWindowAct;
-    QAction* editPreferencesAct;
-    QAction* showPixelviewWindowAct;
-    QAction* toggleAreaSampleAct;
-    QAction* toggleWindowGuidesAct;
-    QAction *rotateLeftAct, *rotateRightAct, *flipHorizontalAct,
+    IvAction* openRecentAct[MaxRecentFiles];
+    IvAction *saveAsAct, *saveWindowAsAct, *saveSelectionAsAct;
+    IvAction* moveToNewWindowAct;
+    IvAction* deleteCurrentImageAct;
+    IvAction* exitAct;
+    IvAction *gammaPlusAct, *gammaMinusAct;
+    IvAction *exposurePlusOneTenthStopAct, *exposurePlusOneHalfStopAct;
+    IvAction *exposureMinusOneTenthStopAct, *exposureMinusOneHalfStopAct;
+    IvAction *viewChannelFullAct, *viewChannelRedAct, *viewChannelGreenAct;
+    IvAction *viewChannelBlueAct, *viewChannelAlphaAct;
+    IvAction *viewChannelPrevAct, *viewChannelNextAct;
+    IvAction *viewColorRGBAAct, *viewColorRGBAct, *viewColor1ChAct;
+    IvAction *viewColorLumAct, *viewColorHeatmapAct;
+    IvAction *viewSubimagePrevAct, *viewSubimageNextAct;
+    IvAction* zoomInAct;
+    IvAction* zoomOutAct;
+    IvAction* normalSizeAct;
+    IvAction *fitWindowToImageAct, *fitImageToWindowAct;
+    IvAction* fullScreenAct;
+    IvAction* formatsAct;
+    IvAction* aboutAct;
+    IvAction *nextImageAct, *prevImageAct, *toggleImageAct;
+    IvAction* comparisonAct         = nullptr;
+    IvMenu* differenceMenu          = nullptr;
+    IvAction* differenceOffAct      = nullptr;
+    IvAction* differenceAbsDiffAct  = nullptr;
+    IvAction* differenceFlipDiffAct = nullptr;
+    IvAction* differenceCycleAct    = nullptr;
+    IvAction* flipColormapAct       = nullptr;
+    IvAction *sortByNameAct, *sortByPathAct, *sortReverseAct;
+    IvAction *sortByImageDateAct, *sortByFileDateAct;
+    IvAction *slideShowAct, *slideLoopAct, *slideNoLoopAct;
+    IvAction* showInfoWindowAct;
+    IvAction* editPreferencesAct;
+    IvAction* showPixelviewWindowAct;
+    IvAction* toggleAreaSampleAct;
+    IvAction* toggleWindowGuidesAct;
+    IvAction *rotateLeftAct, *rotateRightAct, *flipHorizontalAct,
         *flipVerticalAct;
-    QMenu *fileMenu, *editMenu, /**imageMenu,*/ *viewMenu, *toolsMenu,
+    IvMenu *fileMenu, *editMenu, /**imageMenu,*/ *viewMenu, *toolsMenu,
         *helpMenu;
-    QMenu* openRecentMenu;
-    QMenu *expgamMenu, *channelMenu, *colormodeMenu, *slideMenu, *sortMenu;
-    QLabel *statusImgInfo, *statusViewInfo;
-    QProgressBar* statusProgress;
-    QComboBox* mouseModeComboBox;
+    IvMenu* openRecentMenu;
+    IvMenu *expgamMenu, *channelMenu, *colormodeMenu, *slideMenu, *sortMenu;
+    IvLabel *statusImgInfo, *statusViewInfo;
+    IvProgressBar* statusProgress;
+    IvComboBox* mouseModeComboBox;
     enum MouseMode {
         MouseModeZoom,
         MouseModePan,
         MouseModeSelect,
         MouseModeAnnotate
     };
-    QCheckBox* pixelviewFollowsMouseBox;
-    QCheckBox* linearInterpolationBox;
-    QCheckBox* darkPaletteBox;
-    QCheckBox* autoMipmap;
-    QLabel* maxMemoryICLabel;
-    QSpinBox* maxMemoryIC;
-    QLabel* slideShowDurationLabel;
-    QSpinBox* slideShowDuration;
-    QLabel* closeupPixelsLabel;
-    QSpinBox* closeupPixelsBox;
-    QLabel* closeupAvgPixelsLabel;
-    QSpinBox* closeupAvgPixelsBox;
+    IvCheckBox* pixelviewFollowsMouseBox;
+    IvCheckBox* linearInterpolationBox;
+    IvCheckBox* darkPaletteBox;
+    IvCheckBox* autoMipmap;
+    IvLabel* maxMemoryICLabel;
+    IvSpinBox* maxMemoryIC;
+    IvLabel* slideShowDurationLabel;
+    IvSpinBox* slideShowDuration;
+    IvLabel* closeupPixelsLabel;
+    IvSpinBox* closeupPixelsBox;
+    IvLabel* closeupAvgPixelsLabel;
+    IvSpinBox* closeupAvgPixelsBox;
 
     std::vector<IvImage*> m_images;  // List of images
     IvImage* m_comparison_image = nullptr;
@@ -517,12 +491,14 @@ private:
     bool m_fullscreen;            // Full screen mode
     std::vector<std::string> m_recent_files;  // Recently opened files
     float m_default_gamma;                    // Default gamma of the display
-    QPalette m_palette;                       // Custom palette
-    bool m_darkPalette;                       // Use dark palette?
-    bool m_rawcolor                = false;   // Use raw color mode
-    bool m_areaSampleMode          = false;   // Use area sample mode
-    bool m_tolerate_missing_pixels = true;    // Fill missing pixels (see
-                                              // --missing-pixels)
+#ifdef IV_USE_QT
+    QPalette m_palette;  // Custom palette
+#endif
+    bool m_darkPalette;                      // Use dark palette?
+    bool m_rawcolor                = false;  // Use raw color mode
+    bool m_areaSampleMode          = false;  // Use area sample mode
+    bool m_tolerate_missing_pixels = true;   // Fill missing pixels (see
+                                             // --missing-pixels)
 
     // FLIP diff background computation state: worker running / recompute
     // needed / signature of the inputs last computed (skips redundant
@@ -547,15 +523,15 @@ private:
 
     friend class IvGL_OCIO;
 
-    void createOCIOMenus(QMenu* parent);
+    void createOCIOMenus(IvMenu* parent);
 
-    QMenu* ocioColorSpacesMenu;
-    QMenu* ocioDisplaysMenu;
-    QMenu* ocioOptimizationMenu;
+    IvMenu* ocioColorSpacesMenu;
+    IvMenu* ocioDisplaysMenu;
+    IvMenu* ocioOptimizationMenu;
 
-    QActionGroup* ocioColorSpacesGroup;
-    QActionGroup* ocioDisplayViewsGroup;
-    QActionGroup* ocioOptimizationGroup;
+    IvActionGroup* ocioColorSpacesGroup;
+    IvActionGroup* ocioDisplayViewsGroup;
+    IvActionGroup* ocioOptimizationGroup;
 
     bool m_useOCIO;
     std::string m_ocioColourSpace;
@@ -565,6 +541,14 @@ private:
 
 
 
+#ifdef IV_USE_QT
+
+#    include <QDialog>
+
+class QPushButton;
+class QScrollArea;
+class QVBoxLayout;
+
 class IvInfoWindow final : public QDialog {
     Q_OBJECT
 public:
@@ -572,12 +556,12 @@ public:
     void update(IvImage* img);
 
 protected:
-    void keyPressEvent(QKeyEvent* event) override;
+    void keyPressEvent(IvKeyEvent* event) override;
 
 private:
     QPushButton* closeButton;
     QScrollArea* scrollArea;
-    QLabel* infoLabel;
+    IvLabel* infoLabel;
 
     ImageViewer& m_viewer;
     bool m_visible;
@@ -591,7 +575,7 @@ public:
     IvPreferenceWindow(ImageViewer& viewer);
 
 protected:
-    void keyPressEvent(QKeyEvent* event) override;
+    void keyPressEvent(IvKeyEvent* event) override;
 
 private:
     QVBoxLayout* layout;
@@ -599,6 +583,29 @@ private:
 
     ImageViewer& m_viewer;
 };
+
+#else  // IV_USE_QT
+
+class IvInfoWindow final : public IvPanel {
+public:
+    IvInfoWindow(ImageViewer& viewer, bool visible = true);
+    void update(IvImage* img);
+    void draw_contents() override;
+
+private:
+    std::string m_info;  // HTML table rows, from IvImage::longinfo()
+};
+
+class IvPreferenceWindow final : public IvPanel {
+public:
+    IvPreferenceWindow(ImageViewer& viewer);
+    void draw_contents() override;
+
+private:
+    ImageViewer& m_viewer;
+};
+
+#endif  // IV_USE_QT
 
 
 

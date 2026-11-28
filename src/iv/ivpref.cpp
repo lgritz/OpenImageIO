@@ -22,7 +22,8 @@ IvPreferenceWindow::IvPreferenceWindow(ImageViewer& viewer)
 {
     closeButton = new QPushButton(tr("Close"));
     closeButton->setShortcut(tr("Ctrl+W"));
-    connect(closeButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(closeButton, &QPushButton::clicked, this,
+            &IvPreferenceWindow::hide);
 
     layout = new QVBoxLayout;
     layout->addWidget(viewer.pixelviewFollowsMouseBox);

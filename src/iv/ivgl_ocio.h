@@ -22,7 +22,7 @@ using namespace OCIO;
 
 class IvGL_OCIO : public IvGL {
 public:
-    IvGL_OCIO(QWidget* parent, ImageViewer& viewer);
+    IvGL_OCIO(IvWidget* parent, ImageViewer& viewer);
     virtual ~IvGL_OCIO();
 
 protected:

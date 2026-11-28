@@ -5,10 +5,9 @@
 #include "ivgl_ocio.h"
 #include "imageviewer.h"
 
-#include <QLabel>
 
 
-IvGL_OCIO::IvGL_OCIO(QWidget* parent, ImageViewer& viewer)
+IvGL_OCIO::IvGL_OCIO(IvWidget* parent, ImageViewer& viewer)
     : IvGL(parent, viewer)
 {
 }
@@ -199,7 +198,8 @@ IvGL_OCIO::color_func_shader_text()
 void
 IvGL_OCIO::on_ocio_error(const char* message)
 {
-    m_viewer.statusImgInfo->setText(tr("OCIO error: %1.").arg(message));
+    m_viewer.statusImgInfo->setText(
+        Strutil::format("OCIO error: {}.", message).c_str());
 
     if (m_shader_desc != nullptr) {
         reset();
